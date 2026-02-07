@@ -3,7 +3,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 // Section configuration for portfolio templates
 export interface SectionConfig {
     id: string;
-    type: 'header' | 'about' | 'skills' | 'certifications' | 'projects' | 'footer';
+    type: 'header' | 'about' | 'skills' | 'certifications' | 'projects' | 'resume' | 'contact' | 'footer';
     variant: string; // e.g., 'Header01', 'Header02', etc.
     isVisible: boolean;
     order: number;
@@ -147,9 +147,10 @@ const portfolioSlice = createSlice({
                 { id: 'header', type: 'header', variant: 'Header01', isVisible: true, order: 0 },
                 { id: 'about', type: 'about', variant: 'Hero01', isVisible: true, order: 1 },
                 { id: 'skills', type: 'skills', variant: 'Skills01', isVisible: true, order: 2 },
-                { id: 'certifications', type: 'certifications', variant: 'Cert01', isVisible: true, order: 3 },
-                { id: 'projects', type: 'projects', variant: 'Projects01', isVisible: true, order: 4 },
-                { id: 'footer', type: 'footer', variant: 'Footer01', isVisible: true, order: 5 },
+                { id: 'projects', type: 'projects', variant: 'Projects01', isVisible: true, order: 3 },
+                { id: 'resume', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 4 },
+                { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5 },
+                { id: 'footer', type: 'footer', variant: 'Footer01', isVisible: true, order: 6 },
             ];
         },
 

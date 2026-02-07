@@ -8,26 +8,7 @@ import { SkillsOrganism } from '../organisms/SkillsOrganism/SkillsOrganism';
 import { ResumeOrganism } from '../organisms/ResumeOrganism/ResumeOrganism';
 import { ContactOrganism } from '../organisms/ContactOrganism/ContactOrganism';
 
-// ... (existing imports)
 
-    // ... (inside switch)
-                    case 'resume':
-return (
-    <ResumeOrganism
-        key={section.id}
-        variant={section.variant as 'ResumeMain'}
-        {...section.customData}
-    />
-);
-
-                    case 'contact':
-return (
-    <ContactOrganism
-        key={section.id}
-        variant={section.variant as 'ContactMain'}
-        {...section.customData}
-    />
-);
 
 import { FooterOrganism } from '../organisms/FooterOrganism/FooterOrganism';
 import { type MenuItem } from '../molecules/NavigationMenu/NavigationMenu';
