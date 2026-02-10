@@ -22,6 +22,7 @@ interface ProfileCardProps {
     } | null;
     onLogout: () => void;
     onProfileUpdate: (updatedProfile: any) => void;
+    onNavigateToProfile?: () => void;
 }
 
 export function ProfileCard({
@@ -29,6 +30,7 @@ export function ProfileCard({
     onClose,
     userProfile,
     onLogout,
+    onNavigateToProfile,
 }: ProfileCardProps) {
     const cardRef = useRef<HTMLDivElement>(null);
     const [currentTime, setCurrentTime] = useState(new Date());
@@ -132,7 +134,9 @@ export function ProfileCard({
                 <div
                     className="bg-blue-600 hover:bg-blue-700 transition-all cursor-pointer py-3 px-6 flex justify-between items-center group relative overflow-hidden"
                     onClick={() => {
-                        window.location.href = '/profile';
+                        if (onNavigateToProfile) {
+                            onNavigateToProfile();
+                        }
                         onClose();
                     }}
                 >

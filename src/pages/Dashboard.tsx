@@ -1,35 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  Brain,
   Eye,
   Heart,
   Box,
-  Share2,
-  Target,
-  TrendingUp,
-  Clock,
+  Send,
   Users,
-  Search,
+  Share2,
+  TrendingUp,
   Plus,
   Upload,
-  Send,
-  ExternalLink,
   Linkedin,
   Twitter,
   Facebook,
-  ChevronDown,
   Github,
   Instagram,
-  Sparkles,
-  BarChart3,
-  Rocket,
 } from "lucide-react";
 import { RedditIcon } from "@/components/BrandIcons";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import PortfolioHealthCard from "../components/PortfolioHealth/PortfolioHealthCard";
+import PortfolioInsightsCard from "../components/PortfolioHealth/PortfolioInsightsCard";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 import { UnifiedSidebar } from "../components/UnifiedSidebar";
 import { usePortfolioHealth } from "../hooks/usePortfolioHealth";
@@ -77,6 +69,72 @@ export default function Dashboard() {
   });
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  const [timeRange, setTimeRange] = useState<'day' | 'month' | 'year'>('day');
+
+  const getChartData = (type: 'reach' | 'engagement') => {
+    if (timeRange === 'day') {
+      return type === 'reach' ? [
+        { label: "Mon", value: 120, date: "Mon" },
+        { label: "Tue", value: 200, date: "Tue" },
+        { label: "Wed", value: 150, date: "Wed" },
+        { label: "Thu", value: 300, date: "Thu" },
+        { label: "Fri", value: 250, date: "Fri" },
+        { label: "Sat", value: 400, date: "Sat" },
+        { label: "Sun", value: 380, date: "Sun" },
+      ] : [
+        { label: "Mon", value: 2.5, date: "Mon" },
+        { label: "Tue", value: 3.0, date: "Tue" },
+        { label: "Wed", value: 4.5, date: "Wed" },
+        { label: "Thu", value: 3.8, date: "Thu" },
+        { label: "Fri", value: 5.2, date: "Fri" },
+        { label: "Sat", value: 4.8, date: "Sat" },
+        { label: "Sun", value: 4.5, date: "Sun" },
+      ];
+    } else if (timeRange === 'month') {
+      return type === 'reach' ? [
+        { label: "Jan", value: 1200, date: "Jan" },
+        { label: "Feb", value: 1500, date: "Feb" },
+        { label: "Mar", value: 1300, date: "Mar" },
+        { label: "Apr", value: 1800, date: "Apr" },
+        { label: "May", value: 2200, date: "May" },
+        { label: "Jun", value: 2500, date: "Jun" },
+        { label: "Jul", value: 2100, date: "Jul" },
+        { label: "Aug", value: 2800, date: "Aug" },
+        { label: "Sep", value: 3000, date: "Sep" },
+        { label: "Oct", value: 3200, date: "Oct" },
+        { label: "Nov", value: 2900, date: "Nov" },
+        { label: "Dec", value: 3500, date: "Dec" },
+      ] : [
+        { label: "Jan", value: 3.5, date: "Jan" },
+        { label: "Feb", value: 4.0, date: "Feb" },
+        { label: "Mar", value: 3.8, date: "Mar" },
+        { label: "Apr", value: 4.5, date: "Apr" },
+        { label: "May", value: 5.0, date: "May" },
+        { label: "Jun", value: 5.5, date: "Jun" },
+        { label: "Jul", value: 5.2, date: "Jun" },
+        { label: "Aug", value: 5.8, date: "Aug" },
+        { label: "Sep", value: 6.0, date: "Sep" },
+        { label: "Oct", value: 6.2, date: "Oct" },
+        { label: "Nov", value: 5.9, date: "Nov" },
+        { label: "Dec", value: 6.5, date: "Dec" },
+      ];
+    } else {
+      // Year
+      return type === 'reach' ? [
+        { label: "2024", value: 15000, date: "2024" },
+        { label: "2025", value: 25000, date: "2025" },
+        { label: "2026", value: 35000, date: "2026" },
+        { label: "2027", value: 45000, date: "2027" },
+        { label: "2028", value: 60000, date: "2028" },
+      ] : [
+        { label: "2024", value: 4.2, date: "2024" },
+        { label: "2025", value: 5.5, date: "2025" },
+        { label: "2026", value: 6.8, date: "2026" },
+        { label: "2027", value: 7.5, date: "2027" },
+        { label: "2028", value: 8.2, date: "2028" },
+      ];
+    }
+  };
 
   // Initialize userProfile from localStorage immediately for faster UI
   const initializeProfileFromStorage = () => {
@@ -670,7 +728,7 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden relative flex flex-col h-screen">
-        <div className="flex flex-col w-full h-full overflow-y-auto bg-white overflow-x-visible">
+        <div className="flex flex-col w-full h-full overflow-y-auto bg-background overflow-x-visible">
           {/* Header with Search and Actions */}
           <div className="flex flex-col gap-2 flex-shrink-0 px-6 pt-6 pb-2 relative">
             {/* Top Row: Title and Profile Icon */}
@@ -683,8 +741,9 @@ export default function Dashboard() {
               </div>
 
               {/* User Profile - Circular Icon at Top Right Corner */}
-              {/* User Profile - Circular Icon at Top Right Corner */}
-              <div className="relative z-50">
+              <div className="flex items-center gap-4 relative z-50">
+                <ThemeToggle />
+
                 <button
                   onClick={(e) => {
                     e.preventDefault();
@@ -717,6 +776,7 @@ export default function Dashboard() {
                   isOpen={showProfileDropdown}
                   onClose={() => setShowProfileDropdown(false)}
                   userProfile={userProfile || { name: "Guest User", email: "guest@example.com", bio: "Please log in" }}
+                  onNavigateToProfile={() => navigate("/profile")}
                   onLogout={() => {
                     localStorage.removeItem("user");
                     localStorage.removeItem("token");
@@ -731,14 +791,32 @@ export default function Dashboard() {
 
             {/* Second Row: Search Bar and Action Buttons in line */}
             <div className="flex items-center justify-between gap-4">
-              {/* Search Bar with ShowWork Logo Character */}
-              <ShowWorkSearchBar
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search projects..."
-              />
+              <div className="flex items-center gap-3 flex-1">
+                {/* Search Bar with ShowWork Logo Character */}
+                <ShowWorkSearchBar
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search projects..."
+                />
 
-              {/* Action Buttons - in line with search bar */}
+                {/* Time Range Switch */}
+                <div className="bg-secondary/50 dark:bg-secondary rounded-lg p-1 flex items-center shadow-inner">
+                  {(['day', 'month', 'year'] as const).map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setTimeRange(range)}
+                      className={`px-3 py-1 text-xs font-semibold rounded-md transition-all duration-200 ${timeRange === range
+                        ? 'bg-card text-primary shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent'
+                        }`}
+                    >
+                      {range.charAt(0).toUpperCase() + range.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
               <div className="flex items-center gap-2 flex-shrink-0">
                 {/* Add Projects Button */}
                 <Button
@@ -795,7 +873,7 @@ export default function Dashboard() {
                 ].map((item, idx) => (
                   <div
                     key={idx}
-                    className={`col-span-1 sm:col-span-1 lg:col-span-1 ${item.showChart ? 'row-span-1' : 'row-span-1'} p-4 pb-3 rounded-2xl flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden`}
+                    className={`col-span-1 sm:col-span-1 lg:col-span-1 ${item.showChart ? 'row-span-1' : 'row-span-1'} p-4 pb-3 rounded-2xl flex flex-col bg-card border border-border shadow-sm hover:shadow-md transition-all overflow-hidden`}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.transform = 'translateY(-2px)';
                       e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
@@ -837,13 +915,23 @@ export default function Dashboard() {
                     </div>
 
                     {/* Data section */}
-                    <div className="flex flex-col flex-1 min-h-0">
+                    <div className="flex flex-col flex-1 min-h-0 relative">
                       {/* Large number - aligned with other metrics */}
-                      <div className="flex items-baseline gap-2 mb-1.5 flex-shrink-0">
+                      <div className="flex items-baseline gap-2 mb-1.5 flex-shrink-0 z-10">
                         <p className="text-2xl leading-tight font-bold text-left text-gray-900">
                           {item.value}
                         </p>
                       </div>
+
+                      {/* Mini Bar Chart for Reach and Engagement */}
+                      {item.showChart && (
+                        <div className="absolute bottom-0 right-0 w-full h-[60px] opacity-90 z-20">
+                          <MiniBarChart
+                            data={getChartData(item.title === "Total Reach" ? 'reach' : 'engagement')}
+                            height={60}
+                          />
+                        </div>
+                      )}
 
                       {/* Social media icons for Published Posts */}
                       {item.title === "Published Posts" && connectedPlatforms.length > 0 && (
@@ -927,17 +1015,8 @@ export default function Dashboard() {
                         </div>
                       )}
 
-                      {/* Bar chart - show for Total Reach and Engagement */}
-                      {item.showChart && (item.title === "Total Reach" || item.title === "Engagement") ? (
-                        <div className="w-full mt-1 relative overflow-visible flex-shrink-0" style={{ height: '75px' }}>
-                          <MiniBarChart
-                            data={[]}
-                            color={item.chartColor || "#2563EB"}
-                            height={70}
-                            metricType={item.title === "Total Reach" ? "reach" : "engagement"}
-                          />
-                        </div>
-                      ) : ('showBars' in item && item.showBars) && item.title === "Active Projects" ? (
+                      {/* Active Projects visualization */}
+                      {('showBars' in item && item.showBars) && item.title === "Active Projects" ? (
                         /* Bar visualization for Active Projects */
                         <div className="flex flex-col flex-1 justify-between mt-0.5">
                           {/* Horizontal bars - filled bars on left, empty bars fill to right */}
@@ -1190,7 +1269,7 @@ export default function Dashboard() {
 
                 {/* Active Projects - Large Card with Project List - Row 3, Below Metrics */}
                 <div
-                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-1 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col justify-between bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
+                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-1 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col justify-between bg-card border border-border shadow-sm hover:shadow-md transition-all overflow-hidden"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
@@ -1201,7 +1280,7 @@ export default function Dashboard() {
                   }}
                 >
                   <div>
-                    <h3 className="text-xl font-bold mb-2 text-gray-900">
+                    <h3 className="text-xl font-bold mb-2 text-card-foreground">
                       Active Projects
                     </h3>
                     {loading ? (
@@ -1279,7 +1358,7 @@ export default function Dashboard() {
 
                 {/* Portfolio Health & Insights - Large Bento Card - Expanded to the right, aligned with matrix cards */}
                 <div
-                  className="portfolio-card col-span-1 sm:col-span-2 lg:col-span-4 lg:col-start-3 lg:row-start-1 row-span-2 hover:shadow-md transition-all relative"
+                  className="portfolio-card col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-1 row-span-2 hover:shadow-md transition-all relative"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
@@ -1303,10 +1382,29 @@ export default function Dashboard() {
                   </div>
                 </div>
 
+                {/* AI Insights & Summary - Large Bento Card - Beside Health Card */}
+                <div
+                  className="portfolio-insights-card col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-5 lg:row-start-1 row-span-2 hover:shadow-md transition-all relative"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.1)';
+                  }}
+                >
+                  <div className="portfolio-inner relative z-10 h-full flex flex-col">
+                    <PortfolioInsightsCard
+                      health={portfolioHealth}
+                      loading={healthLoading}
+                    />
+                  </div>
+                </div>
+
                 {/* Recent Published Content - Poll-Style Layout - At level with Active Projects */}
                 <div
-                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all min-w-0 overflow-hidden"
-                  style={{ color: '#2b2b2b' }}
+                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-3 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col bg-card border border-border shadow-sm hover:shadow-md transition-all min-w-0 overflow-hidden"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
@@ -1452,7 +1550,7 @@ export default function Dashboard() {
 
                 {/* Network Activity - Large Bento Card (2x2) - White card - At level with Active Projects */}
                 <div
-                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-5 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-md transition-all min-w-0 overflow-hidden"
+                  className="col-span-1 sm:col-span-2 lg:col-span-2 lg:col-start-5 lg:row-start-3 row-span-2 rounded-2xl p-6 flex flex-col bg-card border border-border shadow-sm hover:shadow-md transition-all min-w-0 overflow-hidden"
                   onMouseEnter={(e) => {
                     e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
@@ -1463,7 +1561,7 @@ export default function Dashboard() {
                   }}
                 >
                   <div className="mb-4">
-                    <h3 className="text-xl font-bold mb-2 text-gray-900">
+                    <h3 className="text-xl font-bold mb-2 text-card-foreground">
                       Network Activity
                     </h3>
                   </div>
@@ -1524,7 +1622,7 @@ export default function Dashboard() {
                               className="flex items-center gap-2"
                             >
                               {/* Small cylindrical pill for activity */}
-                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/50 hover:from-blue-100 hover:to-indigo-100 transition-all duration-200 shadow-sm">
+                              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-secondary border border-border hover:bg-accent transition-all duration-200 shadow-sm">
                                 <div className="flex items-center justify-center flex-shrink-0">
                                   {getPlatformIcon(primaryPlatform)}
                                 </div>
@@ -1547,7 +1645,7 @@ export default function Dashboard() {
                       ) : (
                         <>
                           <div
-                            className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 border border-gray-100 hover:bg-gray-100 transition-colors"
+                            className="flex items-center space-x-3 p-3 rounded-lg bg-secondary border border-border hover:bg-accent transition-colors"
                           >
                             <div className="flex items-center justify-center flex-shrink-0">
                               <Users className="w-5 h-5 text-blue-600" />
@@ -1586,15 +1684,17 @@ export default function Dashboard() {
       </div>
 
       {/* Post Preview on Hover - Rendered outside containers using portal */}
-      {hoveredPost && (
-        <SocialPostPreview
-          post={hoveredPost.post}
-          platform={hoveredPost.platform}
-          isVisible={true}
-          onClose={() => setHoveredPost(null)}
-          position={hoveredPost.position}
-        />
-      )}
-    </div>
+      {
+        hoveredPost && (
+          <SocialPostPreview
+            post={hoveredPost.post}
+            platform={hoveredPost.platform}
+            isVisible={true}
+            onClose={() => setHoveredPost(null)}
+            position={hoveredPost.position}
+          />
+        )
+      }
+    </div >
   );
 }

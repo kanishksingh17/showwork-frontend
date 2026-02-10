@@ -1,420 +1,86 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Fix for framer-motion scroll calculations */
-html {
-  position: relative;
-}
-
-body {
-  position: relative;
-}
-
-#root {
-  position: relative;
-  min-height: 100vh;
-}
-
-/* Custom animations for onboarding */
-@keyframes fade-in {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes glow {
-
-  0%,
-  100% {
-    filter: drop-shadow(0 0 5px rgba(30, 58, 138, 0.5));
-  }
-
-  50% {
-    filter: drop-shadow(0 0 20px rgba(30, 58, 138, 0.8));
-  }
-}
-
-.animate-fade-in {
-  animation: fade-in 1s ease-in-out;
-}
-
-.animate-glow {
-  animation: glow 2s ease-in-out infinite;
-}
-
-/* Additional Animation Utilities */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  from {
-    opacity: 0;
-    transform: scale(0.9);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes slide-in-right {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out;
-}
-
-.animate-scale-in {
-  animation: scale-in 0.5s ease-out;
-}
-
-.animate-slide-in-right {
-  animation: slide-in-right 0.8s ease-out;
-}
-
-.animation-delay-100 {
-  animation-delay: 0.1s;
-}
-
-.animation-delay-300 {
-  animation-delay: 0.3s;
-}
-
-.animation-delay-500 {
-  animation-delay: 0.5s;
-}
-
-.animation-delay-700 {
-  animation-delay: 0.7s;
-}
-
-/* Code Logo with Loading Bar for ShowWork */
-.code-logo-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  flex-shrink: 0;
-}
-
-.code-logo {
-  width: 100%;
-  height: 100%;
-  min-width: 100%;
-  min-height: 100%;
-  aspect-ratio: 1;
-  background: #1e3a8a;
-  border-radius: 12px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  overflow: hidden;
-  box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 0 3px rgba(30, 58, 138, 0.5),
-    0 0 15px rgba(30, 58, 138, 0.2);
-}
-
-.code-symbol {
-  color: #ffffff;
-  font-family: "Courier New", monospace;
-  font-weight: bold;
-  font-size: 0.8em;
-  letter-spacing: -1px;
-  z-index: 2;
-  position: relative;
-  text-shadow: 0 0 5px rgba(30, 58, 138, 0.4);
-}
-
-/* Loading bar animation */
-.code-logo::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(90deg, #1e3a8a, #1e40af);
-  animation: loadingBar 3s ease-in-out infinite;
-  z-index: 1;
-  box-shadow:
-    0 0 8px rgba(30, 58, 138, 0.6),
-    0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-@keyframes loadingBar {
-  0% {
-    transform: translateX(-100%);
-    opacity: 0.8;
-  }
-
-  50% {
-    transform: translateX(0%);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translateX(100%);
-    opacity: 0.8;
-  }
-}
-
-/* Ensure logo maintains square proportions */
-.code-logo-container .code-logo {
-  flex-shrink: 0;
-  object-fit: contain;
-}
-
-/* Header logo specific styling */
-.flex.items-center.justify-between .code-logo-container {
-  flex-shrink: 0;
-  min-width: fit-content;
-}
-
-.flex.items-center.justify-between .code-logo {
-  width: auto;
-  height: auto;
-  min-width: 48px;
-  min-height: 48px;
-  max-width: 48px;
-  max-height: 48px;
-}
-
-/* Onboarding header logo fix */
-.pt-8.pb-6.px-6 .code-logo-container {
-  flex-shrink: 0;
-  width: auto;
-  height: auto;
-}
-
-.pt-8.pb-6.px-6 .code-logo {
-  width: 48px !important;
-  height: 48px !important;
-  min-width: 48px !important;
-  min-height: 48px !important;
-  max-width: 48px !important;
-  max-height: 48px !important;
-  aspect-ratio: 1 !important;
-}
-
-/* Hover effects */
-.code-logo-container:hover .code-logo {
-  transform: scale(1.05);
-  box-shadow:
-    0 8px 30px rgba(0, 0, 0, 0.2),
-    0 0 0 4px rgba(30, 58, 138, 0.7),
-    0 0 20px rgba(30, 58, 138, 0.3);
-  transition: all 0.3s ease;
-}
-
-.code-logo-container:hover .code-symbol {
-  color: #93c5fd;
-  transition: color 0.3s ease;
-}
-
-/* ShowWork Design System - Developer Portfolio Platform */
-
 @layer base {
-  @tailwind base;
-  @tailwind components;
-  @tailwind utilities;
-
   :root {
-    /* Background & Surface - Keep Light Theme */
-    --background: 210 20% 98%;
-    --surface: 0 0% 100%;
-    --surface-elevated: 210 20% 99%;
+    /* Light Mode */
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    /* Typography - Keep Light Theme */
-    --foreground: 215 25% 15%;
-    --foreground-muted: 215 15% 45%;
-    --foreground-subtle: 215 10% 65%;
-
-    /* Brand Colors - Vibrant Blue Theme */
-    --primary: 221 83% 53%;
-    --primary-glow: 221 83% 63%;
-    --primary-foreground: 0 0% 100%;
-
-    --accent: 214 95% 68%;
-    --accent-glow: 214 95% 78%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Debug: Test if variables are working */
-    .test-primary {
-      background-color: hsl(var(--primary));
-      color: hsl(var(--primary-foreground));
-    }
-
-    /* Logo specific classes with fallback */
-    .logo-bg {
-      background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-    }
-
-    .logo-bg-alt {
-      background: linear-gradient(135deg, hsl(221 83% 53%), hsl(221 83% 63%));
-    }
-
-    .logo-text {
-      color: #3b82f6;
-    }
-
-    --secondary: 210 15% 95%;
-    --secondary-foreground: 215 25% 15%;
-
-    /* UI Elements - Keep Light Theme */
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 15%;
-    --card-border: 215 15% 90%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --input: 215 15% 96%;
-    --input-border: 215 15% 85%;
-    --border: 215 15% 90%;
-    --ring: 221 83% 53%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    /* Status Colors */
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --primary: 221.2 83.2% 53.3%;
+    --primary-foreground: 210 40% 98%;
 
-    /* Gradients - Vibrant Blue for Buttons */
-    --gradient-primary: linear-gradient(135deg,
-      hsl(221 83% 53%),
-      hsl(221 83% 63%));
-    --gradient-accent: linear-gradient(135deg,
-      hsl(214 95% 68%),
-      hsl(214 95% 78%));
-    --gradient-hero: linear-gradient(135deg,
-      hsl(221 83% 53%) 0%,
-      hsl(214 95% 68%) 100%);
-    --gradient-subtle: linear-gradient(180deg,
-      hsl(210 20% 98%) 0%,
-      hsl(210 15% 96%) 100%);
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    /* Shadows - Keep Light Theme */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-    --shadow-glow: 0 0 40px hsl(221 83% 53% / 0.15);
-    --shadow-accent-glow: 0 0 40px hsl(214 95% 68% / 0.2);
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    /* Animations */
-    --transition-fast: all 0.15s ease;
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
-    --radius: 0.75rem;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    /* Utility Classes for Gradients */
-    .gradient-primary {
-      background: var(--gradient-primary);
-    }
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 221.2 83.2% 53.3%;
 
-    .gradient-accent {
-      background: var(--gradient-accent);
-    }
-
-    .gradient-hero {
-      background: var(--gradient-hero);
-    }
-
-    .gradient-subtle {
-      background: var(--gradient-subtle);
-    }
-
-    .shadow-glow {
-      box-shadow: var(--shadow-glow);
-    }
-
-    .shadow-accent-glow {
-      box-shadow: var(--shadow-accent-glow);
-    }
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
+    /* Navy Blue Dark Theme - Matching Portfolio Section */
+    --background: 222 47% 11%;
+    /* #111827 - bg-gray-900 equivalent */
     --foreground: 210 40% 98%;
+    /* #F9FAFB - Soft white with blue tint */
 
-    --card: 222.2 84% 4.9%;
+    --card: 217 33% 17%;
+    /* #1F2937 - bg-gray-800 for cards */
     --card-foreground: 210 40% 98%;
+    /* Soft white */
 
-    --popover: 222.2 84% 4.9%;
+    --popover: 217 33% 17%;
+    /* Same as card */
     --popover-foreground: 210 40% 98%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    /* Primary blue - professional and vibrant */
+    --primary: 217 91% 60%;
+    /* #3B82F6 - Modern blue */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 217.2 32.6% 17.5%;
+    --secondary: 215 28% 17%;
+    /* #1E293B - Slightly lighter */
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 215 28% 17%;
+    /* #1E293B */
+    --muted-foreground: 215 20% 65%;
+    /* #9CA3AF - Gray-400 */
 
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217 33% 20%;
+    /* Slightly lighter for hover */
     --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84% 60%;
+    /* Brighter red */
     --destructive-foreground: 210 40% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Borders with subtle blue tint */
+    --border: 217 33% 23%;
+    /* #374151 - bg-gray-700 */
+    --input: 217 33% 17%;
+    /* Same as card */
+    --ring: 217 91% 60%;
+    /* Matches primary */
   }
 }
 
@@ -424,223 +90,79 @@ body {
   }
 
   body {
-    @apply bg-background text-foreground font-['Inter'];
+    @apply bg-background text-foreground;
   }
 }
 
-@layer utilities {
-
-  /* Custom Animations */
-  @keyframes glow-pulse {
-
-    0%,
-    100% {
-      opacity: 0.5;
-      transform: scale(0.8);
-    }
-
-    50% {
-      opacity: 1;
-      transform: scale(1.2);
-    }
+/* Custom Animations for Mini App */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
   }
 
-  @keyframes float {
-
-    0%,
-    100% {
-      transform: translateY(0px);
-    }
-
-    50% {
-      transform: translateY(-10px);
-    }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
   }
 
-  @keyframes fade-in-up {
-    0% {
-      opacity: 0;
-      transform: translateY(30px);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
   }
 
-  @keyframes slide-in {
-    0% {
-      opacity: 0;
-      transform: translateX(-20px);
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes scale-in {
-    0% {
-      transform: scale(0.95);
-      opacity: 0;
-    }
-
-    100% {
-      transform: scale(1);
-      opacity: 1;
-    }
-  }
-
-  /* Custom Gradient Classes */
-  .gradient-primary {
-    background: var(--gradient-primary);
-    color: hsl(var(--primary-foreground));
-  }
-
-  .gradient-accent {
-    background: var(--gradient-accent);
-    color: hsl(var(--accent-foreground));
-  }
-
-  .gradient-hero {
-    background: var(--gradient-hero);
-    color: hsl(var(--primary-foreground));
-  }
-
-  .gradient-subtle {
-    background: var(--gradient-subtle);
-  }
-
-  /* Shadow Utilities */
-  .shadow-glow {
-    box-shadow: var(--shadow-glow);
-  }
-
-  .shadow-accent-glow {
-    box-shadow: var(--shadow-accent-glow);
-  }
-
-  /* Animation Classes */
-  .animate-glow-pulse {
-    animation: glow-pulse 2s ease-in-out infinite;
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  .animate-fade-in-up {
-    animation: fade-in-up 0.6s ease-out;
-  }
-
-  .animate-slide-in {
-    animation: slide-in 0.5s ease-out;
-  }
-
-  /* New prominent animation classes */
-  .animate-fade-in {
-    animation: fade-in-up 0.6s ease-out;
-  }
-
-  .animate-scale-in {
-    animation: scale-in 0.4s ease-out;
-  }
-
-  /* Animation Delays for staggered effects */
-  .animation-delay-100 {
-    animation-delay: 0.1s;
-  }
-
-  .animation-delay-200 {
-    animation-delay: 0.2s;
-  }
-
-  .animation-delay-300 {
-    animation-delay: 0.3s;
-  }
-
-  .animation-delay-400 {
-    animation-delay: 0.4s;
-  }
-
-  .animation-delay-500 {
-    animation-delay: 0.5s;
-  }
-
-  .animation-delay-700 {
-    animation-delay: 0.7s;
+  100% {
+    transform: translate(0px, 0px) scale(1);
   }
 }
 
-/* Portfolio Health Card - Double Border Fix */
-.portfolio-card {
-  background: #fff;
-  border: 1.5px solid #e5e7eb;
-  /* Outer boundary */
-  border-radius: 16px;
-  box-shadow:
-    0 2px 4px rgba(0, 0, 0, 0.04),
-    0 6px 12px rgba(0, 0, 0, 0.04);
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  /* Ensures inner border stays inside rounded corners */
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-.portfolio-card::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: #e5e7eb;
-  /* Matches outer border */
+.animation-delay-2000 {
+  animation-delay: 2s;
 }
 
-.portfolio-inner {
-  border: 1px solid #f0f0f0;
-  /* Inner boundary */
-  border-radius: 12px;
-  padding: 20px;
-  height: 100%;
-  background: #fff;
-  position: relative;
+.animation-delay-4000 {
+  animation-delay: 4s;
 }
 
-.portfolio-inner::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: #e5e7eb;
-  /* Matches outer border */
+/* Typewriter cursor effect */
+.typewriter-cursor::after {
+  content: '|';
+  animation: cursor-blink 1s step-end infinite;
 }
 
-/* Chart Tooltip - High z-index to appear above calendar selector */
-.recharts-tooltip-wrapper {
-  z-index: 9999 !important;
-  position: absolute !important;
+@keyframes cursor-blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
 }
 
-.recharts-tooltip-wrapper .recharts-default-tooltip {
-  z-index: 9999 !important;
-  position: absolute !important;
-  background: rgba(0, 0, 0, 0.75) !important;
-  backdrop-filter: blur(4px) !important;
-  color: #fff !important;
-  padding: 4px 10px !important;
-  border-radius: 9999px !important;
-  font-size: 0.7rem !important;
-  pointer-events: none !important;
-  transition: opacity 0.15s ease !important;
-  border: none !important;
+/* Logo Styles */
+.logo-bg {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
 }
 
-.recharts-tooltip-wrapper .recharts-default-tooltip .recharts-tooltip-label {
-  display: none !important;
+.logo-text {
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glassmorphism Utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }

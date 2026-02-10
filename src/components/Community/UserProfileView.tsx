@@ -172,7 +172,7 @@ export function UserProfileView({ user, onBack }: UserProfileViewProps) {
                 </div>
 
                 <div className="flex items-center gap-8 -mb-px">
-                    {["Interactions", "Activities", "Portfolio", "Mentions"].map(tab => (
+                    {["Interactions", "Activities", "Portfolio", "Mentions", "Projects"].map(tab => (
                         <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}

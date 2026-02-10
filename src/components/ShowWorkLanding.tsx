@@ -370,11 +370,10 @@ const ShowWorkLanding = () => {
               </Button>
               <Button
                 size="lg"
-                variant="outline"
                 className="relative z-20 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-white text-lg px-8 py-4 transition-colors duration-200"
                 onClick={() => navigate("/login")}
               >
-                Watch Demo
+                Get Started
               </Button>
             </div>
           </div>
@@ -643,7 +642,7 @@ const ShowWorkLanding = () => {
               className="logo-bg shadow-lg text-white hover:opacity-90"
               onClick={() => navigate("/login")}
             >
-              Watch Full Demo
+              Get Started Free
             </Button>
           </div>
           {/* Demo image box removed as requested */}

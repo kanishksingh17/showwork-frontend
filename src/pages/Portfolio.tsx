@@ -7,7 +7,7 @@ import { Briefcase, Eye, Download, Share2, Sparkles } from "lucide-react";
 
 export default function Portfolio() {
   const navigate = useNavigate();
-  
+
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
       <UnifiedSidebar currentPage="portfolio" />

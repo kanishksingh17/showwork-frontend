@@ -1,80 +1,87 @@
 import React from "react";
 
 interface MiniBarChartProps {
-  data?: number[];
-  color?: string;
+  data: { label: string; value: number; date?: string }[]; // Added date optional prop
   height?: number;
-  metricType?: "reach" | "engagement" | string;
+  activeIndex?: number; // Optional: fix a specific bar as active/highlighted
+  barColor?: string; // Base color for gradient
 }
 
 export const MiniBarChart: React.FC<MiniBarChartProps> = ({
-  data = [],
-  color = "#2563EB",
-  height = 44,
-  metricType = "reach",
+  data,
+  height = 200,
+  activeIndex,
 }) => {
-  // Generate 8 bars with varying heights if no data provided
-  // Heights based on the image: 65%, 45%, 85%, 35%, 60%, 45%, 75%, 85%
-  const defaultHeights = [65, 45, 85, 35, 60, 45, 75, 85];
-  
-  // Use provided data or default heights
-  const barHeights = data.length > 0 
-    ? data.map((value) => Math.min(Math.max(value, 0), 100))
-    : defaultHeights;
+  // Find the max value to normalize heights
+  const maxima = Math.max(...data.map((d) => d.value));
+  const maxValue = maxima > 0 ? maxima : 1; // Avoid division by zero
 
-  // Convert color hex to RGB for gradient
-  const hexToRgb = (hex: string) => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1], 16),
-          g: parseInt(result[2], 16),
-          b: parseInt(result[3], 16),
-        }
-      : { r: 37, g: 99, b: 235 }; // Default blue
-  };
+  // If activeIndex is not provided, default to the one with the max value
+  const highlightedIndex = activeIndex ?? data.findIndex((d) => d.value === maxima);
 
-  const rgb = hexToRgb(color);
-  
-  // Create gradient colors (darker at bottom, lighter at top) - purple-blue theme
-  // For purple-blue: more purple tones
-  const gradientStart = `rgb(${Math.max(0, rgb.r - 20)}, ${Math.max(0, rgb.g - 10)}, ${Math.min(255, rgb.b + 10)})`;
-  const gradientEnd = `rgb(${Math.min(255, rgb.r + 30)}, ${Math.min(255, rgb.g + 20)}, ${Math.min(255, rgb.b + 30)})`;
+  // Blue gradient palette for bars
+  const colorPalette = [
+    { from: "#3B82F6", to: "#60A5FA" }, // Blue
+    { from: "#2563EB", to: "#3B82F6" }, // Darker Blue
+    { from: "#1D4ED8", to: "#2563EB" }, // Even Darker Blue
+    { from: "#60A5FA", to: "#93C5FD" }, // Lighter Blue
+    { from: "#1E40AF", to: "#3B82F6" }, // Deep Blue
+    { from: "#3B82F6", to: "#60A5FA" }, // Blue (repeat)
+    { from: "#2563EB", to: "#60A5FA" }, // Mid Blue
+  ];
 
   return (
     <div
-      className="flex items-end justify-between gap-1 w-full"
+      className="flex items-end justify-between gap-1 w-full px-1 pt-4 pb-2"
       style={{ height: `${height}px` }}
     >
-      {barHeights.map((heightPercent, index) => (
-        <div
-          key={index}
-          className="flex-1 flex flex-col justify-end relative"
-          style={{ height: "100%" }}
-        >
-          {/* Translucent white segment showing full potential */}
+      {data.map((item, index) => {
+        const isActive = index === highlightedIndex;
+        // Calculate height percentage, min 10% so it's visible
+        const heightPercent = Math.max((item.value / maxValue) * 100, 10);
+
+        // Get color from palette (cycle through if more bars than colors)
+        const color = colorPalette[index % colorPalette.length];
+
+        return (
           <div
-            className="w-full rounded-t"
-            style={{
-              height: `${100 - heightPercent}%`,
-              backgroundColor: "rgba(255, 255, 255, 0.4)",
-              backdropFilter: "blur(0.5px)",
-              minHeight: heightPercent < 100 ? "1px" : "0",
-            }}
-          />
-          
-          {/* Solid purple-blue gradient segment */}
-          <div
-            className="w-full rounded"
-            style={{
-              height: `${heightPercent}%`,
-              background: `linear-gradient(to top, ${gradientStart}, ${gradientEnd})`,
-              minHeight: "2px",
-              boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-            }}
-          />
-        </div>
-      ))}
+            key={index}
+            className="flex-1 flex flex-col items-center justify-end h-full relative group cursor-pointer"
+          >
+            {/* Tooltip for active bar (or on hover for others) */}
+            <div
+              className={`absolute bottom-full mb-2 transition-all duration-300 transform opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 z-50 pointer-events-none ${index === 0 ? "left-0 origin-bottom-left" : index === data.length - 1 ? "right-0 origin-bottom-right" : "left-1/2 -translate-x-1/2 origin-bottom"
+                }`}
+            >
+              <div className={`bg-gray-800 dark:bg-gray-700 text-white text-[10px] font-medium px-2 py-1 rounded shadow-lg whitespace-nowrap flex flex-col items-center ${index === 0 ? "items-start" : index === data.length - 1 ? "items-end" : "items-center"
+                }`}>
+                <span>{item.value >= 1000 ? `${(item.value / 1000).toFixed(1)}K` : item.value}</span>
+                {item.date && <span className="text-gray-300 text-[9px] mt-0.5">{item.date}</span>}
+                {!item.date && item.label && <span className="text-gray-300 text-[9px] mt-0.5">{item.label}</span>}
+              </div>
+              {/* Tooltip arrow - hide for edge cases or adjust position */}
+              <div className={`w-1.5 h-1.5 bg-gray-800 dark:bg-gray-700 rotate-45 -mt-1 ${index === 0 ? "ml-2" : index === data.length - 1 ? "ml-auto mr-2" : "mx-auto"
+                }`}></div>
+            </div>
+
+            {/* The Bar - now with colorful gradients */}
+            <div
+              className={`w-full max-w-[30px] rounded-t-sm transition-all duration-500 ease-out ${isActive
+                ? "shadow-lg scale-105"
+                : "hover:scale-105 opacity-90 hover:opacity-100"
+                }`}
+              style={{
+                height: `${heightPercent}%`,
+                background: `linear-gradient(to top, ${color.from}, ${color.to})`,
+                boxShadow: isActive ? `0 4px 12px ${color.from}40` : undefined,
+              }}
+            />
+
+            {/* Label - visible on hover or if it's a main label */}
+            {/* hidden by default to keep "mini" look clean, can be enabled if needed */}
+          </div>
+        );
+      })}
     </div>
   );
 };

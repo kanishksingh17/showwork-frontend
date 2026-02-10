@@ -63,50 +63,33 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     }
   };
 
-  // Static navigation items - order never changes
-  const navigationItems = [
+  // Grouped navigation items with requested hierarchy
+  const navigationGroups = [
     {
-      id: "dashboard",
-      label: "Dashboard",
-      icon: LayoutDashboard,
-      path: "/dashboard",
+      title: "WORKSPACE",
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { id: "portfolio", label: "Portfolio", icon: FolderOpen, path: "/portfolio" },
+        { id: "portfolio-manage", label: "Manager", icon: Briefcase, path: "/portfolio/manage" },
+        { id: "content", label: "Content", icon: FileText, path: "/content" },
+        { id: "showcase", label: "Showcase", icon: Package, path: "/showcase" },
+      ]
     },
     {
-      id: "content",
-      label: "Content",
-      icon: FileText,
-      path: "/content",
+      title: "GROWTH",
+      items: [
+        { id: "analytics", label: "Analytics", icon: BarChart3, path: "/analytics" },
+        { id: "community", label: "Community", icon: Users, path: "/community" },
+      ]
     },
+
     {
-      id: "showcase",
-      label: "Showcase",
-      icon: Package,
-      path: "/showcase",
-    },
-    {
-      id: "analytics",
-      label: "Analytics",
-      icon: BarChart3,
-      path: "/analytics",
-    },
-    {
-      id: "community",
-      label: "Community",
-      icon: Users,
-      path: "/community",
-    },
-    {
-      id: "portfolio",
-      label: "Portfolio",
-      icon: FolderOpen,
-      path: "/portfolio",
-    },
-    {
-      id: "integrations",
-      label: "Integrations",
-      icon: Plug,
-      path: "/integrations",
-    },
+      title: "SYSTEM",
+      items: [
+        { id: "integrations", label: "Integrations", icon: Plug, path: "/integrations" },
+        { id: "settings", label: "Settings", icon: Settings, path: "/settings" },
+      ]
+    }
   ];
 
   return (
@@ -118,36 +101,43 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       </div>
 
       {/* Navigation Section - Static Order, Never Changes */}
-      <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-        {navigationItems.map((item) => {
-          const isActive = activePage === item.id;
-          const IconComponent = item.icon;
+      {/* Navigation Section - Grouped */}
+      <nav
+        className="flex-1 px-4 py-2 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        {navigationGroups.map((group) => (
+          <div key={group.title}>
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">
+              {group.title}
+            </h3>
+            <div className="space-y-1">
+              {group.items.map((item) => {
+                const isActive = activePage === item.id;
+                const IconComponent = item.icon;
 
-          return (
-            <div
-              key={item.id}
-              className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ${isActive
-                ? "bg-blue-600 text-white shadow-sm"
-                : "text-[#9CA3AF] hover:bg-white/10 hover:text-white"
-                }`}
-              onClick={() => navigate(item.path)}
-            >
-              <IconComponent className="w-5 h-5 mr-3" />
-              {item.label}
+                return (
+                  <div
+                    key={item.id}
+                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ${isActive
+                      ? "bg-blue-600 text-white shadow-sm"
+                      : "text-[#9CA3AF] hover:bg-white/10 hover:text-white"
+                      }`}
+                    onClick={() => navigate(item.path)}
+                  >
+                    <IconComponent className="w-5 h-5 mr-3" />
+                    {item.label}
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </nav>
 
       {/* Bottom Section - Fixed Utility Links, Static Order */}
       <div className="px-4 py-2 border-t border-gray-700">
-        <div
-          className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-          onClick={() => navigate("/settings")}
-        >
-          <Settings className="w-5 h-5 mr-3" />
-          Settings
-        </div>
+        {/* Settings moved to main nav */}
         <div
           className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
           onClick={handleLogout}

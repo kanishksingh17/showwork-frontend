@@ -12,16 +12,18 @@ import ContentManagement from "./pages/ContentManagement";
 import ErrorBoundary from "./components/preview/ErrorBoundary";
 import Analytics from "./pages/Analytics";
 import Community from "./pages/Community";
-import Portfolio from "./pages/Portfolio";
 import PortfolioBuilder from "./pages/PortfolioBuilder";
+import PortfolioManagement from "./pages/PortfolioManagement";
 import PortfolioDemo from "./pages/PortfolioDemo";
 import PortfolioPreviewFull from "./pages/PortfolioPreviewFull";
+import ApplicationTracker from "./pages/ApplicationTracker";
 
 // ... existing code ...
 
 
 import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
+import Profile from "./pages/Profile";
 import ShowWorkLanding from "./components/ShowWorkLanding";
 import Login from "./pages/Login";
 import DeveloperSetupPage from "./pages/DeveloperSetupPage";
@@ -198,6 +200,11 @@ function App() {
               <PortfolioBuilder />
             </ProtectedRoute>
           } />
+          <Route path="/portfolio/manage" element={
+            <ProtectedRoute>
+              <PortfolioManagement />
+            </ProtectedRoute>
+          } />
           <Route path="/portfolio/demo/*" element={
             <ProtectedRoute>
               <PortfolioDemo />
@@ -206,6 +213,17 @@ function App() {
           <Route path="/portfolio/preview-full" element={
             <ProtectedRoute>
               <PortfolioPreviewFull />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/applications" element={
+            <ProtectedRoute>
+              <ApplicationTracker />
+            </ProtectedRoute>
+          } />
+          <Route path="/interviews" element={
+            <ProtectedRoute>
+              <ApplicationTracker />
             </ProtectedRoute>
           } />
 
@@ -219,6 +237,12 @@ function App() {
               <Settings />
             </ProtectedRoute>
           } />
+          <Route path="/profile" element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          } />
+
         </Routes>
       </Router>
       {import.meta.env.MODE === "development" && (
