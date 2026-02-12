@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 import { ThemeToggle } from "../components/ThemeToggle";
 import {
   Settings as SettingsIcon,
@@ -43,10 +43,8 @@ export default function Settings() {
   ];
 
   return (
-    <div className="flex h-screen bg-background">
-      <UnifiedSidebar currentPage="settings" />
-
-      <div className="flex-1 flex">
+    <UnifiedLayout activePage="settings">
+      <div className="flex-1 flex h-full overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 p-6 overflow-y-auto">
           {/* Header */}
@@ -385,6 +383,6 @@ export default function Settings() {
           </div>
         </div>
       </div>
-    </div>
+    </UnifiedLayout>
   );
 }

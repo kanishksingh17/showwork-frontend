@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -183,10 +183,8 @@ export default function Integrations() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 font-sans">
-      <UnifiedSidebar currentPage="integrations" />
-
-      <main className="flex-1 overflow-hidden p-4 md:p-8 flex items-center justify-center">
+    <UnifiedLayout activePage="integrations">
+      <main className="flex-1 overflow-hidden p-4 md:p-8 flex items-center justify-center h-full">
         <div className="w-full max-w-7xl h-full bg-white dark:bg-gray-800 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden flex flex-col md:flex-row">
 
           {/* LEFT SIDE - GRID */}
@@ -275,6 +273,6 @@ export default function Integrations() {
           </div>
         </div>
       </main>
-    </div>
+    </UnifiedLayout>
   );
 }

@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OrbitingPlatforms } from "@/components/ui/orbiting-platforms";
 import { ShowWorkTimeline } from "@/components/ui/showwork-timeline";
 import DisplayCards from "@/components/ui/display-cards";
-import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
 import { InView } from "@/components/ui/in-view";
 import { BouncyCardsFeatures } from "@/components/ui/bouncy-cards-features";
-import PricingSection from "@/components/ui/pricing-section";
 import { AuroraBackground } from "@/components/ui/aurora-background";
+import { OnboardingPreview } from "./OnboardingPreview";
+import { UnifiedSidebar } from "@/components/UnifiedSidebar";
+import PricingSection from "@/components/ui/pricing-section";
+import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
+
 import { cn } from "@/lib/utils";
 import {
   Menu,
@@ -28,15 +31,9 @@ import {
   Youtube,
   Instagram,
   ChevronDown,
-  MoveRight,
   PhoneCall,
+  BarChart3,
 } from "lucide-react";
-
-// Import portfolio images - temporarily commented out due to missing assets
-// import portfolioWebApp from '@/assets/portfolio-web-app.jpg';
-// import portfolioMobileApp from '@/assets/portfolio-mobile-app.jpg';
-// import portfolioEcommerce from '@/assets/portfolio-ecommerce.jpg';
-// import demoWorkspace from '@/assets/demo-workspace.jpg';
 
 interface Testimonial {
   id: number;
@@ -49,11 +46,24 @@ interface Testimonial {
 const ShowWorkLanding = () => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
-  const [email, setEmail] = useState("");
   const [titleNumber, setTitleNumber] = useState(0);
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [viewMode, setViewMode] = useState<'landing' | 'onboarding'>('landing');
+  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const [isSidebarJoined, setIsSidebarJoined] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const handleCTA = () => {
+    setViewMode('onboarding');
+  };
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsSidebarJoined(true);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const rotatingWords = useMemo(
     () => ["Professionally", "Stunningly", "Effortlessly", "Powerfully", "Instantly", "Beautifully"],
@@ -67,819 +77,978 @@ const ShowWorkLanding = () => {
     return () => clearInterval(interval);
   }, [rotatingWords.length]);
 
-  // Scroll handler for navigation animation
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   const testimonials: Testimonial[] = [
     {
       id: 1,
-      quote:
-        "ShowWork transformed how I showcase my projects. The AI content generation saves me hours every week.",
+      quote: "ShowWork transformed how I showcase my projects. The AI content generation saves me hours every week.",
       name: "Sarah Chen",
       role: "Fullstack Developer",
-      avatar:
-        "https://images.pexels.com/photos/7652243/pexels-photo-7652243.jpeg",
+      avatar: "https://images.pexels.com/photos/7652243/pexels-photo-7652243.jpeg",
     },
     {
       id: 2,
-      quote:
-        "Finally, a platform that understands indie hackers. My portfolio looks professional and drives real engagement.",
+      quote: "Finally, a platform that understands indie hackers. My portfolio looks professional and drives real engagement.",
       name: "Marcus Rodriguez",
       role: "Indie Hacker",
-      avatar:
-        "https://images.pexels.com/photos/33530479/pexels-photo-33530479.jpeg",
+      avatar: "https://images.pexels.com/photos/33530479/pexels-photo-33530479.jpeg",
     },
     {
       id: 3,
-      quote:
-        "The multi-platform posting feature is a game-changer. I reach my audience everywhere with one click.",
+      quote: "The multi-platform posting feature is a game-changer. I reach my audience everywhere with one click.",
       name: "Alex Kim",
       role: "Creative Developer",
-      avatar:
-        "https://images.pexels.com/photos/7552373/pexels-photo-7552373.jpeg",
+      avatar: "https://images.pexels.com/photos/7552373/pexels-photo-7552373.jpeg",
     },
   ];
 
-  // Auto-rotate testimonials
+  // Internal scroll handler for isScrolled state
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [testimonials.length]);
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
-  const nextTestimonial = () => {
-    setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-  };
+    const handleScroll = () => {
+      setIsScrolled(container.scrollTop > 50);
+    };
 
-  const prevTestimonial = () => {
-    setCurrentTestimonial((prev) =>
-      prev === 0 ? testimonials.length - 1 : prev - 1,
-    );
-  };
-
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Email submitted:", email);
-    setEmail("");
-    navigate("/login");
-  };
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <div className="min-h-screen bg-transparent relative">
-      {/* Beta Launch Banner */}
-      <div className="fixed top-0 left-0 right-0 z-30 bg-blue-600">
-        <div className="max-w-screen-xl mx-auto px-4 py-3 text-white sm:text-center md:px-8">
-          <p className="font-medium">
-            We're launching for beta developer users!{" "}
-            <button
-              onClick={() => navigate("/login")}
-              className="font-semibold underline duration-150 hover:text-blue-100 inline-flex items-center gap-x-1 bg-transparent border-0 cursor-pointer text-white p-0"
-            >
-              Learn more
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="w-5 h-5"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5 10a.75.75 0 01.75-.75h6.638L10.23 7.29a.75.75 0 111.04-1.08l3.5 3.25a.75.75 0 010 1.08l-3.5 3.25a.75.75 0 11-1.04-1.08l2.158-1.96H5.75A.75.75 0 015 10z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </p>
-        </div>
-      </div>
-
-      {/* Aurora Background - Optimized for performance */}
-      <AuroraBackground
-        showRadialGradient={false}
-        className="fixed inset-0 -z-10 h-screen w-full"
+    <div className={cn(
+      "h-screen bg-slate-100 dark:bg-slate-950 flex flex-row p-6 overflow-hidden transition-all duration-700",
+      isSidebarJoined && isSidebarOpen ? "gap-6" : "gap-0"
+    )}>
+      {/* Sidebar - Desktop Only with Delayed Join and Collapsible Logic */}
+      <div
+        className={cn(
+          "hidden lg:block h-full transition-all duration-700 ease-in-out overflow-hidden flex-shrink-0",
+          !isSidebarJoined || viewMode === 'onboarding' ? "w-0 opacity-0 -translate-x-full pointer-events-none" : (isSidebarOpen ? "w-64 opacity-100 translate-x-0" : "w-0 opacity-0 -translate-x-full pointer-events-none")
+        )}
       >
-        <div></div>
-      </AuroraBackground>
-
-      {/* Navigation with Scroll Animation */}
-      <header>
-        <nav
-          data-state={isMenuOpen ? "active" : undefined}
-          className="fixed z-20 w-full px-2 group top-[60px]"
-        >
-          <div
-            className={cn(
-              "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
-              isScrolled &&
-              "bg-background/50 max-w-4xl rounded-2xl border lg:backdrop-blur-lg lg:px-5"
-            )}
-          >
-            <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
-              <div className="flex w-full justify-between lg:w-auto">
-                <a
-                  href="/"
-                  aria-label="home"
-                  className="flex items-center space-x-2"
-                >
-                  <div className="flex items-center space-x-2 group hover:scale-105 transition-all duration-300">
-                    <div className="w-8 h-8 logo-bg rounded-lg flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
-                      <Code2 className="h-5 w-5 text-white" />
-                    </div>
-                    <span className="text-xl font-bold text-foreground group-hover:logo-text transition-colors duration-300">
-                      ShowWork
-                    </span>
-                  </div>
-                </a>
-                <button
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
-                  className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
-                >
-                  <Menu className="in-data-[state=active]:rotate-180 group-data-[state=active]:scale-0 group-data-[state=active]:opacity-0 m-auto size-6 duration-200" />
-                  <X className="group-data-[state=active]:rotate-0 group-data-[state=active]:scale-100 group-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 -rotate-180 scale-0 opacity-0 duration-200" />
-                </button>
-              </div>
-
-              {/* Desktop Navigation */}
-              <div className="absolute inset-0 m-auto hidden size-fit lg:block">
-                <ul className="flex gap-8 text-sm">
-                  <li>
-                    <a
-                      href="#features"
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                    >
-                      <span>Features</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#demo"
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                    >
-                      <span>Demo</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#pricing"
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                    >
-                      <span>Pricing</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href="#testimonials"
-                      className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                    >
-                      <span>Reviews</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Desktop and Mobile CTA Buttons */}
-              <div className="bg-background group-data-[state=active]:block lg:group-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
-                {/* Mobile Menu Links */}
-                <div className="lg:hidden">
-                  <ul className="space-y-6 text-base">
-                    <li>
-                      <a
-                        href="#features"
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                      >
-                        <span>Features</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#demo"
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                      >
-                        <span>Demo</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#pricing"
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                      >
-                        <span>Pricing</span>
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#testimonials"
-                        className="text-muted-foreground hover:text-accent-foreground block duration-150"
-                      >
-                        <span>Reviews</span>
-                      </a>
-                    </li>
-                  </ul>
-                </div>
-
-                {/* CTA Buttons */}
-                <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className={cn(
-                      isScrolled && "lg:hidden",
-                      "hover:bg-background hover:text-foreground hover:border-input hover:opacity-100 transition-all duration-200"
-                    )}
-                    onClick={() => navigate("/login")}
-                  >
-                    <span>Sign In</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={cn(isScrolled && "lg:hidden")}
-                    onClick={() => navigate("/login")}
-                  >
-                    <span>Get Started</span>
-                  </Button>
-                  <Button
-                    size="sm"
-                    className={cn(
-                      isScrolled ? "lg:inline-flex" : "hidden"
-                    )}
-                    onClick={() => navigate("/login")}
-                  >
-                    <span>Get Started</span>
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </nav>
-      </header>
-
-      {/* Hero Content Wrapper (relative positioning) */}
-      <div className="relative z-10 min-h-screen flex flex-col items-center justify-center pt-40 pb-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex flex-col items-center">
-          <div className="text-center mb-16 w-full max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 text-slate-900 dark:text-white tracking-tighter">
-              <span>
-                Showcase Your Work
-              </span>
-              <span className="relative flex w-full justify-center overflow-hidden text-center md:pb-4 md:pt-1">
-                &nbsp;
-                {rotatingWords.map((word, index) => (
-                  <motion.span
-                    key={index}
-                    className="absolute font-bold text-blue-600 dark:text-blue-400"
-                    initial={{ opacity: 0, y: -100 }}
-                    transition={{ type: "spring", stiffness: 50 }}
-                    animate={
-                      titleNumber === index
-                        ? {
-                          y: 0,
-                          opacity: 1,
-                        }
-                        : {
-                          y: titleNumber > index ? -150 : 150,
-                          opacity: 0,
-                        }
-                    }
-                  >
-                    {word}
-                  </motion.span>
-                ))}
-              </span>
-              &nbsp;Like Never Before
-            </h1>
-            <p className="text-xl md:text-2xl text-slate-700 dark:text-slate-300 max-w-3xl mx-auto mb-8">
-              Turn your projects into compelling portfolios with AI-powered
-              content generation and seamless multi-platform publishing.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="bg-blue-600 hover:bg-blue-700 shadow-lg text-lg px-8 py-4 hover:scale-110 hover:shadow-2xl transform transition-all duration-300 text-white"
-                onClick={() => navigate("/login")}
-              >
-                Start Building Free
-              </Button>
-              <Button
-                size="lg"
-                className="relative z-20 bg-white dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white hover:bg-white dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 hover:text-slate-900 dark:hover:text-white text-lg px-8 py-4 transition-colors duration-200"
-                onClick={() => navigate("/login")}
-              >
-                Get Started
-              </Button>
-            </div>
-          </div>
+        <div className="w-64 h-full">
+          <UnifiedSidebar
+            isOpen={isSidebarOpen}
+            onToggle={() => setIsSidebarOpen(false)}
+          />
         </div>
       </div>
 
-      {/* Features Section */}
-      <section id="features" className="pt-24 pb-16 bg-surface-elevated relative z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-10 animate-fade-in">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-3 animate-scale-in hover:scale-105 transition-transform duration-500">
-              Everything You Need to Shine
-            </h2>
-          </div>
+      {/* Main Content Area - Refined Window Design with Internal Scroll */}
+      <div className={cn(
+        "flex-1 w-full min-w-0 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col relative transition-all duration-300 h-full",
+        isSidebarJoined && isSidebarOpen && "transition-all duration-700"
+      )}>
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar relative">
+          {viewMode === 'landing' ? (
+            <>
+              {/* Aurora Background - Moved inside the rounded container */}
+              < AuroraBackground
+                showRadialGradient={false}
+                className="absolute inset-0 -z-10 h-full w-full"
+              >
+                <div></div>
+              </AuroraBackground>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <InView
-              variants={{
-                hidden: { opacity: 0, y: 50 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-            >
-              <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
-                  AI Content Generation
-                </h3>
-                <InView
-                  variants={{
-                    hidden: { opacity: 0, y: 20 },
-                    visible: { opacity: 1, y: 0 },
-                  }}
-                  transition={{ duration: 0.5, delay: 0.3 }}
-                >
-                  <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
-                    Generate compelling project descriptions, technical details, and
-                    marketing copy with AI assistance.
-                  </p>
-                </InView>
 
-                <motion.div
-                  initial={false}
-                  animate={{ height: expandedCard === 0 ? "auto" : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden relative z-10"
+
+
+              {/* Navigation with Scroll Animation - Sticky instead of Fixed */}
+              <header className="sticky top-0 z-[55] w-full pt-4">
+                <nav
+                  data-state={isMenuOpen ? "active" : undefined}
+                  className="w-full px-2 group"
                 >
-                  <div className="pt-4 space-y-3">
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Automatically generate SEO-optimized descriptions</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Create technical documentation with one click</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Generate multiple variations for A/B testing</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Customize tone and style to match your brand</p>
+                  <div
+                    className={cn(
+                      "mx-auto mt-2 max-w-6xl px-6 transition-all duration-300 lg:px-12",
+                      isScrolled &&
+                      "bg-background/50 max-w-4xl rounded-2xl border lg:backdrop-blur-lg lg:px-5"
+                    )}
+                  >
+                    <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
+                      <div className="flex w-full justify-between lg:w-auto">
+                        <a
+                          href="/"
+                          aria-label="home"
+                          className="flex items-center space-x-2"
+                        >
+                          <div className="flex items-center space-x-2 group hover:scale-105 transition-all duration-300">
+                            <div className="w-8 h-8 logo-bg rounded-lg flex items-center justify-center group-hover:rotate-12 group-hover:scale-110 transition-all duration-300">
+                              <Code2 className="h-5 w-5 text-white" />
+                            </div>
+                            <span className="text-xl font-bold text-foreground group-hover:logo-text transition-colors duration-300">
+                              ShowWork
+                            </span>
+                          </div>
+                        </a>
+                        <button
+                          onClick={() => setIsMenuOpen(!isMenuOpen)}
+                          aria-label={isMenuOpen ? "Close Menu" : "Open Menu"}
+                          className="relative z-20 -m-2.5 -mr-4 block cursor-pointer p-2.5 lg:hidden"
+                        >
+                          <Menu className="in-data-[state=active]:rotate-180 group-data-[state=active]:scale-0 group-data-[state=active]:opacity-0 m-auto size-6 duration-200" />
+                          <X className="group-data-[state=active]:rotate-0 group-data-[state=active]:scale-100 group-data-[state=active]:opacity-100 absolute inset-0 m-auto size-6 -rotate-180 scale-0 opacity-0 duration-200" />
+                        </button>
+                      </div>
+
+                      {/* Desktop Navigation */}
+                      <div className="absolute inset-0 m-auto hidden size-fit lg:block">
+                        <ul className="flex gap-8 text-sm">
+                          <li>
+                            <a
+                              href="#features"
+                              className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                            >
+                              <span>Features</span>
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="#demo"
+                              className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                            >
+                              <span>Demo</span>
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="#pricing"
+                              className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                            >
+                              <span>Pricing</span>
+                            </a>
+                          </li>
+                          <li>
+                            <a
+                              href="#testimonials"
+                              className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                            >
+                              <span>Reviews</span>
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* Desktop and Mobile CTA Buttons */}
+                      <div className="bg-background group-data-[state=active]:block lg:group-data-[state=active]:flex mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-3xl border p-6 shadow-2xl shadow-zinc-300/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-6 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none dark:shadow-none dark:lg:bg-transparent">
+                        {/* Mobile Menu Links */}
+                        <div className="lg:hidden">
+                          <ul className="space-y-6 text-base">
+                            <li>
+                              <a
+                                href="#features"
+                                className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                              >
+                                <span>Features</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a
+                                href="#demo"
+                                className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                              >
+                                <span>Demo</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a
+                                href="#pricing"
+                                className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                              >
+                                <span>Pricing</span>
+                              </a>
+                            </li>
+                            <li>
+                              <a
+                                href="#testimonials"
+                                className="text-muted-foreground hover:text-accent-foreground block duration-150"
+                              >
+                                <span>Reviews</span>
+                              </a>
+                            </li>
+                          </ul>
+                        </div>
+
+                        {/* CTA Buttons */}
+                        <div className="flex w-full flex-col space-y-3 sm:flex-row sm:gap-3 sm:space-y-0 md:w-fit">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className={cn(
+                              isScrolled && "lg:hidden",
+                              "hover:bg-background hover:text-foreground hover:border-input hover:opacity-100 transition-all duration-200"
+                            )}
+                            onClick={() => navigate("/login")}
+                          >
+                            <span>Sign In</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            className={cn(isScrolled && "lg:hidden")}
+                            onClick={() => navigate("/login")}
+                          >
+                            <span>Get Started</span>
+                          </Button>
+                          <Button
+                            size="sm"
+                            className={cn(
+                              isScrolled ? "lg:inline-flex" : "hidden"
+                            )}
+                            onClick={() => navigate("/login")}
+                          >
+                            <span>Get Started</span>
+                          </Button>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
+                </nav>
+              </header >
 
-                <Button
-                  variant="ghost"
-                  onClick={() => setExpandedCard(expandedCard === 0 ? null : 0)}
-                  className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
-                >
-                  {expandedCard === 0 ? "Show Less" : "Learn More"}
-                  <motion.div
-                    animate={{ rotate: expandedCard === 0 ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </motion.div>
-                </Button>
-              </div>
-            </InView>
-
-            <InView
-              variants={{
-                hidden: { opacity: 0, y: 50 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
-                  <Globe className="h-6 w-6 text-white" />
+              {/* Hero Content Section - Mobile-First style from new design */}
+              <div className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(1.5rem, 6vh, 3rem)' }}>
+                {/* Background Gradients */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none z-0">
+                  <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob"></div>
+                  <div className="absolute top-20 right-20 w-72 h-72 bg-purple-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob animation-delay-2000"></div>
+                  <div className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob animation-delay-4000"></div>
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
-                  Multi-Platform Publishing
-                </h3>
-                <InView
-                  variants={{
-                    hidden: { opacity: 0, y: 20 },
-                    visible: { opacity: 1, y: 0 },
-                  }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                >
-                  <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
-                    Share your work across social media, job boards, and
-                    professional networks with one click.
-                  </p>
-                </InView>
 
-                <motion.div
-                  initial={false}
-                  animate={{ height: expandedCard === 1 ? "auto" : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden relative z-10"
-                >
-                  <div className="pt-4 space-y-3">
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Publish to LinkedIn, Twitter, Reddit, and Instagram simultaneously</p>
+                <div className="w-full max-w-6xl mx-auto px-6 lg:px-12">
+                  <div className="text-center w-full mx-auto max-w-4xl" style={{ marginBottom: '2rem' }}>
+                    <h1 className="font-black text-slate-900 dark:text-white tracking-tight text-center relative leading-[1.15]" style={{ fontSize: 'clamp(2.5rem, 8vw, 4.5rem)' }}>
+                      {/* Floating Widgets */}
+                      <div className="hidden lg:flex absolute -top-12 -left-12 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-100 z-20 hover:scale-105 transition-transform cursor-default">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+                          <BarChart3 className="w-5 h-5 text-blue-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Total Views</p>
+                          <p className="text-sm font-bold text-slate-900 dark:text-white">12.5k <span className="text-green-500 text-xs font-medium ml-1">↑ 14%</span></p>
+                        </div>
+                      </div>
+
+                      <div className="hidden lg:flex absolute -top-8 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-2 animate-float animation-delay-500 z-20 hover:scale-105 transition-transform cursor-default">
+                        <Github className="w-5 h-5 text-slate-900 dark:text-white" />
+                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Connected</span>
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1"></div>
+                      </div>
+
+                      {/* Floating Widget 3: Offers (Bottom Left) */}
+                      <div className="hidden lg:flex absolute top-24 -left-24 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-700 z-20 hover:scale-105 transition-transform cursor-default">
+                        <div className="relative">
+                          <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-600">
+                            <img src="https://ui-avatars.com/api/?name=Recruiter&background=0D8ABC&color=fff" alt="Recruiter" />
+                          </div>
+                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white dark:border-slate-600 flex items-center justify-center">
+                            <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
+                          </div>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">New Job Offer</p>
+                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Frontend Dev • Remote</p>
+                        </div>
+                      </div>
+
+                      {/* Floating Widget 4: Upload (Bottom Right) */}
+                      <div className="hidden lg:flex absolute top-32 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 pr-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-300 z-20 hover:scale-105 transition-transform cursor-default transform rotate-3">
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+                          <Zap className="w-5 h-5 text-purple-600" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs font-bold text-slate-900 dark:text-white">Project Deployed</p>
+                          <div className="h-1.5 w-24 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
+                            <div className="h-full bg-purple-500 w-full animate-loadingBar"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="block mb-2">Showcase Your Work</span>
+                      <span className="relative flex h-[1.2em] w-full justify-center overflow-hidden text-center text-blue-600 dark:text-blue-500">
+                        {rotatingWords.map((word, index) => (
+                          <motion.span
+                            key={index}
+                            className="absolute font-black whitespace-nowrap"
+                            initial={{ opacity: 0, y: 100 }}
+                            transition={{ type: "spring", stiffness: 100, damping: 15 }}
+                            animate={titleNumber === index ? { y: 0, opacity: 1 } : { y: titleNumber > index ? -120 : 120, opacity: 0 }}
+                          >
+                            {word}
+                          </motion.span>
+                        ))}
+                      </span>
+                      <span className="block mt-2">Like Never Before</span>
+                    </h1>
+
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
+                      <Button
+                        size="lg"
+                        className="rounded-full px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-2xl transition-all duration-300 transform hover:scale-105"
+                        onClick={() => navigate("/login")}
+                      >
+                        Start Your Portfolio
+                        <ArrowRight className="ml-2 w-5 h-5" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="lg"
+                        className="rounded-full px-10 h-14 border-2 border-slate-200 dark:border-slate-800 text-lg font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300"
+                        onClick={() => navigate("/login")}
+                      >
+                        View Demo
+                      </Button>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Schedule posts for optimal engagement times</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Track performance across all platforms in one dashboard</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Auto-format content for each platform's requirements</p>
+
+                    <div className="mt-10 flex items-center justify-center gap-8">
+                      <div className="flex flex-col items-center">
+                        <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">5k+</span>
+                        <span className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Users</span>
+                      </div>
+                      <div className="w-px h-8 bg-slate-200 dark:bg-slate-800"></div>
+                      <div className="flex flex-col items-center">
+                        <div className="flex -space-x-2">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                              <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="user" className="w-full h-full object-cover" />
+                            </div>
+                          ))}
+                        </div>
+                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-1">Trusted By Top Devs</span>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
-
-                <Button
-                  variant="ghost"
-                  onClick={() => setExpandedCard(expandedCard === 1 ? null : 1)}
-                  className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
-                >
-                  {expandedCard === 1 ? "Show Less" : "Learn More"}
-                  <motion.div
-                    animate={{ rotate: expandedCard === 1 ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </motion.div>
-                </Button>
-              </div>
-            </InView>
-
-            <InView
-              variants={{
-                hidden: { opacity: 0, y: 50 },
-                visible: { opacity: 1, y: 0 },
-              }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-            >
-              <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
-                  <Star className="h-6 w-6 text-white" />
                 </div>
-                <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
-                  Professional Templates
-                </h3>
-                <InView
-                  variants={{
-                    hidden: { opacity: 0, y: 20 },
-                    visible: { opacity: 1, y: 0 },
-                  }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
-                >
-                  <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
-                    Choose from dozens of stunning portfolio templates designed by
-                    professionals for developers.
-                  </p>
-                </InView>
+              </div>
 
-                <motion.div
-                  initial={false}
-                  animate={{ height: expandedCard === 2 ? "auto" : 0 }}
-                  transition={{ duration: 0.3, ease: "easeInOut" }}
-                  className="overflow-hidden relative z-10"
-                >
-                  <div className="pt-4 space-y-3">
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Choose from 50+ professionally designed templates</p>
+              {/* Comparison Section: "Success vs Struggle" */}
+              <section className="py-12 relative z-10">
+                <div className="max-w-6xl mx-auto px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+                      Talent is everywhere. <br className="hidden sm:block" />
+                      <span className="text-blue-600">Visibility is not.</span>
+                    </h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                      Stop letting your best work go unnoticed. See the difference ShowWork makes.
+                    </p>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-8 items-stretch">
+                    {/* Card 1: The Invisible Developer */}
+                    <div className="group relative bg-[#fcfcfd] dark:bg-slate-800/10 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-10 overflow-hidden text-center md:text-left transition-all duration-300">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transform translate-x-4 -translate-y-4">
+                        <Zap className="w-48 h-48 text-[#f43f5e] -rotate-12" />
+                      </div>
+                      <div className="relative z-10">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#eef2f6] dark:bg-slate-700 text-[#64748b] dark:text-slate-300 text-xs font-bold uppercase tracking-wider mb-8">
+                          WITHOUT SHOWWORK
+                        </div>
+                        <h3 className="text-3xl font-black text-slate-700 dark:text-slate-400 mb-2">The Invisible Developer</h3>
+                        <p className="text-[#94a3b8] dark:text-slate-400 mb-10 text-lg">Great code, but no one sees it. Opportunities slip away.</p>
+
+                        <div className="space-y-6">
+                          <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 opacity-60">
+                            <div className="flex items-center gap-4 mb-4">
+                              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800"></div>
+                              <div className="space-y-2">
+                                <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                <div className="h-2 w-20 bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div className="h-2 w-full bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
+                              <div className="h-2 w-2/3 bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
+                            </div>
+                          </div>
+                          <div className="space-y-3">
+                            <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                              <X className="w-4 h-4" />
+                              <span>Resume sent to the void</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
+                              <X className="w-4 h-4" />
+                              <span>Ghosted by recruiters</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Fully customizable colors, fonts, and layouts</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Mobile-responsive design out of the box</p>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
-                      <p className="text-sm text-foreground-muted">Preview before publishing with live preview mode</p>
+
+                    {/* Card 2: The 1% Developer */}
+                    <div className="group relative bg-[#2563eb] text-white rounded-[2.5rem] p-10 overflow-hidden shadow-[0_30px_60px_-15px_rgba(37,99,235,0.3)] transition-all duration-300">
+                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent pointer-events-none"></div>
+                      <div className="relative z-10">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 text-white text-xs font-bold uppercase tracking-wider mb-8 backdrop-blur-md border border-white/20">
+                          WITH SHOWWORK
+                        </div>
+                        <h3 className="text-3xl font-black text-white mb-2">The 1% Developer</h3>
+                        <p className="text-blue-100 mb-10 text-lg">Work that speaks for itself. Inbound opportunities daily.</p>
+
+                        <div className="space-y-6">
+                          <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl">
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#fbbf24] to-[#f59e0b] border-2 border-white/50 shadow-inner"></div>
+                                <div className="space-y-2">
+                                  <div className="h-3 w-32 bg-white/30 rounded-full"></div>
+                                  <div className="h-2 w-20 bg-white/20 rounded-full"></div>
+                                </div>
+                              </div>
+                              <div className="text-[10px] font-black bg-[#22c55e] text-white px-2.5 py-1 rounded-full shadow-lg tracking-wider">OFFER RECEIVED</div>
+                            </div>
+                            <div className="p-4 bg-white/5 rounded-xl border border-white/10 text-sm text-blue-50 italic leading-relaxed">
+                              "Just saw your ShowWork profile. We need someone exactly like you. Can we chat?"
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-white text-sm font-bold tracking-tight">
+                            <Star className="w-5 h-5 text-[#fcd34d] fill-[#fcd34d]" />
+                            <span>Skipped technical screening</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
+                </div>
+              </section>
 
-                <Button
-                  variant="ghost"
-                  onClick={() => setExpandedCard(expandedCard === 2 ? null : 2)}
-                  className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
-                >
-                  {expandedCard === 2 ? "Show Less" : "Learn More"}
-                  <motion.div
-                    animate={{ rotate: expandedCard === 2 ? 180 : 0 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <ChevronDown className="h-4 w-4" />
-                  </motion.div>
-                </Button>
-              </div>
-            </InView>
-          </div>
+              {/* Features Section */}
+              < section id="features" className="pt-24 pb-16 bg-surface-elevated relative z-10" >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-10 animate-fade-in">
+                    <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-3 animate-scale-in hover:scale-105 transition-transform duration-500">
+                      Everything You Need to Shine
+                    </h2>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <InView
+                      variants={{
+                        hidden: { opacity: 0, y: 50 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
+                      transition={{ duration: 0.6, delay: 0.1 }}
+                    >
+                      <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
+                          <Zap className="h-6 w-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
+                          AI Content Generation
+                        </h3>
+                        <InView
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.5, delay: 0.3 }}
+                        >
+                          <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
+                            Generate compelling project descriptions, technical details, and
+                            marketing copy with AI assistance.
+                          </p>
+                        </InView>
+
+                        <motion.div
+                          initial={false}
+                          animate={{ height: expandedCard === 0 ? "auto" : 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="overflow-hidden relative z-10"
+                        >
+                          <div className="pt-4 space-y-3">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Automatically generate SEO-optimized descriptions</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Create technical documentation with one click</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Generate multiple variations for A/B testing</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Customize tone and style to match your brand</p>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => setExpandedCard(expandedCard === 0 ? null : 0)}
+                          className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
+                        >
+                          {expandedCard === 0 ? "Show Less" : "Learn More"}
+                          <motion.div
+                            animate={{ rotate: expandedCard === 0 ? 180 : 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </Button>
+                      </div>
+                    </InView>
+
+                    <InView
+                      variants={{
+                        hidden: { opacity: 0, y: 50 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
+                      transition={{ duration: 0.6, delay: 0.3 }}
+                    >
+                      <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-accent/5 via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
+                          <Globe className="h-6 w-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
+                          Multi-Platform Publishing
+                        </h3>
+                        <InView
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.5, delay: 0.5 }}
+                        >
+                          <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
+                            Share your work across social media, job boards, and
+                            professional networks with one click.
+                          </p>
+                        </InView>
+
+                        <motion.div
+                          initial={false}
+                          animate={{ height: expandedCard === 1 ? "auto" : 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="overflow-hidden relative z-10"
+                        >
+                          <div className="pt-4 space-y-3">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Publish to LinkedIn, Twitter, Reddit, and Instagram simultaneously</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Schedule posts for optimal engagement times</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Track performance across all platforms in one dashboard</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Auto-format content for each platform's requirements</p>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => setExpandedCard(expandedCard === 1 ? null : 1)}
+                          className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
+                        >
+                          {expandedCard === 1 ? "Show Less" : "Learn More"}
+                          <motion.div
+                            animate={{ rotate: expandedCard === 1 ? 180 : 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </Button>
+                      </div>
+                    </InView>
+
+                    <InView
+                      variants={{
+                        hidden: { opacity: 0, y: 50 },
+                        visible: { opacity: 1, y: 0 },
+                      }}
+                      transition={{ duration: 0.6, delay: 0.5 }}
+                    >
+                      <div className="group bg-surface rounded-xl p-8 border border-card-border hover:shadow-2xl hover:shadow-blue-500/20 hover:border-blue-400/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-4 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                        <div className="w-12 h-12 logo-bg rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-12 transition-all duration-500 relative z-10">
+                          <Star className="h-6 w-6 text-white" />
+                        </div>
+                        <h3 className="text-xl font-semibold mb-4 text-foreground group-hover:logo-text transition-colors duration-300 relative z-10">
+                          Professional Templates
+                        </h3>
+                        <InView
+                          variants={{
+                            hidden: { opacity: 0, y: 20 },
+                            visible: { opacity: 1, y: 0 },
+                          }}
+                          transition={{ duration: 0.5, delay: 0.7 }}
+                        >
+                          <p className="text-foreground-muted mb-6 relative z-10 group-hover:translate-x-2 transition-transform duration-300">
+                            Choose from dozens of stunning portfolio templates designed by
+                            professionals for developers.
+                          </p>
+                        </InView>
+
+                        <motion.div
+                          initial={false}
+                          animate={{ height: expandedCard === 2 ? "auto" : 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="overflow-hidden relative z-10"
+                        >
+                          <div className="pt-4 space-y-3">
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Choose from 50+ professionally designed templates</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Fully customizable colors, fonts, and layouts</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Mobile-responsive design out of the box</p>
+                            </div>
+                            <div className="flex items-start gap-2">
+                              <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0"></div>
+                              <p className="text-sm text-foreground-muted">Preview before publishing with live preview mode</p>
+                            </div>
+                          </div>
+                        </motion.div>
+
+                        <Button
+                          variant="ghost"
+                          onClick={() => setExpandedCard(expandedCard === 2 ? null : 2)}
+                          className="text-primary hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950/30 font-semibold p-2 -ml-2 rounded-lg transition-all duration-300 relative z-10 mt-4 flex items-center gap-2 hover:scale-105"
+                        >
+                          {expandedCard === 2 ? "Show Less" : "Learn More"}
+                          <motion.div
+                            animate={{ rotate: expandedCard === 2 ? 180 : 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <ChevronDown className="h-4 w-4" />
+                          </motion.div>
+                        </Button>
+                      </div>
+                    </InView>
+                  </div>
+                </div>
+              </section >
+
+
+
+              {/* "Beyond Code" Timeline Section from new design */}
+              <section className="py-20 relative overflow-hidden bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+                <div className="max-w-4xl mx-auto px-6 relative z-10">
+                  <div className="text-center mb-16 max-w-3xl mx-auto">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">The Human Side of Code</div>
+                    <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
+                      Commits are for machines. <br />
+                      <span className="text-blue-600">ShowWork is for your story.</span>
+                    </h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400">Don't let your work be defined just by green squares. Show the discussions, the decisions, and the community impact.</p>
+                  </div>
+
+                  <div className="relative max-w-3xl mx-auto">
+                    <div className="absolute left-8 top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+                    <div className="space-y-8 relative">
+                      {/* LinkedIn Item */}
+                      <div className="relative pl-0 sm:pl-24 group">
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-full items-center justify-center z-10 hidden sm:flex">
+                          <Linkedin className="w-4 h-4 text-[#0077b5]" />
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span>Posted on LinkedIn: 'The Future of Frontend'</span>
+                            </div>
+                          </div>
+                          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">Just shared my thoughts on the new React server components. It's a paradigm shift that we all need to prepare for.</p>
+                        </div>
+                      </div>
+                      {/* Github Item */}
+                      <div className="relative pl-0 sm:pl-24 group">
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-full items-center justify-center z-10 hidden sm:flex">
+                          <Github className="w-4 h-4 text-slate-700 dark:text-white" />
+                        </div>
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span>Pull Request #57 on showwork-frontend</span>
+                            </div>
+                          </div>
+                          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg p-2 font-mono text-xs text-slate-600 dark:text-slate-400 mb-4 overflow-x-auto">feat: Implement new user profile timeline view...</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Orbit + Journey Section */}
+              <section id="journey" className="pt-24 pb-20 scroll-mt-32 relative z-0">
+                <div className="max-w-7xl mx-auto px-6 lg:px-12">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+                    <div className="relative z-0">
+                      <OrbitingPlatforms />
+                      <div className="mt-12 hidden lg:block">
+                        <DisplayCards />
+                      </div>
+                      <div className="mt-24">
+                        <BouncyCardsFeatures />
+                      </div>
+                    </div>
+                    <div className="relative z-0 pt-8 lg:pt-0">
+                      <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Your ShowWork Journey</h3>
+                      <ShowWorkTimeline />
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Demo Section */}
+              < section id="demo" className="pt-10 pb-20" >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+                      See ShowWork in Action
+                    </h2>
+                    <p className="text-xl text-foreground-muted max-w-3xl mx-auto mb-8">
+                      Watch how easy it is to create stunning portfolios that get you
+                      noticed by employers and clients.
+                    </p>
+                    <Button
+                      size="lg"
+                      className="logo-bg shadow-lg text-white hover:opacity-90"
+                      onClick={() => navigate("/login")}
+                    >
+                      Get Started Free
+                    </Button>
+                  </div>
+                  {/* Demo image box removed as requested */}
+                </div>
+              </section >
+
+              {/* Pricing Section */}
+              < PricingSection />
+
+              {/* Testimonials Section */}
+              < section id="testimonials" className="pt-10 pb-20 bg-surface-elevated" >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+                      Loved by Developers Worldwide
+                    </h2>
+                    <p className="text-xl text-foreground-muted max-w-3xl mx-auto">
+                      Join thousands of developers who've transformed their careers with
+                      ShowWork.
+                    </p>
+                  </div>
+
+                  <div className="max-w-7xl mx-auto">
+                    <StaggerTestimonials />
+                  </div>
+                </div>
+              </section >
+
+              {/* CTA Section */}
+              < section className="py-20" >
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                  <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+                    Ready to Showcase Your Work?
+                  </h2>
+                  <p className="text-xl text-foreground-muted mb-8">
+                    Join thousands of developers building impressive portfolios with
+                    ShowWork.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-lg mx-auto mb-4">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-xl px-10 h-14 rounded-full font-bold transition-all duration-300 transform hover:scale-105"
+                      onClick={() => navigate("/login")}
+                    >
+                      Get Started Free
+                      <ArrowRight className="ml-2 w-5 h-5" />
+                    </Button>
+                  </div>
+
+                  <p className="text-sm text-foreground-muted">
+                    No credit card required. Start building in minutes.
+                  </p>
+                </div>
+              </section >
+              {/* Footer */}
+              < footer className="bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 dark:from-blue-950 dark:via-blue-900 dark:to-slate-950 text-white py-16" >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    {/* Newsletter */}
+                    <div className="md:col-span-2">
+                      <h3 className="text-lg font-semibold mb-4 text-white">Stay Updated</h3>
+                      <div className="mb-4 space-y-3">
+                        <Button
+                          className="w-full bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20 transition-all duration-300 h-11"
+                          onClick={() => navigate("/login")}
+                        >
+                          Join the Community
+                        </Button>
+                      </div>
+                      <p className="text-sm text-white/80">
+                        Get the latest updates and portfolio tips.
+                      </p>
+                    </div>
+
+                    {/* Product Links */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-white">Product</h3>
+                      <div className="space-y-2">
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Features
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Templates
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Pricing
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Integrations
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          API
+                        </a>
+                      </div>
+                    </div>
+
+                    {/* Company Links */}
+                    <div>
+                      <h3 className="text-lg font-semibold mb-4 text-white">Company</h3>
+                      <div className="space-y-2">
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          About
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Blog
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Careers
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Contact
+                        </a>
+                        <a
+                          href="#"
+                          className="block text-white/80 hover:text-white transition-colors"
+                        >
+                          Help
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bottom Section */}
+                  <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center">
+                    <div className="flex items-center space-x-2 mb-4 md:mb-0">
+                      <div className="w-8 h-8 logo-bg rounded-lg flex items-center justify-center">
+                        <Code2 className="h-5 w-5 text-white" />
+                      </div>
+                      <span className="text-2xl font-bold text-white">ShowWork</span>
+                    </div>
+
+                    <div className="flex items-center space-x-6">
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white transition-colors"
+                      >
+                        <Twitter className="h-5 w-5" />
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white transition-colors"
+                      >
+                        <Github className="h-5 w-5" />
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white transition-colors"
+                      >
+                        <Linkedin className="h-5 w-5" />
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white transition-colors"
+                      >
+                        <Youtube className="h-5 w-5" />
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white transition-colors"
+                      >
+                        <Instagram className="h-5 w-5" />
+                      </a>
+                    </div>
+                  </div>
+
+                  <div className="border-t border-white/20 pt-8 mt-8 text-center">
+                    <p className="text-white/80">
+                      © 2025 ShowWork All Rights Reserved
+                    </p>
+                    <div className="flex justify-center space-x-6 mt-4">
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white text-sm transition-colors"
+                      >
+                        Privacy Policy
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white text-sm transition-colors"
+                      >
+                        Terms of Service
+                      </a>
+                      <a
+                        href="#"
+                        className="text-white/80 hover:text-white text-sm transition-colors"
+                      >
+                        Cookie Policy
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </footer>
+            </>
+          ) : (
+            <OnboardingPreview onBack={() => setViewMode('landing')} />
+          )}
         </div>
-      </section>
-
-
-
-      {/* Orbit + Journey Timeline side-by-side */}
-      <section className="pt-48 pb-20 mt-24 scroll-mt-32 relative z-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-start">
-            <div className="p-0 relative z-0">
-              <OrbitingPlatforms />
-              <div className="mt-10">
-                <DisplayCards />
-              </div>
-              <div className="mt-24">
-                <BouncyCardsFeatures />
-              </div>
-            </div>
-            <div className="p-0 relative z-0">
-              <h3 className="text-2xl font-bold text-foreground mb-6">Your ShowWork Journey</h3>
-              <ShowWorkTimeline />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Demo Section */}
-      <section id="demo" className="pt-10 pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              See ShowWork in Action
-            </h2>
-            <p className="text-xl text-foreground-muted max-w-3xl mx-auto mb-8">
-              Watch how easy it is to create stunning portfolios that get you
-              noticed by employers and clients.
-            </p>
-            <Button
-              size="lg"
-              className="logo-bg shadow-lg text-white hover:opacity-90"
-              onClick={() => navigate("/login")}
-            >
-              Get Started Free
-            </Button>
-          </div>
-          {/* Demo image box removed as requested */}
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <PricingSection />
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="pt-10 pb-20 bg-surface-elevated">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Loved by Developers Worldwide
-            </h2>
-            <p className="text-xl text-foreground-muted max-w-3xl mx-auto">
-              Join thousands of developers who've transformed their careers with
-              ShowWork.
-            </p>
-          </div>
-
-          <div className="max-w-7xl mx-auto">
-            <StaggerTestimonials />
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-            Ready to Showcase Your Work?
-          </h2>
-          <p className="text-xl text-foreground-muted mb-8">
-            Join thousands of developers building impressive portfolios with
-            ShowWork.
-          </p>
-
-          <form
-            onSubmit={handleEmailSubmit}
-            className="flex flex-col sm:flex-row gap-4 max-w-lg mx-auto mb-4"
-          >
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 h-12"
-              required
-            />
-            <Button
-              type="submit"
-              size="lg"
-              className="bg-blue-600 hover:bg-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
-            >
-              Get Started Free
-            </Button>
-          </form>
-
-          <p className="text-sm text-foreground-muted">
-            No credit card required. Start building in minutes.
-          </p>
-        </div>
-      </section>
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-blue-900 via-blue-800 to-slate-900 dark:from-blue-950 dark:via-blue-900 dark:to-slate-950 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* Newsletter */}
-            <div className="md:col-span-2">
-              <h3 className="text-lg font-semibold mb-4 text-white">Stay Updated</h3>
-              <form onSubmit={handleEmailSubmit} className="mb-4">
-                <Input
-                  type="email"
-                  placeholder="Your email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mb-3 bg-white/10 backdrop-blur-sm border-white/20 text-white placeholder:text-white/60 focus:bg-white/15 focus:border-white/30 transition-all"
-                />
-                <Button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 text-white transition-all duration-200 hover:shadow-lg"
-                >
-                  Subscribe
-                </Button>
-              </form>
-              <p className="text-sm text-white/80">
-                Get the latest updates and portfolio tips.
-              </p>
-            </div>
-
-            {/* Product Links */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Product</h3>
-              <div className="space-y-2">
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Features
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Templates
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Pricing
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Integrations
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  API
-                </a>
-              </div>
-            </div>
-
-            {/* Company Links */}
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-white">Company</h3>
-              <div className="space-y-2">
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  About
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Blog
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Careers
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Contact
-                </a>
-                <a
-                  href="#"
-                  className="block text-white/80 hover:text-white transition-colors"
-                >
-                  Help
-                </a>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Section */}
-          <div className="border-t border-white/20 pt-8 flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
-              <div className="w-8 h-8 logo-bg rounded-lg flex items-center justify-center">
-                <Code2 className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-2xl font-bold text-white">ShowWork</span>
-            </div>
-
-            <div className="flex items-center space-x-6">
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Twitter className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Github className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Youtube className="h-5 w-5" />
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white transition-colors"
-              >
-                <Instagram className="h-5 w-5" />
-              </a>
-            </div>
-          </div>
-
-          <div className="border-t border-white/20 pt-8 mt-8 text-center">
-            <p className="text-white/80">
-              © 2025 ShowWork All Rights Reserved
-            </p>
-            <div className="flex justify-center space-x-6 mt-4">
-              <a
-                href="#"
-                className="text-white/80 hover:text-white text-sm transition-colors"
-              >
-                Privacy Policy
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white text-sm transition-colors"
-              >
-                Terms of Service
-              </a>
-              <a
-                href="#"
-                className="text-white/80 hover:text-white text-sm transition-colors"
-              >
-                Cookie Policy
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+      </div>
     </div>
   );
 };

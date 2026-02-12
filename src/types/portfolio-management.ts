@@ -19,9 +19,35 @@ export interface ResumeVersion {
     isCurrent: boolean;
     fileUrl?: string;
     linkedPortfolioId?: string;
+    linkedApplicationId?: string; // Link resume to specific application
     createdAt: Date;
     updatedAt: Date;
     notes: string;
+    atsScore?: number;
+    targetJobCompany?: string;
+    isGeneric?: boolean;
+    criticalGaps?: string[];
+    versionNumber?: string;
+    improvementPercent?: number;
+}
+
+export interface TailoringSuggestion {
+    type: 'keyword' | 'section' | 'skill';
+    category: string;
+    currentText?: string;
+    suggestedText: string;
+    reason: string;
+    priority: 'high' | 'medium' | 'low';
+}
+
+export interface TailoringResult {
+    resumeId: string;
+    applicationId: string;
+    originalAtsScore: number;
+    projectedAtsScore: number;
+    suggestions: TailoringSuggestion[];
+    missingKeywords: string[];
+    createdAt: Date;
 }
 
 export interface ProjectTarget {

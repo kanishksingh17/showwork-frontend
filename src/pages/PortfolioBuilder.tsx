@@ -8,7 +8,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import type { PortfolioTemplate, UserPortfolio, JobRole } from "../types/portfolio";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 import { PortfolioSelector } from "../components/portfolio/PortfolioSelector";
 // import { PortfolioCustomizer } from "../components/portfolio/PortfolioCustomizer";
 // import { LiveTemplateFiller } from "../components/portfolio/LiveTemplateFiller"; // Component doesn't exist
@@ -1054,22 +1054,8 @@ export default function PortfolioBuilder() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
-      {/* Live Template Filler Overlay - Component doesn't exist, commented out */}
-      {/* showLiveBuilder && selectedTemplate && (
-        <LiveTemplateFiller
-          userData={userData}
-          projects={fetchedProjects}
-          template={selectedTemplate}
-          onComplete={handleLiveBuilderComplete}
-          onCancel={handleLiveBuilderCancel}
-        />
-      ) */}
-
-      {/* Sidebar - Hide in customizer mode to give full screen to editor */}
-      {currentStep !== 'customizer' && <UnifiedSidebar currentPage="portfolio" />}
-
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+    <UnifiedLayout activePage="portfolio" showSidebar={currentStep !== 'customizer'}>
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Header - Fixed - Only show navigation, no title/description after landing */}
         {currentStep !== "landing" && currentStep !== "customizer" && (
           <div className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 flex-shrink-0">
@@ -1107,6 +1093,6 @@ export default function PortfolioBuilder() {
           {renderStep()}
         </div>
       </div>
-    </div>
+    </UnifiedLayout>
   );
 }

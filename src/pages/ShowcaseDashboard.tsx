@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 
 interface Project {
   id: string;
@@ -781,12 +782,9 @@ const ShowcaseDashboard = ({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Unified Sidebar */}
-      <UnifiedSidebar currentPage="showcase" />
-
+    <UnifiedLayout activePage="showcase">
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-hidden">
+      <main className="flex-1 flex flex-col overflow-hidden h-full">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4">
           <div className="flex items-center justify-between">
@@ -1796,7 +1794,7 @@ const ShowcaseDashboard = ({
           )}
         </div>
       </main>
-    </div>
+    </UnifiedLayout>
   );
 };
 

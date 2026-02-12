@@ -1,7 +1,7 @@
 "use client";
 import { Timeline } from "@/components/ui/timeline";
 
-export function ShowWorkTimeline() {
+export function ShowWorkTimeline({ containerRef }: { containerRef?: React.RefObject<HTMLDivElement> }) {
   const data = [
     {
       title: "Step 1 — Upload Your Project",
@@ -81,8 +81,8 @@ export function ShowWorkTimeline() {
   ];
 
   return (
-    <div className="min-h-screen w-full">
-      <Timeline data={data} />
+    <div className="w-full">
+      <Timeline data={data} containerRef={containerRef} />
     </div>
   );
 }

@@ -11,14 +11,19 @@ import {
   Briefcase,
   Plug,
   FileText,
+  PanelLeftClose,
 } from "lucide-react";
 
 interface UnifiedSidebarProps {
   currentPage?: string;
+  isOpen?: boolean;
+  onToggle?: () => void;
 }
 
 export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   currentPage,
+  isOpen,
+  onToggle,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -93,11 +98,26 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   ];
 
   return (
-    <aside className="w-64 bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-xl shadow-lg m-4 overflow-hidden">
+    <aside className="w-64 h-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-[2.5rem] shadow-lg overflow-hidden border border-slate-200/10 dark:border-slate-800">
       {/* Logo Section - Fixed Position */}
-      <div className="p-6 flex items-center space-x-3">
-        <img src="/favicon.svg" alt="ShowWork Logo" className="w-10 h-10 object-contain" />
-        <h1 className="text-xl font-extrabold text-white">ShowWork</h1>
+      <div
+        className="p-8 pb-4 flex items-center justify-between"
+        data-sidebar-open={isOpen}
+      >
+        <div className="flex items-center space-x-3">
+          <img src="/favicon.svg" alt="ShowWork Logo" className="w-10 h-10 object-contain" />
+          <h1 className="text-xl font-extrabold text-white">ShowWork</h1>
+        </div>
+
+        {onToggle && (
+          <button
+            onClick={onToggle}
+            className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white lg:block hidden"
+            aria-label="Collapse Sidebar"
+          >
+            <PanelLeftClose className="size-5" />
+          </button>
+        )}
       </div>
 
       {/* Navigation Section - Static Order, Never Changes */}

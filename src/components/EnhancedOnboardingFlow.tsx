@@ -38,7 +38,7 @@ import {
   RedditIcon,
 } from "./BrandIcons";
 import {
-  Question,
+  type Question,
   getQuestionsForTechStacks,
   hasTechStackQuestions,
   getEnhancedQuestionsForTechStacks,
@@ -269,8 +269,8 @@ const EXPERIENCE_LEVEL_CONFIG = {
 
 // Mock implementations for missing utilities
 const progressTracker = {
-  trackStepTransition: (fromStep: number, toStep: number) => {},
-  trackFieldInteraction: (step: number, field: string) => {},
+  trackStepTransition: (fromStep: number, toStep: number) => { },
+  trackFieldInteraction: (step: number, field: string) => { },
   generateProgressInsights: (): ProgressInsights => ({
     completionRate: 75,
     engagementScore: 85,
@@ -283,14 +283,14 @@ const smartSuggestionsEngine = {
     field: string,
     context: any,
   ): SmartSuggestion[] => [
-    {
-      id: "suggest1",
-      type: "role",
-      value: "Senior Frontend Developer",
-      reasoning: "Popular role for your experience level",
-      metadata: { icon: "💻" },
-    },
-  ],
+      {
+        id: "suggest1",
+        type: "role",
+        value: "Senior Frontend Developer",
+        reasoning: "Popular role for your experience level",
+        metadata: { icon: "💻" },
+      },
+    ],
 };
 
 interface OnboardingData {
@@ -983,13 +983,12 @@ export default function EnhancedOnboardingFlow({
                 updateUserProfile("basicInfo", { username: value });
               }}
               onFocus={() => handleFieldFocus("username")}
-              className={`w-full px-3 py-2 pr-10 text-sm border rounded-md focus:ring-2 transition-all duration-300 ${
-                usernameAvailability.isAvailable === true
+              className={`w-full px-3 py-2 pr-10 text-sm border rounded-md focus:ring-2 transition-all duration-300 ${usernameAvailability.isAvailable === true
                   ? "border-green-300 focus:ring-green-500 focus:border-green-500"
                   : usernameAvailability.isAvailable === false
                     ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                     : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
-              }`}
+                }`}
               placeholder="Choose a unique username"
               required
               maxLength={20}
@@ -1025,12 +1024,11 @@ export default function EnhancedOnboardingFlow({
                 })()}
               </div>
               <span
-                className={`text-xs ${
-                  (profileState.userProfile.basicInfo?.username?.length || 0) >
-                  15
+                className={`text-xs ${(profileState.userProfile.basicInfo?.username?.length || 0) >
+                    15
                     ? "text-orange-600"
                     : "text-gray-500"
-                }`}
+                  }`}
               >
                 {profileState.userProfile.basicInfo?.username?.length || 0}/20
               </span>
@@ -1040,13 +1038,12 @@ export default function EnhancedOnboardingFlow({
           {/* Availability status */}
           {usernameAvailability.message && (
             <p
-              className={`text-xs mt-1 flex items-center gap-1 ${
-                usernameAvailability.isAvailable === true
+              className={`text-xs mt-1 flex items-center gap-1 ${usernameAvailability.isAvailable === true
                   ? "text-green-600"
                   : usernameAvailability.isAvailable === false
                     ? "text-red-600"
                     : "text-gray-500"
-              }`}
+                }`}
             >
               {usernameAvailability.isChecking ? (
                 <Loader2 className="w-3 h-3 animate-spin" />
@@ -1067,11 +1064,11 @@ export default function EnhancedOnboardingFlow({
             </p>
             {(!profileState.userProfile.basicInfo?.username ||
               profileState.userProfile.basicInfo?.username.length < 3) && (
-              <p className="text-xs text-gray-400">
-                💡 Tips: Use 3-20 characters, letters, numbers, underscore (_)
-                or dash (-)
-              </p>
-            )}
+                <p className="text-xs text-gray-400">
+                  💡 Tips: Use 3-20 characters, letters, numbers, underscore (_)
+                  or dash (-)
+                </p>
+              )}
           </div>
         </div>
 
@@ -1167,11 +1164,10 @@ export default function EnhancedOnboardingFlow({
                       : [...prev, tech.id],
                   );
                 }}
-                className={`px-3 py-1.5 text-sm rounded-full border-2 transition-all duration-300 hover:scale-105 ${
-                  isSelected
+                className={`px-3 py-1.5 text-sm rounded-full border-2 transition-all duration-300 hover:scale-105 ${isSelected
                     ? "border-blue-400 bg-blue-500/20 text-blue-300"
                     : "border-gray-600 text-gray-300 hover:border-gray-500"
-                }`}
+                  }`}
               >
                 {tech.name}
               </button>
@@ -1196,11 +1192,10 @@ export default function EnhancedOnboardingFlow({
             <button
               onClick={addManualTechStack}
               disabled={!manualTechStack.trim()}
-              className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${
-                manualTechStack.trim()
+              className={`px-4 py-2 text-sm rounded-md font-medium transition-colors ${manualTechStack.trim()
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-700 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               <Plus className="w-4 h-4" />
             </button>
@@ -1245,11 +1240,10 @@ export default function EnhancedOnboardingFlow({
           <button
             onClick={nextStep}
             disabled={allTechStacks.length === 0 || isQuizLoading}
-            className={`px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
-              allTechStacks.length > 0 && !isQuizLoading
+            className={`px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${allTechStacks.length > 0 && !isQuizLoading
                 ? "bg-gray-600 text-white hover:bg-gray-500"
                 : "bg-gray-700 text-gray-500 cursor-not-allowed"
-            }`}
+              }`}
           >
             {isQuizLoading ? (
               <>
@@ -1294,11 +1288,10 @@ export default function EnhancedOnboardingFlow({
                     : [...prev, platform.id],
                 );
               }}
-              className={`w-full p-3 rounded-lg border-2 transition-all duration-300 hover:scale-105 text-left ${
-                isSelected
+              className={`w-full p-3 rounded-lg border-2 transition-all duration-300 hover:scale-105 text-left ${isSelected
                   ? "border-blue-400 bg-blue-500/20"
                   : "border-gray-600 hover:border-gray-500"
-              }`}
+                }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
@@ -1639,22 +1632,20 @@ export default function EnhancedOnboardingFlow({
                   className="flex flex-col items-center gap-1"
                 >
                   <div
-                    className={`w-3 h-3 rounded-full ${
-                      isCompleted
+                    className={`w-3 h-3 rounded-full ${isCompleted
                         ? "bg-green-500"
                         : isCurrent
                           ? "bg-blue-500"
                           : "bg-gray-600"
-                    }`}
+                      }`}
                   />
                   <span
-                    className={`text-xs px-2 py-1 rounded ${
-                      isCurrent
+                    className={`text-xs px-2 py-1 rounded ${isCurrent
                         ? "bg-blue-500/20 text-blue-300"
                         : isCompleted
                           ? "bg-green-500/20 text-green-300"
                           : "bg-gray-700 text-gray-400"
-                    }`}
+                      }`}
                   >
                     {techStack}
                   </span>
@@ -1738,15 +1729,14 @@ export default function EnhancedOnboardingFlow({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 ${
-                        showResult && isSelected
+                      className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all duration-300 ${showResult && isSelected
                           ? isCorrect
                             ? "border-green-400 bg-green-500 text-white"
                             : "border-red-400 bg-red-500 text-white"
                           : isSelectedButNotAnswered
                             ? "border-blue-400 bg-blue-500 text-white"
                             : "border-gray-500 text-gray-300"
-                      }`}
+                        }`}
                     >
                       <span>{String.fromCharCode(65 + index)}</span>
                     </div>
@@ -1847,11 +1837,10 @@ export default function EnhancedOnboardingFlow({
             <button
               onClick={goToNextQuestion}
               disabled={selectedAnswer === undefined}
-              className={`flex items-center px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${
-                selectedAnswer !== undefined
+              className={`flex items-center px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${selectedAnswer !== undefined
                   ? "bg-gray-600 text-white hover:bg-gray-500"
                   : "bg-gray-700 text-gray-500 cursor-not-allowed"
-              }`}
+                }`}
             >
               {isLastTechStack && isLastQuestionInTechStack ? "Finish" : "Next"}
               <ChevronRight className="w-4 h-4 ml-1" />
@@ -1966,11 +1955,10 @@ export default function EnhancedOnboardingFlow({
                 {Array.from({ length: profileState.totalSteps }, (_, i) => (
                   <div
                     key={i}
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${
-                      i <= currentStep
+                    className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-all duration-300 ${i <= currentStep
                         ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white"
                         : "bg-gray-200 text-gray-600"
-                    }`}
+                      }`}
                   >
                     {i + 1}
                   </div>
@@ -2001,11 +1989,10 @@ export default function EnhancedOnboardingFlow({
                 <button
                   onClick={prevStep}
                   disabled={currentStep === 0}
-                  className={`flex items-center px-4 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${
-                    currentStep === 0
+                  className={`flex items-center px-4 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${currentStep === 0
                       ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300 hover:scale-105"
-                  }`}
+                    }`}
                 >
                   <ChevronLeft className="w-4 h-4 mr-1" />
                   Previous
@@ -2014,11 +2001,10 @@ export default function EnhancedOnboardingFlow({
                 <button
                   onClick={nextStep}
                   disabled={!canProceed()}
-                  className={`flex items-center px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${
-                    canProceed()
+                  className={`flex items-center px-6 py-2 text-sm rounded-lg font-medium transition-all duration-300 ${canProceed()
                       ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 hover:scale-105 hover:shadow-lg"
                       : "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  }`}
+                    }`}
                 >
                   Continue
                   <ChevronRight className="w-4 h-4 ml-1" />

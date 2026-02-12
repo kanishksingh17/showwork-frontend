@@ -23,6 +23,12 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Inter", "system-ui", "sans-serif"],
+        serif: ["Merriweather", "serif"],
+        mono: ["JetBrains Mono", "monospace"],
+        display: ["Plus Jakarta Sans", "Poppins", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +63,20 @@ module.exports = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // Analytics Dashboard Colors
+        success: "#10B981",
+        warning: "#F59E0B",
+        danger: "#EF4444",
+        "background-light": "#F8FAFC",
+        "background-dark": "#0F172A",
+        "surface-light": "#FFFFFF",
+        "surface-dark": "#1E293B",
+        "border-light": "#E2E8F0",
+        "border-dark": "#334155",
+        "text-primary-light": "#1E293B",
+        "text-primary-dark": "#F8FAFC",
+        "text-secondary-light": "#64748B",
+        "text-secondary-dark": "#94A3B8",
         // Custom portfolio colors - Vibrant Blue Theme
         portfolio: {
           primary: "#2563EB",

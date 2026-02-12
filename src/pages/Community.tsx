@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 import { UserProfileView } from "../components/Community/UserProfileView";
 import {
   Search,
@@ -87,9 +87,7 @@ export default function Community() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
-      <UnifiedSidebar currentPage="community" />
-
+    <UnifiedLayout activePage="community">
       <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-6 border-b border-gray-100 bg-white flex-shrink-0">
@@ -318,6 +316,6 @@ export default function Community() {
         </div>
 
       </div>
-    </div>
+    </UnifiedLayout>
   );
 }

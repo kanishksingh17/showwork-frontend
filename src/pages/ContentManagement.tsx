@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { HoverGradientNavTabs, createContentManagementTabs } from "@/components/ui/hover-gradient-nav-tabs";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 import ContentCalendar from "../components/ContentManagement/ContentCalendar";
 import { CrossPostComposer } from "../components/CrossPost/CrossPostComposer";
 import {
@@ -149,10 +149,8 @@ export default function ContentManagement() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-      <UnifiedSidebar currentPage="content" />
-
-      <div className="flex-1 flex overflow-hidden">
+    <UnifiedLayout activePage="content">
+      <div className="flex-1 flex h-full overflow-hidden">
         {/* Main Content */}
         <div className="flex-1 py-6 pl-0 pr-6 h-full flex flex-col">
           <Card className="flex-1 flex flex-col overflow-hidden bg-white shadow-sm border-gray-200">
@@ -254,8 +252,8 @@ export default function ContentManagement() {
             </div>
           </Card>
         </div>
-      </div >
-    </div >
+      </div>
+    </UnifiedLayout>
   );
 }
 
