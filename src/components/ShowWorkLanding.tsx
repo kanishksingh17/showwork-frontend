@@ -33,6 +33,10 @@ import {
   ChevronDown,
   PhoneCall,
   BarChart3,
+  AlertTriangle,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Circle,
 } from "lucide-react";
 
 interface Testimonial {
@@ -139,6 +143,21 @@ const ShowWorkLanding = () => {
         "flex-1 w-full min-w-0 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col relative transition-all duration-300 h-full",
         isSidebarJoined && isSidebarOpen && "transition-all duration-700"
       )}>
+        {/* Re-open Sidebar Button */}
+        <AnimatePresence>
+          {!isSidebarOpen && isSidebarJoined && (
+            <motion.button
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              onClick={() => setIsSidebarOpen(true)}
+              className="absolute top-8 left-8 z-[60] p-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 group"
+              aria-label="Open Sidebar"
+            >
+              <PanelLeftOpen className="size-5 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform" />
+            </motion.button>
+          )}
+        </AnimatePresence>
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar relative">
           {viewMode === 'landing' ? (
             <>
@@ -307,7 +326,7 @@ const ShowWorkLanding = () => {
               </header >
 
               {/* Hero Content Section - Mobile-First style from new design */}
-              <div className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(1.5rem, 6vh, 3rem)' }}>
+              <div className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(4rem, 15vh, 10rem)' }}>
                 {/* Background Gradients */}
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none z-0">
                   <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob"></div>
@@ -387,7 +406,7 @@ const ShowWorkLanding = () => {
                         className="rounded-full px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-2xl transition-all duration-300 transform hover:scale-105"
                         onClick={() => navigate("/login")}
                       >
-                        Start Your Portfolio
+                        Start Building
                         <ArrowRight className="ml-2 w-5 h-5" />
                       </Button>
                       <Button
@@ -400,23 +419,7 @@ const ShowWorkLanding = () => {
                       </Button>
                     </div>
 
-                    <div className="mt-10 flex items-center justify-center gap-8">
-                      <div className="flex flex-col items-center">
-                        <span className="text-2xl font-black text-slate-900 dark:text-white leading-none">5k+</span>
-                        <span className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">Users</span>
-                      </div>
-                      <div className="w-px h-8 bg-slate-200 dark:bg-slate-800"></div>
-                      <div className="flex flex-col items-center">
-                        <div className="flex -space-x-2">
-                          {[1, 2, 3].map((i) => (
-                            <div key={i} className="w-7 h-7 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 dark:bg-slate-800 overflow-hidden">
-                              <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="user" className="w-full h-full object-cover" />
-                            </div>
-                          ))}
-                        </div>
-                        <span className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-1">Trusted By Top Devs</span>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
               </div>
@@ -437,8 +440,8 @@ const ShowWorkLanding = () => {
                   <div className="grid md:grid-cols-2 gap-8 items-stretch">
                     {/* Card 1: The Invisible Developer */}
                     <div className="group relative bg-[#fcfcfd] dark:bg-slate-800/10 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] p-10 overflow-hidden text-center md:text-left transition-all duration-300">
-                      <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none transform translate-x-4 -translate-y-4">
-                        <Zap className="w-48 h-48 text-[#f43f5e] -rotate-12" />
+                      <div className="absolute top-6 right-8 opacity-20 pointer-events-none transform">
+                        <AlertTriangle className="w-32 h-32 text-red-400 rotate-12" />
                       </div>
                       <div className="relative z-10">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#eef2f6] dark:bg-slate-700 text-[#64748b] dark:text-slate-300 text-xs font-bold uppercase tracking-wider mb-8">
@@ -451,23 +454,22 @@ const ShowWorkLanding = () => {
                           <div className="bg-white dark:bg-slate-900/50 p-6 rounded-2xl shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 opacity-60">
                             <div className="flex items-center gap-4 mb-4">
                               <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800"></div>
-                              <div className="space-y-2">
-                                <div className="h-3 w-32 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
-                                <div className="h-2 w-20 bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
+                              <div className="space-y-3">
+                                <div className="h-2.5 w-24 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
+                                <div className="h-2.5 w-32 bg-slate-100 dark:bg-slate-800 rounded-full"></div>
                               </div>
                             </div>
-                            <div className="space-y-2">
-                              <div className="h-2 w-full bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
-                              <div className="h-2 w-2/3 bg-slate-50 dark:bg-slate-800/50 rounded-full"></div>
+                            <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                              <span className="text-xs text-slate-400 font-medium">0 views</span>
                             </div>
                           </div>
-                          <div className="space-y-3">
+                          <div className="space-y-3 pl-2">
                             <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
-                              <X className="w-4 h-4" />
+                              <X className="w-4 h-4 text-slate-400" />
                               <span>Resume sent to the void</span>
                             </div>
                             <div className="flex items-center gap-3 text-slate-400 text-sm font-medium">
-                              <X className="w-4 h-4" />
+                              <X className="w-4 h-4 text-slate-400" />
                               <span>Ghosted by recruiters</span>
                             </div>
                           </div>
@@ -491,7 +493,7 @@ const ShowWorkLanding = () => {
                               <div className="flex items-center gap-4">
                                 <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#fbbf24] to-[#f59e0b] border-2 border-white/50 shadow-inner"></div>
                                 <div className="space-y-2">
-                                  <div className="h-3 w-32 bg-white/30 rounded-full"></div>
+                                  <div className="h-3 w-28 bg-white/30 rounded-full"></div>
                                   <div className="h-2 w-20 bg-white/20 rounded-full"></div>
                                 </div>
                               </div>
@@ -501,9 +503,15 @@ const ShowWorkLanding = () => {
                               "Just saw your ShowWork profile. We need someone exactly like you. Can we chat?"
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 text-white text-sm font-bold tracking-tight">
-                            <Star className="w-5 h-5 text-[#fcd34d] fill-[#fcd34d]" />
-                            <span>Skipped technical screening</span>
+                          <div className="space-y-4 pl-2">
+                            <div className="flex items-center gap-3 text-white text-sm font-semibold tracking-tight">
+                              <Circle className="w-2.5 h-2.5 text-[#22c55e] fill-[#22c55e]" />
+                              <span>Profile info viewed by LinkedIn, Google, Meta, GitHub</span>
+                            </div>
+                            <div className="flex items-center gap-3 text-white text-sm font-semibold tracking-tight">
+                              <Circle className="w-2.5 h-2.5 text-[#22c55e] fill-[#22c55e]" />
+                              <span>Skipped technical screening</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -737,47 +745,140 @@ const ShowWorkLanding = () => {
 
 
 
-              {/* "Beyond Code" Timeline Section from new design */}
-              <section className="py-20 relative overflow-hidden bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+              <section className="py-20 relative overflow-hidden bg-slate-50 dark:bg-slate-900/50 border-y border-slate-200 dark:border-slate-800">
                 <div className="max-w-4xl mx-auto px-6 relative z-10">
                   <div className="text-center mb-16 max-w-3xl mx-auto">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">The Human Side of Code</div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-400 text-xs font-bold uppercase tracking-wider mb-6">
+                      The Human Side of Code
+                    </div>
                     <h2 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-6">
                       Commits are for machines. <br />
                       <span className="text-blue-600">ShowWork is for your story.</span>
                     </h2>
-                    <p className="text-lg text-slate-600 dark:text-slate-400">Don't let your work be defined just by green squares. Show the discussions, the decisions, and the community impact.</p>
+                    <p className="text-lg text-slate-600 dark:text-slate-400">
+                      Don't let your work be defined just by green squares. Show the discussions, the decisions, and the community impact.
+                    </p>
                   </div>
 
                   <div className="relative max-w-3xl mx-auto">
-                    <div className="absolute left-8 top-0 bottom-0 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block"></div>
+                    {/* Vertical Timeline Line */}
+                    <div className="absolute left-8 top-0 bottom-0 w-[3px] bg-gradient-to-b from-blue-500/20 via-blue-500 to-blue-500/20 shadow-[0_0_20px_rgba(59,130,246,0.8),0_0_40px_rgba(59,130,246,0.4)] hidden sm:block"></div>
+
                     <div className="space-y-8 relative">
-                      {/* LinkedIn Item */}
+                      {/* Item 1: LinkedIn */}
                       <div className="relative pl-0 sm:pl-24 group">
-                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-full items-center justify-center z-10 hidden sm:flex">
+                        {/* Timeline Node */}
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center z-10 hidden sm:flex">
                           <Linkedin className="w-4 h-4 text-[#0077b5]" />
                         </div>
+
+                        {/* Card */}
                         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span className="bg-[#0077b5] text-white p-1 rounded-md sm:hidden">
+                                <Linkedin className="w-3 h-3" />
+                              </span>
                               <span>Posted on LinkedIn: 'The Future of Frontend'</span>
                             </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                              View Post
+                            </span>
                           </div>
-                          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">Just shared my thoughts on the new React server components. It's a paradigm shift that we all need to prepare for.</p>
+                          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                            Just shared my thoughts on the new React server components. It's a paradigm shift that we all need to prepare for. Read the full article on my blog...
+                          </p>
+                          <div className="flex items-center gap-3">
+                            <div className="flex -space-x-2 overflow-hidden">
+                              <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900" src="https://ui-avatars.com/api/?name=Alex&background=random" alt="Avatar" />
+                              <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900" src="https://ui-avatars.com/api/?name=Sarah&background=random" alt="Avatar" />
+                              <img className="inline-block h-6 w-6 rounded-full ring-2 ring-white dark:ring-slate-900" src="https://ui-avatars.com/api/?name=Mike&background=random" alt="Avatar" />
+                            </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500">Latest Activity: 2 hours ago</span>
+                          </div>
                         </div>
                       </div>
-                      {/* Github Item */}
+
+                      {/* Item 2: Reddit */}
                       <div className="relative pl-0 sm:pl-24 group">
-                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-full items-center justify-center z-10 hidden sm:flex">
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center z-10 hidden sm:flex">
+                          <div className="w-4 h-4 text-[#FF4500] font-bold flex items-center justify-center">r/</div>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span className="bg-[#FF4500] text-white p-1 rounded-md sm:hidden text-[10px] font-bold">r/</span>
+                              <span>Reddit discussion in r/reactjs</span>
+                            </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                              Join Thread
+                            </span>
+                          </div>
+                          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-3 text-sm text-slate-600 dark:text-slate-400 italic mb-4 border border-slate-100 dark:border-slate-800">
+                            "I personally stick with Zustand for 90% of my projects. It's lightweight and just works without the boilerplate..."
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                            <div className="w-5 h-5 rounded-full bg-slate-200 dark:bg-slate-800"></div>
+                            <span>Latest Activity: Yesterday at 4:30pm</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Item 3: Discord */}
+                      <div className="relative pl-0 sm:pl-24 group">
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center z-10 hidden sm:flex">
+                          <svg className="w-4 h-4 text-[#5865F2]" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" />
+                          </svg>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span className="bg-[#5865F2] text-white p-1 rounded-md sm:hidden">
+                                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z" /></svg>
+                              </span>
+                              <span>Discord conversation in #showwork-community</span>
+                            </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                              Go to Discord
+                            </span>
+                          </div>
+                          <p className="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                            Hey Sarah! I took a look at your portfolio. The typography choices are excellent, but you might want to increase the contrast on the dark mode toggle.
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                            <img className="h-5 w-5 rounded-full" src="https://ui-avatars.com/api/?name=Designer&background=random" alt="Avatar" />
+                            <span>Latest Activity: Jan 18, 2026 at 1:30pm</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Item 4: Git PR */}
+                      <div className="relative pl-0 sm:pl-24 group">
+                        <div className="absolute left-4 top-6 transform -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-full flex items-center justify-center z-10 hidden sm:flex">
                           <Github className="w-4 h-4 text-slate-700 dark:text-white" />
                         </div>
                         <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 hover:shadow-md transition-shadow">
                           <div className="flex items-center justify-between mb-3">
                             <div className="flex items-center gap-2 text-sm font-semibold text-slate-900 dark:text-white">
+                              <span className="bg-slate-800 dark:bg-slate-700 text-white p-1 rounded-md sm:hidden">
+                                <Github className="w-3 h-3" />
+                              </span>
                               <span>Pull Request #57 on showwork-frontend</span>
                             </div>
+                            <span className="text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-full border border-slate-100 dark:border-slate-700 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                              View PR
+                            </span>
                           </div>
-                          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-lg p-2 font-mono text-xs text-slate-600 dark:text-slate-400 mb-4 overflow-x-auto">feat: Implement new user profile timeline view...</div>
+                          <div className="bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-800 rounded-lg p-2 font-mono text-xs text-slate-600 dark:text-slate-400 mb-4 whitespace-nowrap overflow-x-auto">
+                            feat: Implement new user profile timeline view with responsive...
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                            <img className="h-5 w-5 rounded-full" src="https://ui-avatars.com/api/?name=Dev&background=random" alt="Avatar" />
+                            <span>Latest Activity: Jan 17, 2026 at 9:02am</span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -800,7 +901,7 @@ const ShowWorkLanding = () => {
                     </div>
                     <div className="relative z-0 pt-8 lg:pt-0">
                       <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-8">Your ShowWork Journey</h3>
-                      <ShowWorkTimeline />
+                      <ShowWorkTimeline containerRef={scrollContainerRef} />
                     </div>
                   </div>
                 </div>

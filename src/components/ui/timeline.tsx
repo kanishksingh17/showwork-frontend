@@ -56,11 +56,11 @@ export const Timeline = ({ data, containerRef: externalContainerRef }: { data: T
         ))}
         <div
           style={{ height: height + "px" }}
-          className="absolute md:left-8 left-8 top-0 overflow-hidden w-[2px] bg-neutral-200 dark:bg-neutral-700 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
+          className="absolute md:left-8 left-8 top-0 w-[4px] bg-slate-200 dark:bg-slate-800 [mask-image:linear-gradient(to_bottom,transparent_0%,black_10%,black_90%,transparent_100%)]"
         >
           <motion.div
             style={{ height: heightTransform, opacity: opacityTransform }}
-            className="absolute inset-x-0 top-0 w-[2px] bg-gradient-to-t from-blue-500 via-purple-500 to-transparent rounded-full"
+            className="absolute inset-x-0 top-0 w-full bg-gradient-to-b from-blue-600 via-blue-400 to-transparent rounded-full shadow-[0_0_20px_rgba(59,130,246,1),0_0_40px_rgba(59,130,246,0.8),0_0_60px_rgba(59,130,246,0.6),0_0_100px_rgba(59,130,246,0.4)]"
           />
         </div>
       </div>

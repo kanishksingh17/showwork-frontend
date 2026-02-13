@@ -101,10 +101,10 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     <aside className="w-64 h-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-[2.5rem] shadow-lg overflow-hidden border border-slate-200/10 dark:border-slate-800">
       {/* Logo Section - Fixed Position */}
       <div
-        className="p-8 pb-4 flex items-center justify-between"
+        className="p-8 pb-4 flex items-center gap-12"
         data-sidebar-open={isOpen}
       >
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-3 flex-1">
           <img src="/favicon.svg" alt="ShowWork Logo" className="w-10 h-10 object-contain" />
           <h1 className="text-xl font-extrabold text-white">ShowWork</h1>
         </div>
@@ -112,7 +112,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
         {onToggle && (
           <button
             onClick={onToggle}
-            className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white lg:block hidden"
+            className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white lg:block hidden shrink-0"
             aria-label="Collapse Sidebar"
           >
             <PanelLeftClose className="size-5" />
