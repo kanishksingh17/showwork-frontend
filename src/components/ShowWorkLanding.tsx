@@ -354,50 +354,7 @@ const ShowWorkLanding = () => {
                   <div className="text-center w-full mx-auto max-w-4xl" style={{ marginBottom: '2rem' }}>
                     <h1 className="font-black text-slate-900 dark:text-white tracking-tight text-center relative leading-[1.15]" style={{ fontSize: 'clamp(2.5rem, 8vw, 4.5rem)' }}>
                       {/* Floating Widgets */}
-                      <div className="hidden lg:flex absolute -top-12 -left-12 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-100 z-20 hover:scale-105 transition-transform cursor-default">
-                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                          <BarChart3 className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">Total Views</p>
-                          <p className="text-sm font-bold text-slate-900 dark:text-white">12.5k <span className="text-green-500 text-xs font-medium ml-1">↑ 14%</span></p>
-                        </div>
-                      </div>
 
-                      <div className="hidden lg:flex absolute -top-8 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-2.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-2 animate-float animation-delay-500 z-20 hover:scale-105 transition-transform cursor-default">
-                        <Github className="w-5 h-5 text-slate-900 dark:text-white" />
-                        <span className="text-sm font-bold text-slate-700 dark:text-slate-300">GitHub Connected</span>
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse ml-1"></div>
-                      </div>
-
-                      {/* Floating Widget 3: Offers (Bottom Left) */}
-                      <div className="hidden lg:flex absolute top-24 -left-24 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-700 z-20 hover:scale-105 transition-transform cursor-default">
-                        <div className="relative">
-                          <div className="w-10 h-10 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center overflow-hidden border-2 border-white dark:border-slate-600">
-                            <img src="https://ui-avatars.com/api/?name=Recruiter&background=0D8ABC&color=fff" alt="Recruiter" />
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-500 rounded-full border-2 border-white dark:border-slate-600 flex items-center justify-center">
-                            <svg className="w-2 h-2 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" /><path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" /></svg>
-                          </div>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">New Job Offer</p>
-                          <p className="text-[10px] text-slate-500 dark:text-slate-400">Frontend Dev • Remote</p>
-                        </div>
-                      </div>
-
-                      {/* Floating Widget 4: Upload (Bottom Right) */}
-                      <div className="hidden lg:flex absolute top-32 -right-8 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 pr-5 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-white/50 dark:border-slate-700/50 items-center gap-3 animate-float animation-delay-300 z-20 hover:scale-105 transition-transform cursor-default transform rotate-3">
-                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                          <Zap className="w-5 h-5 text-purple-600" />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs font-bold text-slate-900 dark:text-white">Project Deployed</p>
-                          <div className="h-1.5 w-24 bg-slate-100 dark:bg-slate-800 rounded-full mt-1 overflow-hidden">
-                            <div className="h-full bg-purple-500 w-full animate-loadingBar"></div>
-                          </div>
-                        </div>
-                      </div>
 
                       <span className="block mb-2">Showcase Your Work</span>
                       <span className="relative flex h-[1.2em] w-full justify-center overflow-hidden text-center text-blue-600 dark:text-blue-500">
