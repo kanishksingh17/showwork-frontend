@@ -672,18 +672,14 @@ export default function PortfolioBuilder() {
     switch (currentStep) {
       case "landing":
         return (
-          <div className="w-full max-w-7xl mx-auto px-6 pt-6">
-            {/* Template Selector */}
-            <div className="min-h-[400px] mb-12 bg-gray-50 dark:bg-gray-900/50 rounded-xl border border-gray-200 dark:border-gray-800 p-4">
-              <PortfolioSelector
-                userData={userData}
-                projects={fetchedProjects.length > 0 ? fetchedProjects : projects}
-                onTemplateSelect={handleUseTemplate}
-                onJobRoleDetected={(role) => setDetectedJobRole(role)}
-              />
-            </div>
-
-          </div >
+          <div className="w-full h-full">
+            <PortfolioSelector
+              userData={userData}
+              projects={fetchedProjects.length > 0 ? fetchedProjects : projects}
+              onTemplateSelect={handleUseTemplate}
+              onJobRoleDetected={(role) => setDetectedJobRole(role)}
+            />
+          </div>
         );
 
       case "template-preview":

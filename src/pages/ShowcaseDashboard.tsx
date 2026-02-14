@@ -1,22 +1,8 @@
-import React, { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  Package,
-  BarChart3,
-  Users,
-  FolderOpen,
-  Zap,
-  Settings,
-  Plus,
-  Edit3,
-  Eye,
-  CheckCircle,
-  ArrowUpDown,
-  ArrowUp,
   ArrowDown,
   RefreshCw,
-  LogOut,
   Search,
   Grid3X3,
   List,
@@ -29,9 +15,19 @@ import {
   Code,
   BarChart,
   PieChart,
+  Github,
+  Zap,
+  Plus,
+  Eye,
+  CheckCircle,
+  Edit3,
+  ArrowUp,
+  ArrowUpDown,
+  Package,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { LoginModal } from "@/components/auth/LoginModal";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -41,7 +37,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
 import { UnifiedLayout } from "../components/UnifiedLayout";
 
 interface Project {
@@ -67,15 +62,15 @@ interface ShowcaseDashboardProps {
   onBackToDashboard?: () => void;
   onCreateProject?: () => void;
   onEditProject?: (projectId: string) => void;
+  isDemo?: boolean;
 }
 
 const ShowcaseDashboard = ({
   onBackToDashboard,
   onCreateProject,
   onEditProject,
+  isDemo = false,
 }: ShowcaseDashboardProps) => {
-  // Props are available for future use
-  console.log({ onBackToDashboard, onCreateProject, onEditProject });
   const navigate = useNavigate();
   const location = useLocation();
   const [projects, setProjects] = useState<Project[]>([]);
@@ -104,354 +99,23 @@ const ShowcaseDashboard = ({
   const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [selectedProjects, setSelectedProjects] = useState<string[]>([]);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+  const handleLoginSuccess = () => {
+    setIsLoginModalOpen(false);
+    navigate("/dashboard");
+    // Optionally refresh data if remaining on the same page
+  };
   const [showAnalytics, setShowAnalytics] = useState(false);
 
-  const handleLogout = () => {
-    // Clear any stored user data
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    // Remove old localStorage projects (now using API)
-    localStorage.removeItem("showcase-projects");
 
-    // Redirect to login page
-    navigate("/login");
-  };
 
   // Extract loadProjects function so it can be called from other handlers
   const loadProjects = async () => {
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-
-      console.log("📡 Fetching projects from API:", `${apiBaseUrl}/api/projects`);
-
-      const response = await fetch(`${apiBaseUrl}/api/projects`, {
-        method: 'GET',
-        credentials: 'include', // Include cookies for session-based auth
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        // If not authenticated or error, show empty state
-        console.log("⚠️  Projects API returned:", response.status, "- showing empty state");
-        setProjects([]);
-        return;
-      }
-
-      const data = await response.json();
-
-      if (data.success && data.data?.projects) {
-        // Transform API response to match Project interface
-        const apiProjects: Project[] = data.data.projects.map((project: any) => ({
-          id: project.id || project._id?.toString() || `project-${Math.random()}`,
-          name: project.name || project.title || 'Untitled Project',
-          description: project.description || '',
-          status: project.status?.toLowerCase() || 'draft',
-          lastUpdated: project.updatedAt ? new Date(project.updatedAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          category: project.category || 'Uncategorized',
-          views: project.views || 0,
-          submittedAt: project.createdAt ? new Date(project.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          visibility: project.visibility?.toLowerCase() || 'private',
-          tags: project.tags || [],
-          technologies: project.technologies || [],
-          codeQualityScore: project.codeQualityScore || 0,
-          likes: project.likes || 0,
-          githubUrl: project.githubUrl || '',
-          liveUrl: project.liveUrl || '',
-        }));
-
-        setProjects(apiProjects);
-        console.log("✅ Loaded projects from API:", apiProjects.length, "projects");
-      } else {
-        // No projects found - use mock data for demonstration
-        const mockProjects: Project[] = [
-          {
-            id: 'mock-1',
-            name: 'E-Commerce Platform',
-            description: 'A full-stack e-commerce platform with real-time inventory management, payment processing, and admin dashboard. Features include product search, cart management, and order tracking.',
-            status: 'published',
-            lastUpdated: '2026-01-18',
-            category: 'Web Development',
-            views: 1247,
-            submittedAt: '2026-01-10',
-            visibility: 'public',
-            tags: ['e-commerce', 'full-stack', 'payment'],
-            technologies: ['React', 'Node.js', 'MongoDB', 'Stripe', 'Tailwind CSS'],
-            codeQualityScore: 92,
-            likes: 156,
-            githubUrl: 'https://github.com/example/ecommerce-platform',
-            liveUrl: 'https://ecommerce-demo.example.com',
-          },
-          {
-            id: 'mock-2',
-            name: 'AI Task Manager',
-            description: 'Smart task management application powered by AI that automatically categorizes tasks, suggests priorities, and provides productivity insights using machine learning algorithms.',
-            status: 'published',
-            lastUpdated: '2026-01-19',
-            category: 'Machine Learning',
-            views: 892,
-            submittedAt: '2026-01-15',
-            visibility: 'public',
-            tags: ['ai', 'productivity', 'ml'],
-            technologies: ['Python', 'TensorFlow', 'React', 'FastAPI', 'PostgreSQL'],
-            codeQualityScore: 88,
-            likes: 203,
-            githubUrl: 'https://github.com/example/ai-task-manager',
-            liveUrl: 'https://ai-tasks.example.com',
-          },
-          {
-            id: 'mock-3',
-            name: 'Mobile Fitness Tracker',
-            description: 'Cross-platform mobile app for tracking workouts, nutrition, and health metrics. Includes social features, challenges, and personalized workout recommendations.',
-            status: 'published',
-            lastUpdated: '2026-01-17',
-            category: 'Mobile App',
-            views: 2103,
-            submittedAt: '2026-01-05',
-            visibility: 'public',
-            tags: ['fitness', 'health', 'mobile'],
-            technologies: ['React Native', 'Firebase', 'TypeScript', 'Redux'],
-            codeQualityScore: 95,
-            likes: 342,
-            githubUrl: 'https://github.com/example/fitness-tracker',
-            liveUrl: 'https://apps.apple.com/fitness-tracker',
-          },
-          {
-            id: 'mock-4',
-            name: 'Real-Time Chat Application',
-            description: 'Scalable real-time messaging platform with end-to-end encryption, group chats, file sharing, and video calling capabilities. Built for high performance and security.',
-            status: 'published',
-            lastUpdated: '2026-01-16',
-            category: 'Web Development',
-            views: 1567,
-            submittedAt: '2026-01-08',
-            visibility: 'public',
-            tags: ['chat', 'real-time', 'websocket'],
-            technologies: ['Next.js', 'Socket.io', 'Redis', 'WebRTC', 'PostgreSQL'],
-            codeQualityScore: 90,
-            likes: 278,
-            githubUrl: 'https://github.com/example/chat-app',
-            liveUrl: 'https://chat.example.com',
-          },
-          {
-            id: 'mock-5',
-            name: 'DevOps Dashboard',
-            description: 'Comprehensive DevOps monitoring and deployment dashboard with CI/CD pipeline visualization, server metrics, and automated deployment workflows.',
-            status: 'in-progress',
-            lastUpdated: '2026-01-20',
-            category: 'DevOps',
-            views: 445,
-            submittedAt: '2026-01-18',
-            visibility: 'unlisted',
-            tags: ['devops', 'monitoring', 'ci-cd'],
-            technologies: ['Vue.js', 'Docker', 'Kubernetes', 'Prometheus', 'Grafana'],
-            codeQualityScore: 85,
-            likes: 89,
-            githubUrl: 'https://github.com/example/devops-dashboard',
-            liveUrl: '',
-          },
-          {
-            id: 'mock-6',
-            name: 'Portfolio Website Builder',
-            description: 'Drag-and-drop portfolio website builder with customizable templates, SEO optimization, and one-click deployment. Perfect for developers and designers.',
-            status: 'draft',
-            lastUpdated: '2026-01-19',
-            category: 'Web Development',
-            views: 0,
-            submittedAt: '2026-01-19',
-            visibility: 'private',
-            tags: ['portfolio', 'website-builder', 'templates'],
-            technologies: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
-            codeQualityScore: 78,
-            likes: 0,
-            githubUrl: 'https://github.com/example/portfolio-builder',
-            liveUrl: '',
-          },
-          {
-            id: 'mock-7',
-            name: 'Data Visualization Dashboard',
-            description: 'Interactive data visualization platform for analyzing large datasets with customizable charts, real-time updates, and export capabilities.',
-            status: 'published',
-            lastUpdated: '2026-01-14',
-            category: 'Data Science',
-            views: 1834,
-            submittedAt: '2026-01-02',
-            visibility: 'public',
-            tags: ['data-viz', 'analytics', 'charts'],
-            technologies: ['D3.js', 'React', 'Python', 'Pandas', 'AWS'],
-            codeQualityScore: 93,
-            likes: 412,
-            githubUrl: 'https://github.com/example/data-viz',
-            liveUrl: 'https://dataviz.example.com',
-          },
-          {
-            id: 'mock-8',
-            name: 'Blockchain Wallet',
-            description: 'Secure cryptocurrency wallet with multi-chain support, transaction history, and portfolio tracking. Features hardware wallet integration.',
-            status: 'pending',
-            lastUpdated: '2026-01-15',
-            category: 'Web Development',
-            views: 678,
-            submittedAt: '2026-01-12',
-            visibility: 'unlisted',
-            tags: ['blockchain', 'crypto', 'wallet'],
-            technologies: ['React', 'Web3.js', 'Solidity', 'Node.js'],
-            codeQualityScore: 87,
-            likes: 145,
-            githubUrl: 'https://github.com/example/blockchain-wallet',
-            liveUrl: '',
-          },
-        ];
-
-        setProjects(mockProjects);
-        console.log("ℹ️  No projects found in database - using mock data:", mockProjects.length, "projects");
-      }
-    } catch (error) {
-      console.error("❌ Error fetching projects from API:", error);
-      // On error, use mock data for demonstration instead of empty state
-      const mockProjects: Project[] = [
-        {
-          id: 'mock-1',
-          name: 'E-Commerce Platform',
-          description: 'A full-stack e-commerce platform with real-time inventory management, payment processing, and admin dashboard. Features include product search, cart management, and order tracking.',
-          status: 'published',
-          lastUpdated: '2026-01-18',
-          category: 'Web Development',
-          views: 1247,
-          submittedAt: '2026-01-10',
-          visibility: 'public',
-          tags: ['e-commerce', 'full-stack', 'payment'],
-          technologies: ['React', 'Node.js', 'MongoDB', 'Stripe', 'Tailwind CSS'],
-          codeQualityScore: 92,
-          likes: 156,
-          githubUrl: 'https://github.com/example/ecommerce-platform',
-          liveUrl: 'https://ecommerce-demo.example.com',
-        },
-        {
-          id: 'mock-2',
-          name: 'AI Task Manager',
-          description: 'Smart task management application powered by AI that automatically categorizes tasks, suggests priorities, and provides productivity insights using machine learning algorithms.',
-          status: 'published',
-          lastUpdated: '2026-01-19',
-          category: 'Machine Learning',
-          views: 892,
-          submittedAt: '2026-01-15',
-          visibility: 'public',
-          tags: ['ai', 'productivity', 'ml'],
-          technologies: ['Python', 'TensorFlow', 'React', 'FastAPI', 'PostgreSQL'],
-          codeQualityScore: 88,
-          likes: 203,
-          githubUrl: 'https://github.com/example/ai-task-manager',
-          liveUrl: 'https://ai-tasks.example.com',
-        },
-        {
-          id: 'mock-3',
-          name: 'Mobile Fitness Tracker',
-          description: 'Cross-platform mobile app for tracking workouts, nutrition, and health metrics. Includes social features, challenges, and personalized workout recommendations.',
-          status: 'published',
-          lastUpdated: '2026-01-17',
-          category: 'Mobile App',
-          views: 2103,
-          submittedAt: '2026-01-05',
-          visibility: 'public',
-          tags: ['fitness', 'health', 'mobile'],
-          technologies: ['React Native', 'Firebase', 'TypeScript', 'Redux'],
-          codeQualityScore: 95,
-          likes: 342,
-          githubUrl: 'https://github.com/example/fitness-tracker',
-          liveUrl: 'https://apps.apple.com/fitness-tracker',
-        },
-        {
-          id: 'mock-4',
-          name: 'Real-Time Chat Application',
-          description: 'Scalable real-time messaging platform with end-to-end encryption, group chats, file sharing, and video calling capabilities. Built for high performance and security.',
-          status: 'published',
-          lastUpdated: '2026-01-16',
-          category: 'Web Development',
-          views: 1567,
-          submittedAt: '2026-01-08',
-          visibility: 'public',
-          tags: ['chat', 'real-time', 'websocket'],
-          technologies: ['Next.js', 'Socket.io', 'Redis', 'WebRTC', 'PostgreSQL'],
-          codeQualityScore: 90,
-          likes: 278,
-          githubUrl: 'https://github.com/example/chat-app',
-          liveUrl: 'https://chat.example.com',
-        },
-        {
-          id: 'mock-5',
-          name: 'DevOps Dashboard',
-          description: 'Comprehensive DevOps monitoring and deployment dashboard with CI/CD pipeline visualization, server metrics, and automated deployment workflows.',
-          status: 'in-progress',
-          lastUpdated: '2026-01-20',
-          category: 'DevOps',
-          views: 445,
-          submittedAt: '2026-01-18',
-          visibility: 'unlisted',
-          tags: ['devops', 'monitoring', 'ci-cd'],
-          technologies: ['Vue.js', 'Docker', 'Kubernetes', 'Prometheus', 'Grafana'],
-          codeQualityScore: 85,
-          likes: 89,
-          githubUrl: 'https://github.com/example/devops-dashboard',
-          liveUrl: '',
-        },
-        {
-          id: 'mock-6',
-          name: 'Portfolio Website Builder',
-          description: 'Drag-and-drop portfolio website builder with customizable templates, SEO optimization, and one-click deployment. Perfect for developers and designers.',
-          status: 'draft',
-          lastUpdated: '2026-01-19',
-          category: 'Web Development',
-          views: 0,
-          submittedAt: '2026-01-19',
-          visibility: 'private',
-          tags: ['portfolio', 'website-builder', 'templates'],
-          technologies: ['React', 'TypeScript', 'Tailwind CSS', 'Vercel'],
-          codeQualityScore: 78,
-          likes: 0,
-          githubUrl: 'https://github.com/example/portfolio-builder',
-          liveUrl: '',
-        },
-        {
-          id: 'mock-7',
-          name: 'Data Visualization Dashboard',
-          description: 'Interactive data visualization platform for analyzing large datasets with customizable charts, real-time updates, and export capabilities.',
-          status: 'published',
-          lastUpdated: '2026-01-14',
-          category: 'Data Science',
-          views: 1834,
-          submittedAt: '2026-01-02',
-          visibility: 'public',
-          tags: ['data-viz', 'analytics', 'charts'],
-          technologies: ['D3.js', 'React', 'Python', 'Pandas', 'AWS'],
-          codeQualityScore: 93,
-          likes: 412,
-          githubUrl: 'https://github.com/example/data-viz',
-          liveUrl: 'https://dataviz.example.com',
-        },
-        {
-          id: 'mock-8',
-          name: 'Blockchain Wallet',
-          description: 'Secure cryptocurrency wallet with multi-chain support, transaction history, and portfolio tracking. Features hardware wallet integration.',
-          status: 'pending',
-          lastUpdated: '2026-01-15',
-          category: 'Web Development',
-          views: 678,
-          submittedAt: '2026-01-12',
-          visibility: 'unlisted',
-          tags: ['blockchain', 'crypto', 'wallet'],
-          technologies: ['React', 'Web3.js', 'Solidity', 'Node.js'],
-          codeQualityScore: 87,
-          likes: 145,
-          githubUrl: 'https://github.com/example/blockchain-wallet',
-          liveUrl: '',
-        },
-      ];
-
-      setProjects(mockProjects);
-      console.log("ℹ️  Using mock data due to API error:", mockProjects.length, "projects");
-    }
+    // Projects cleared from dashboard as per request
+    setProjects([]);
+    console.log("Projects cleared from dashboard");
   };
 
   // Load projects from API on component mount
@@ -831,15 +495,29 @@ const ShowcaseDashboard = ({
                   <BarChart className="w-4 h-4" />
                   {showAnalytics ? "Hide Analytics" : "Show Analytics"}
                 </Button>
+
                 <Button
-                  onClick={() => navigate("/showcase/quick-add")}
+
+                  onClick={() => {
+                    if (isDemo) {
+                      setIsLoginModalOpen(true);
+                      return;
+                    }
+                    navigate("/showcase/quick-add");
+                  }}
                   className="bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 mr-2"
                 >
                   <Zap className="w-4 h-4 mr-2" />
                   Quick Add
                 </Button>
                 <Button
-                  onClick={() => navigate("/showcase/add")}
+                  onClick={() => {
+                    if (isDemo) {
+                      setIsLoginModalOpen(true);
+                      return;
+                    }
+                    navigate("/showcase/add");
+                  }}
                   className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                 >
                   <Plus className="w-4 h-4 mr-2" />
@@ -1768,24 +1446,92 @@ const ShowcaseDashboard = ({
 
                 {/* Empty State */}
                 {filteredAndSortedProjects.length === 0 && (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">
-                        No projects found
-                      </h3>
-                      <p className="text-gray-500 mb-4">
-                        {searchQuery ||
-                          statusFilter !== "all" ||
-                          categoryFilter !== "all" ||
-                          visibilityFilter !== "all"
-                          ? "Try adjusting your filters or search terms."
-                          : "Get started by creating your first project."}
-                      </p>
-                      <Button onClick={() => navigate("/showcase/add")}>
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Project
-                      </Button>
+                  <Card className="border-dashed border-2">
+                    <CardContent className="p-12 flex flex-col items-center text-center">
+                      {searchQuery ||
+                        statusFilter !== "all" ||
+                        categoryFilter !== "all" ||
+                        visibilityFilter !== "all" ? (
+                        <>
+                          <Search className="w-12 h-12 text-gray-300 mb-4" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            No projects found
+                          </h3>
+                          <p className="text-gray-500 mb-6">
+                            We couldn't find any projects matching your filters. Try
+                            adjusting your search keywords or filters.
+                          </p>
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSearchQuery("");
+                              setStatusFilter("all");
+                              setCategoryFilter("all");
+                              setVisibilityFilter("all");
+                            }}
+                          >
+                            Clear All Filters
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-6">
+                            <Github className="w-8 h-8 text-[#24292e]" />
+                          </div>
+
+                          <h3 className="text-xl font-bold text-gray-900 mb-2">
+                            Build your portfolio in seconds
+                          </h3>
+
+                          <p className="text-gray-600 max-w-lg mb-8 leading-relaxed">
+                            Connect your GitHub to automatically import your
+                            repositories. We'll fetch the{" "}
+                            <span className="font-semibold text-gray-900">
+                              raw data
+                            </span>{" "}
+                            including project names, descriptions, and tech stacks
+                            so you don't have to type them manually.
+                          </p>
+
+                          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
+                            <Button
+                              onClick={() => {
+                                if (isDemo) {
+                                  setIsLoginModalOpen(true);
+                                  return;
+                                }
+                                window.open(
+                                  "https://github.com/login/oauth/authorize",
+                                  "_blank",
+                                );
+                              }}
+                              className="bg-[#24292e] hover:bg-[#2f363d] text-white h-11 px-8 rounded-md font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                            >
+                              <Github className="w-4 h-4 mr-2" />
+                              Connect GitHub
+                            </Button>
+
+                            <div className="text-sm text-gray-400 font-medium px-2">
+                              OR
+                            </div>
+
+                            <Button
+                              onClick={() => {
+                                if (isDemo) {
+                                  setIsLoginModalOpen(true);
+                                  return;
+                                }
+                                navigate("/showcase/add");
+                              }}
+                              variant="outline"
+                              className="h-11 px-8"
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Add Manually
+                            </Button>
+                          </div>
+                        </>
+                      )}
                     </CardContent>
                   </Card>
                 )}
@@ -1793,6 +1539,11 @@ const ShowcaseDashboard = ({
             </>
           )}
         </div>
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+          onLoginSuccess={handleLoginSuccess}
+        />
       </main>
     </UnifiedLayout>
   );

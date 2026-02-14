@@ -8,7 +8,7 @@ import { ShowWorkTimeline } from "@/components/ui/showwork-timeline";
 import DisplayCards from "@/components/ui/display-cards";
 import { InView } from "@/components/ui/in-view";
 import { BouncyCardsFeatures } from "@/components/ui/bouncy-cards-features";
-import { AuroraBackground } from "@/components/ui/aurora-background";
+
 import { OnboardingPreview } from "./OnboardingPreview";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import PricingSection from "@/components/ui/pricing-section";
@@ -143,6 +143,32 @@ const ShowWorkLanding = () => {
         "flex-1 w-full min-w-0 bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col relative transition-all duration-300 h-full",
         isSidebarJoined && isSidebarOpen && "transition-all duration-700"
       )}>
+        {/* Grid Background - Landing Page Only */}
+        {viewMode === 'landing' && (
+          <div className="absolute inset-0 z-0 h-full w-full bg-slate-50 dark:bg-slate-950 overflow-hidden pointer-events-none rounded-[2.5rem]">
+            {/* Light Mode Grid */}
+            <div
+              className="absolute inset-0 block dark:hidden opacity-[0.6]"
+              style={{
+                backgroundImage: 'linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)',
+                backgroundSize: '40px 40px',
+                maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)',
+                WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)'
+              }}
+            />
+            {/* Dark Mode Grid */}
+            <div
+              className="absolute inset-0 hidden dark:block opacity-[0.3]"
+              style={{
+                backgroundImage: 'linear-gradient(to right, #1f2937 1px, transparent 1px), linear-gradient(to bottom, #1f2937 1px, transparent 1px)',
+                backgroundSize: '40px 40px',
+                maskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)',
+                WebkitMaskImage: 'radial-gradient(ellipse at center, black 40%, transparent 80%)'
+              }}
+            />
+          </div>
+        )}
+
         {/* Re-open Sidebar Button */}
         <AnimatePresence>
           {!isSidebarOpen && isSidebarJoined && (
@@ -158,16 +184,11 @@ const ShowWorkLanding = () => {
             </motion.button>
           )}
         </AnimatePresence>
-        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar relative">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar relative z-10">
           {viewMode === 'landing' ? (
             <>
               {/* Aurora Background - Moved inside the rounded container */}
-              < AuroraBackground
-                showRadialGradient={false}
-                className="absolute inset-0 -z-10 h-full w-full"
-              >
-                <div></div>
-              </AuroraBackground>
+
 
 
 
@@ -305,7 +326,7 @@ const ShowWorkLanding = () => {
                           <Button
                             size="sm"
                             className={cn(isScrolled && "lg:hidden")}
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate("/demo-showcase")}
                           >
                             <span>Get Started</span>
                           </Button>
@@ -314,7 +335,7 @@ const ShowWorkLanding = () => {
                             className={cn(
                               isScrolled ? "lg:inline-flex" : "hidden"
                             )}
-                            onClick={() => navigate("/login")}
+                            onClick={() => navigate("/demo-showcase")}
                           >
                             <span>Get Started</span>
                           </Button>
@@ -327,12 +348,7 @@ const ShowWorkLanding = () => {
 
               {/* Hero Content Section - Mobile-First style from new design */}
               <div className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(4rem, 15vh, 10rem)' }}>
-                {/* Background Gradients */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none z-0">
-                  <div className="absolute top-20 left-20 w-72 h-72 bg-blue-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob"></div>
-                  <div className="absolute top-20 right-20 w-72 h-72 bg-purple-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob animation-delay-2000"></div>
-                  <div className="absolute -bottom-32 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-400/20 rounded-full blur-[100px] mix-blend-multiply animate-blob animation-delay-4000"></div>
-                </div>
+
 
                 <div className="w-full max-w-6xl mx-auto px-6 lg:px-12">
                   <div className="text-center w-full mx-auto max-w-4xl" style={{ marginBottom: '2rem' }}>
@@ -400,11 +416,15 @@ const ShowWorkLanding = () => {
                       <span className="block mt-2">Like Never Before</span>
                     </h1>
 
+                    <p className="mt-6 text-lg md:text-xl text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                      Connect your GitHub, showcase your best work with stunning visuals, and land your dream job with a portfolio that makes an impact.
+                    </p>
+
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
                       <Button
                         size="lg"
                         className="rounded-full px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-2xl transition-all duration-300 transform hover:scale-105"
-                        onClick={() => navigate("/login")}
+                        onClick={() => navigate("/demo-showcase")}
                       >
                         Start Building
                         <ArrowRight className="ml-2 w-5 h-5" />
@@ -921,7 +941,7 @@ const ShowWorkLanding = () => {
                     <Button
                       size="lg"
                       className="logo-bg shadow-lg text-white hover:opacity-90"
-                      onClick={() => navigate("/login")}
+                      onClick={() => navigate("/showcase")}
                     >
                       Get Started Free
                     </Button>
@@ -967,7 +987,7 @@ const ShowWorkLanding = () => {
                     <Button
                       size="lg"
                       className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 dark:bg-blue-700 dark:hover:bg-blue-600 text-white shadow-xl px-10 h-14 rounded-full font-bold transition-all duration-300 transform hover:scale-105"
-                      onClick={() => navigate("/login")}
+                      onClick={() => navigate("/showcase")}
                     >
                       Get Started Free
                       <ArrowRight className="ml-2 w-5 h-5" />

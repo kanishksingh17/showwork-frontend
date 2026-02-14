@@ -125,6 +125,7 @@ function App() {
           {/* Public routes */}
           <Route path="/" element={<ShowWorkLanding />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/demo-showcase" element={<ShowcaseDashboard isDemo={true} />} />
 
           {/* Protected routes */}
           <Route path="/profile/setup" element={
