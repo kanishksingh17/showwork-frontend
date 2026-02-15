@@ -15,10 +15,15 @@ import { PortfolioSelector } from "../components/portfolio/PortfolioSelector";
 import { PortfolioPreview } from "../components/portfolio/PortfolioPreview";
 import { SimpleFolioLayout } from "../components/portfolio/simplefolio/SimpleFolioTemplate";
 import { ModernPortfolioEditor } from "../components/portfolio/ModernPortfolioEditor";
+import { LoginModal } from "@/components/auth/LoginModal";
 
 type BuilderStep = "landing" | "template-preview" | "customizer" | "preview";
 
-export default function PortfolioBuilder() {
+interface PortfolioBuilderProps {
+  isDemo?: boolean;
+}
+
+export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] =
     useState<PortfolioTemplate | null>(null);
@@ -33,6 +38,7 @@ export default function PortfolioBuilder() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [showLiveBuilder, setShowLiveBuilder] = useState(false);
   const [fetchedProjects, setFetchedProjects] = useState<any[]>([]);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Real user data - fetched from profile API (includes name, tech stack, skills from profile setup)
   const [userData, setUserData] = useState<{
@@ -87,6 +93,16 @@ export default function PortfolioBuilder() {
 
   // Fetch REAL user profile data from database (name, tech stack, skills, GitHub, bio from profile setup)
   useEffect(() => {
+    // Skip fetching in demo mode
+    if (isDemo) {
+      setUserData({
+        id: "demo-user",
+        name: "Demo User",
+        skills: [],
+      });
+      return;
+    }
+
     const loadUserProfile = async () => {
       try {
         console.log("🔄 Fetching user profile from /api/portfolio/profile...");
@@ -202,6 +218,12 @@ export default function PortfolioBuilder() {
 
   // Fetch complete project data from showcase section on mount
   useEffect(() => {
+    // Skip fetching in demo mode
+    if (isDemo) {
+      setFetchedProjects([]);
+      return;
+    }
+
     const loadProjects = async () => {
       try {
         // Fetch from /api/projects to get complete data with mediaFiles and teamMembers
@@ -521,6 +543,11 @@ export default function PortfolioBuilder() {
   }, [userData, fetchedProjects]); // Re-detect job role when userData or projects change
 
   const handleUseTemplate = async (template: PortfolioTemplate) => {
+    if (isDemo) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setSelectedTemplate(template);
 
     // Check if it's a file-based template (has previewUrl or framework)
@@ -678,6 +705,7 @@ export default function PortfolioBuilder() {
               projects={fetchedProjects.length > 0 ? fetchedProjects : projects}
               onTemplateSelect={handleUseTemplate}
               onJobRoleDetected={(role) => setDetectedJobRole(role)}
+              isDemo={isDemo}
             />
           </div>
         );
@@ -1050,7 +1078,7 @@ export default function PortfolioBuilder() {
   };
 
   return (
-    <UnifiedLayout activePage="portfolio" showSidebar={currentStep !== 'customizer'}>
+    <UnifiedLayout activePage="portfolio" showSidebar={currentStep !== 'customizer'} showAuthButtons={isDemo}>
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Header - Fixed - Only show navigation, no title/description after landing */}
         {currentStep !== "landing" && currentStep !== "customizer" && (
@@ -1089,6 +1117,16 @@ export default function PortfolioBuilder() {
           {renderStep()}
         </div>
       </div>
+
+      {/* Login Modal for Demo Mode */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+          window.location.href = '/login';
+        }}
+      />
     </UnifiedLayout>
   );
 }

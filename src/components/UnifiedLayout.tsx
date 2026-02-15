@@ -1,20 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { cn } from "@/lib/utils";
-import { ChevronRight } from "lucide-react";
 
 interface UnifiedLayoutProps {
     children: React.ReactNode;
     activePage: string;
     showSidebar?: boolean; // New prop to allow external control (e.g., hiding in editor)
+    showAuthButtons?: boolean; // New prop to control demo/showcase mode sidebar
 }
 
 export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     children,
     activePage,
     showSidebar = true,
+    showAuthButtons = false,
 }) => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    // Initialize state from localStorage if available, default to true
+    const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+        if (typeof window !== 'undefined') {
+            const saved = localStorage.getItem("sidebarOpen");
+            if (saved !== null) {
+                return saved === "true";
+            }
+        }
+        return true;
+    });
+
+    // Update localStorage when state changes
+    useEffect(() => {
+        localStorage.setItem("sidebarOpen", String(isSidebarOpen));
+    }, [isSidebarOpen]);
     // For standard layouts, we want the sidebar to be joined immediately without animation delay
     const [isSidebarJoined] = useState(true);
 
@@ -24,20 +39,9 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
         <div
             className={cn(
                 "h-screen bg-slate-100 dark:bg-slate-950 flex flex-row p-6 overflow-hidden transition-all duration-700",
-                actualShowSidebar && isSidebarOpen ? "gap-6" : "gap-0",
+                actualShowSidebar ? "gap-6" : "gap-0",
             )}
         >
-            {/* Floating Toggle Button (visible when sidebar is closed and we are supposed to show it) */}
-            {actualShowSidebar && !isSidebarOpen && (
-                <button
-                    className="fixed left-0 top-1/2 -translate-y-1/2 z-[100] flex items-center justify-center w-5 h-16 bg-white dark:bg-slate-900 border border-l-0 border-slate-200 dark:border-slate-800 rounded-r-2xl shadow-lg hover:w-7 transition-all duration-300 group cursor-pointer"
-                    onClick={() => setIsSidebarOpen(true)}
-                    title="Open Sidebar"
-                >
-                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
-                </button>
-            )}
-
             {/* Sidebar - Desktop Only with Collapsible Logic */}
             <div
                 className={cn(
@@ -46,14 +50,15 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         ? "w-0 opacity-0 -translate-x-full pointer-events-none"
                         : isSidebarOpen
                             ? "w-64 opacity-100 translate-x-0"
-                            : "w-0 opacity-0 -translate-x-full pointer-events-none",
+                            : "w-16 opacity-100 translate-x-0",
                 )}
             >
-                <div className="w-64 h-full">
+                <div className={cn("h-full transition-all duration-300", isSidebarOpen ? "w-64" : "w-16")}>
                     <UnifiedSidebar
                         isOpen={isSidebarOpen}
-                        onToggle={() => setIsSidebarOpen(false)}
+                        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                         currentPage={activePage}
+                        showAuthButtons={showAuthButtons}
                     />
                 </div>
             </div>

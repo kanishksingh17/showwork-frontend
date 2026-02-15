@@ -18,12 +18,14 @@ interface UnifiedSidebarProps {
   currentPage?: string;
   isOpen?: boolean;
   onToggle?: () => void;
+  showAuthButtons?: boolean;
 }
 
 export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   currentPage,
-  isOpen,
+  isOpen = true, // Default to true if not provided
   onToggle,
+  showAuthButtons = false,
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -69,7 +71,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   };
 
   // Grouped navigation items with requested hierarchy
-  const navigationGroups = [
+  const allNavigationGroups = [
     {
       title: "WORKSPACE",
       items: [
@@ -97,30 +99,69 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     }
   ];
 
+  // Filter groups for onboarding mode (when showAuthButtons is true)
+  const navigationGroups = showAuthButtons
+    ? allNavigationGroups.map(group => ({
+      ...group,
+      items: group.items
+        .filter(item => ['dashboard', 'portfolio', 'content', 'showcase', 'analytics'].includes(item.id))
+        .map(item => {
+          if (item.id === 'dashboard') return { ...item, path: "/demo-showcase" };
+          if (item.id === 'portfolio') return { ...item, path: "/demo-portfolio" };
+          if (item.id === 'showcase') return { ...item, path: "/demo-showcase" };
+          if (item.id === 'content') return { ...item, path: "/demo-content" };
+          return item;
+        })
+    })).filter(group => group.items.length > 0)
+    : allNavigationGroups;
+
   return (
-    <aside className="w-64 h-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-[2.5rem] shadow-lg overflow-hidden border border-slate-200/10 dark:border-slate-800">
+    <aside
+      className={`h-full bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-[2.5rem] shadow-lg overflow-hidden border border-slate-200/10 dark:border-slate-800 transition-all duration-300 ease-in-out ${isOpen ? "w-64" : "w-16"
+        }`}
+    >
       {/* Logo Section - Fixed Position */}
       <div
-        className="p-8 pb-4 flex items-center gap-12"
+        className={`flex items-center ${isOpen ? "p-6 pb-3 gap-12 justify-between" : "justify-center pt-6 pb-3"}`}
         data-sidebar-open={isOpen}
       >
-        <div className="flex items-center space-x-3 flex-1">
-          <img src="/favicon.svg" alt="ShowWork Logo" className="w-10 h-10 object-contain" />
-          <h1 className="text-xl font-extrabold text-white">ShowWork</h1>
-        </div>
-
-        {onToggle && (
-          <button
+        {isOpen ? (
+          <>
+            <div className="flex items-center space-x-3 flex-1">
+              <img src="/favicon.svg" alt="ShowWork Logo" className="w-9 h-9 object-contain" />
+              <h1 className="text-xl font-extrabold text-white animate-in fade-in duration-200">ShowWork</h1>
+            </div>
+            {onToggle && (
+              <button
+                onClick={onToggle}
+                className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white lg:block hidden shrink-0"
+                aria-label="Collapse Sidebar"
+              >
+                <PanelLeftClose className="size-5" />
+              </button>
+            )}
+          </>
+        ) : (
+          <div
+            className="relative group cursor-pointer flex justify-center items-center w-full px-1"
             onClick={onToggle}
-            className="p-2 rounded-xl hover:bg-white/10 transition-colors text-gray-400 hover:text-white lg:block hidden shrink-0"
-            aria-label="Collapse Sidebar"
+            title="Expand Sidebar"
           >
-            <PanelLeftClose className="size-5" />
-          </button>
+            {/* Logo that scales on hover/state */}
+            <img
+              src="/favicon.svg"
+              alt="ShowWork Logo"
+              className="w-8 h-8 object-contain transition-all duration-300 group-hover:opacity-20 group-hover:scale-90"
+            />
+
+            {/* Overlay Icon */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 scale-50 group-hover:scale-100">
+              <PanelLeftClose className="size-6 text-white rotate-180" />
+            </div>
+          </div>
         )}
       </div>
 
-      {/* Navigation Section - Static Order, Never Changes */}
       {/* Navigation Section - Grouped */}
       <nav
         className="flex-1 px-4 py-2 space-y-6 overflow-y-auto [&::-webkit-scrollbar]:hidden"
@@ -128,9 +169,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       >
         {navigationGroups.map((group) => (
           <div key={group.title}>
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2">
-              {group.title}
-            </h3>
+            {isOpen && (
+              <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 px-2 animate-in fade-in duration-200">
+                {group.title}
+              </h3>
+            )}
             <div className="space-y-1">
               {group.items.map((item) => {
                 const isActive = activePage === item.id;
@@ -139,14 +182,15 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
                 return (
                   <div
                     key={item.id}
-                    className={`flex items-center px-4 py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ${isActive
+                    className={`flex items-center ${isOpen ? "px-4" : "justify-center px-0"} py-2.5 text-sm font-medium rounded-lg cursor-pointer transition-all duration-200 ${isActive
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-[#9CA3AF] hover:bg-white/10 hover:text-white"
                       }`}
                     onClick={() => navigate(item.path)}
+                    title={!isOpen ? item.label : undefined}
                   >
-                    <IconComponent className="w-5 h-5 mr-3" />
-                    {item.label}
+                    <IconComponent className={`w-5 h-5 ${isOpen ? "mr-3" : ""}`} />
+                    {isOpen && <span className="animate-in fade-in duration-200">{item.label}</span>}
                   </div>
                 );
               })}
@@ -157,14 +201,35 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
 
       {/* Bottom Section - Fixed Utility Links, Static Order */}
       <div className="px-4 py-2 border-t border-gray-700">
-        {/* Settings moved to main nav */}
-        <div
-          className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-          onClick={handleLogout}
-        >
-          <LogOut className="w-5 h-5 mr-3" />
-          Logout
-        </div>
+        {showAuthButtons ? (
+          <div className="space-y-2">
+            <div
+              className={`flex items-center ${isOpen ? "px-4" : "justify-center px-0"} py-2.5 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200`}
+              onClick={() => navigate("/login")}
+              title={!isOpen ? "Sign In" : undefined}
+            >
+              <LogOut className={`w-5 h-5 ${isOpen ? "mr-3" : ""} rotate-180`} />
+              {isOpen && <span className="animate-in fade-in duration-200">Sign In</span>}
+            </div>
+            {isOpen && (
+              <button
+                onClick={() => navigate("/login")} // Assuming /login handles both or there's no separate /signup route based on imports. If /signup exists, change this.
+                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-semibold transition-colors shadow-lg shadow-blue-500/20"
+              >
+                Sign Up
+              </button>
+            )}
+          </div>
+        ) : (
+          <div
+            className={`flex items-center ${isOpen ? "px-4" : "justify-center px-0"} py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200`}
+            onClick={handleLogout}
+            title={!isOpen ? "Logout" : undefined}
+          >
+            <LogOut className={`w-5 h-5 ${isOpen ? "mr-3" : ""}`} />
+            {isOpen && <span className="animate-in fade-in duration-200">Logout</span>}
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -422,7 +422,7 @@ function PreviewPublishModal({
   );
 }
 
-export function CrossPostComposer() {
+export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
   const navigate = useNavigate();
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([]);
@@ -693,7 +693,7 @@ export function CrossPostComposer() {
       return {
         ...data,
         data: {
-          projects: publishedProjects,
+          projects: isDemo ? [] : publishedProjects, // Empty array in demo mode
         },
       };
     },
@@ -1300,7 +1300,7 @@ export function CrossPostComposer() {
             className="w-full max-w-full box-border h-full flex flex-col"
           >
             <ProjectSelector
-              projects={[...mockProjects, ...(projectsData?.data?.projects || [])]}
+              projects={isDemo ? [] : [...mockProjects, ...(projectsData?.data?.projects || [])]}
               selectedProject={selectedProject}
               onSelect={(project) => {
                 // Set loading state immediately when project is selected

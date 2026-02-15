@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import CareerPathMap from "@/components/landing/CareerPathMap";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { OrbitingPlatforms } from "@/components/ui/orbiting-platforms";
@@ -13,6 +14,7 @@ import { OnboardingPreview } from "./OnboardingPreview";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import PricingSection from "@/components/ui/pricing-section";
 import { StaggerTestimonials } from "@/components/ui/stagger-testimonials";
+import HeroDoodleArrow from "@/components/landing/HeroDoodleArrow";
 
 import { cn } from "@/lib/utils";
 import {
@@ -57,6 +59,8 @@ const ShowWorkLanding = () => {
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
   const [isSidebarJoined, setIsSidebarJoined] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const startBuildingRef = useRef<HTMLButtonElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
 
   const handleCTA = () => {
     setViewMode('onboarding');
@@ -121,19 +125,23 @@ const ShowWorkLanding = () => {
   return (
     <div className={cn(
       "h-screen bg-slate-100 dark:bg-slate-950 flex flex-row p-6 overflow-hidden transition-all duration-700",
-      isSidebarJoined && isSidebarOpen ? "gap-6" : "gap-0"
+      isSidebarJoined ? "gap-6" : "gap-0"
     )}>
+      {/* Sidebar - Desktop Only with Delayed Join and Collapsible Logic */}
       {/* Sidebar - Desktop Only with Delayed Join and Collapsible Logic */}
       <div
         className={cn(
           "hidden lg:block h-full transition-all duration-700 ease-in-out overflow-hidden flex-shrink-0",
-          !isSidebarJoined || viewMode === 'onboarding' ? "w-0 opacity-0 -translate-x-full pointer-events-none" : (isSidebarOpen ? "w-64 opacity-100 translate-x-0" : "w-0 opacity-0 -translate-x-full pointer-events-none")
+          !isSidebarJoined || viewMode === 'onboarding'
+            ? "w-0 opacity-0 -translate-x-full pointer-events-none"
+            : (isSidebarOpen ? "w-64 opacity-100 translate-x-0" : "w-16 opacity-100 translate-x-0")
         )}
       >
-        <div className="w-64 h-full">
+        <div className={cn("h-full transition-all duration-300", isSidebarOpen ? "w-64" : "w-16")}>
           <UnifiedSidebar
             isOpen={isSidebarOpen}
-            onToggle={() => setIsSidebarOpen(false)}
+            onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+            showAuthButtons={true}
           />
         </div>
       </div>
@@ -169,21 +177,7 @@ const ShowWorkLanding = () => {
           </div>
         )}
 
-        {/* Re-open Sidebar Button */}
-        <AnimatePresence>
-          {!isSidebarOpen && isSidebarJoined && (
-            <motion.button
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              onClick={() => setIsSidebarOpen(true)}
-              className="absolute top-8 left-8 z-[60] p-2.5 bg-white dark:bg-slate-800 rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-all duration-200 group"
-              aria-label="Open Sidebar"
-            >
-              <PanelLeftOpen className="size-5 text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform" />
-            </motion.button>
-          )}
-        </AnimatePresence>
+
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth custom-scrollbar relative z-10">
           {viewMode === 'landing' ? (
             <>
@@ -347,10 +341,13 @@ const ShowWorkLanding = () => {
               </header >
 
               {/* Hero Content Section - Mobile-First style from new design */}
-              <div className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(4rem, 15vh, 10rem)' }}>
+              <div ref={heroRef} className="relative z-10 w-full flex flex-col items-center justify-center overflow-hidden" style={{ paddingTop: 'clamp(4rem, 8vh, 6rem)', paddingBottom: 'clamp(4rem, 15vh, 10rem)' }}>
+                {/* Career Path Map - Background Layer */}
+                {/* Career Path Map - Background Layer */}
+                <CareerPathMap className="absolute -top-[55%] inset-x-0 z-0 opacity-70 saturate-200 scale-100 origin-top pointer-events-none" />
+                <HeroDoodleArrow targetRef={startBuildingRef} containerRef={heroRef} />
 
-
-                <div className="w-full max-w-6xl mx-auto px-6 lg:px-12">
+                <div className="w-full max-w-6xl mx-auto px-6 lg:px-12 relative z-10">
                   <div className="text-center w-full mx-auto max-w-4xl" style={{ marginBottom: '2rem' }}>
                     <h1 className="font-black text-slate-900 dark:text-white tracking-tight text-center relative leading-[1.15]" style={{ fontSize: 'clamp(2.5rem, 8vw, 4.5rem)' }}>
                       {/* Floating Widgets */}
@@ -379,6 +376,7 @@ const ShowWorkLanding = () => {
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
                       <Button
+                        ref={startBuildingRef}
                         size="lg"
                         className="rounded-full px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold shadow-2xl transition-all duration-300 transform hover:scale-105"
                         onClick={() => navigate("/demo-showcase")}
@@ -399,6 +397,8 @@ const ShowWorkLanding = () => {
 
                   </div>
                 </div>
+
+
               </div>
 
               {/* Comparison Section: "Success vs Struggle" */}

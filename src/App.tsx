@@ -126,6 +126,9 @@ function App() {
           <Route path="/" element={<ShowWorkLanding />} />
           <Route path="/login" element={<Login />} />
           <Route path="/demo-showcase" element={<ShowcaseDashboard isDemo={true} />} />
+          <Route path="/demo-portfolio" element={<PortfolioBuilder isDemo={true} />} />
+          <Route path="/demo-content" element={<ContentManagement isDemo={true} />} />
+
 
           {/* Protected routes */}
           <Route path="/profile/setup" element={

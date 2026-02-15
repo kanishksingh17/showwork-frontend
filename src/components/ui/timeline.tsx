@@ -38,8 +38,8 @@ export const Timeline = ({ data, containerRef: externalContainerRef }: { data: T
         {data.map((item, index) => (
           <div key={index} className="flex justify-start pt-10 md:pt-24 md:gap-10">
             <div className="sticky flex flex-col md:flex-row z-40 items-center top-32 md:top-40 self-start max-w-xs lg:max-w-sm md:w-full">
-              <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
+              <div className="h-10 absolute left-3 md:left-3 w-10 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center justify-center shadow-sm z-50">
+                <div className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_15px_3px_rgba(6,182,212,0.8)]" />
               </div>
               <h3 className="hidden md:block text-xl md:pl-20 md:text-3xl font-semibold text-neutral-600 dark:text-neutral-400 ">
                 {item.title}
@@ -60,7 +60,7 @@ export const Timeline = ({ data, containerRef: externalContainerRef }: { data: T
         >
           <motion.div
             style={{ height: heightTransform, opacity: opacityTransform }}
-            className="absolute inset-x-0 top-0 w-full bg-gradient-to-b from-blue-600 via-blue-400 to-transparent rounded-full shadow-[0_0_20px_rgba(59,130,246,1),0_0_40px_rgba(59,130,246,0.8),0_0_60px_rgba(59,130,246,0.6),0_0_100px_rgba(59,130,246,0.4)]"
+            className="absolute inset-x-0 top-0 w-full bg-gradient-to-b from-blue-500 via-cyan-500 to-transparent rounded-full shadow-[0_0_40px_10px_rgba(59,130,246,1),0_0_80px_20px_rgba(6,182,212,0.8),0_0_120px_40px_rgba(59,130,246,0.6)]"
           />
         </div>
       </div>

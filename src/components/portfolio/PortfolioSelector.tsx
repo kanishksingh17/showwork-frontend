@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
+import { LoginModal } from "@/components/auth/LoginModal";
 import type {
   PortfolioTemplate,
   JobRole,
@@ -10,6 +11,7 @@ interface PortfolioSelectorProps {
   projects: any[];
   onTemplateSelect: (template: PortfolioTemplate) => void;
   onJobRoleDetected: (jobRole: JobRole) => void;
+  isDemo?: boolean;
 }
 
 const MOCK_TEMPLATES: PortfolioTemplate[] = [
@@ -200,7 +202,9 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
   projects,
   onTemplateSelect,
   onJobRoleDetected,
+  isDemo = false,
 }) => {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const [templates, setTemplates] = useState<PortfolioTemplate[]>(MOCK_TEMPLATES);
 
   useEffect(() => {
@@ -666,35 +670,37 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
         </p>
       </header>
 
-      {/* Mock Job Role Detection - Static Example (AI detection disabled) */}
-      <div className="max-w-3xl mx-auto mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-        <div className="flex items-start gap-3">
-          <svg className="h-5 w-5 text-green-700 dark:text-green-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
-              Detected Job Role
-            </h3>
-            <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              Software Developer
-            </p>
-            <p className="text-xs text-green-700 dark:text-green-300 mb-2">
-              Full-stack developer with experience in modern web technologies
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {['JavaScript', 'React', 'Node.js', 'TypeScript', 'MongoDB'].map((skill) => (
-                <span
-                  key={skill}
-                  className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded"
-                >
-                  {skill}
-                </span>
-              ))}
+      {/* Mock Job Role Detection - Static Example (AI detection disabled) - Hidden in demo mode */}
+      {!isDemo && (
+        <div className="max-w-3xl mx-auto mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <svg className="h-5 w-5 text-green-700 dark:text-green-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
+                Detected Job Role
+              </h3>
+              <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
+                Software Developer
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300 mb-2">
+                Full-stack developer with experience in modern web technologies
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {['JavaScript', 'React', 'Node.js', 'TypeScript', 'MongoDB'].map((skill) => (
+                  <span
+                    key={skill}
+                    className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Domain Tabs */}
       <div className="mb-12">
@@ -727,7 +733,7 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
             <div className="mb-3">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <h3 className="text-center text-lg font-semibold">{card.title}</h3>
-                {(card as any).isRecommended && (
+                {!isDemo && (card as any).isRecommended && (
                   <span className="inline-flex items-center gap-1 px-2 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
@@ -742,7 +748,7 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
                 </p>
               )}
             </div>
-            <div className={`flex-1 min-h-[240px] rounded-xl ${(card as any).isRecommended ? 'border-2 border-green-500 dark:border-green-400' : 'border border-slate-200 dark:border-slate-800'} ${card.bgClass} shadow-sm transition-all group-hover:shadow-lg group-hover:-translate-y-1 overflow-hidden relative ${card.id === 'blank' ? 'flex items-center justify-center p-6' : 'p-4'} ${card.id === 'ml-research' || card.id === 'systems-programming' || card.id === 'blockchain-dev' || card.id === 'cli-tools' || card.id === 'recommended-fullstack' ? 'flex items-center justify-center' : ''}`}>
+            <div className={`flex-1 min-h-[240px] rounded-xl ${!isDemo && (card as any).isRecommended ? 'border-2 border-green-500 dark:border-green-400' : 'border border-slate-200 dark:border-slate-800'} ${card.bgClass} shadow-sm transition-all group-hover:shadow-lg group-hover:-translate-y-1 overflow-hidden relative ${card.id === 'blank' ? 'flex items-center justify-center p-6' : 'p-4'} ${card.id === 'ml-research' || card.id === 'systems-programming' || card.id === 'blockchain-dev' || card.id === 'cli-tools' || card.id === 'recommended-fullstack' ? 'flex items-center justify-center' : ''}`}>
               {card.preview}
 
               {/* Create Button */}
@@ -755,8 +761,12 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    const template = templates.find(t => t.id === card.id) || templates[0];
-                    if (template) onTemplateSelect(template);
+                    if (isDemo) {
+                      setShowLoginModal(true);
+                    } else {
+                      const template = templates.find(t => t.id === card.id) || templates[0];
+                      if (template) onTemplateSelect(template);
+                    }
                   }}
                   className={`${(card as any).isRecommended ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold shadow-lg`}
                 >
@@ -777,6 +787,16 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
           View More Templates
         </Button>
       </div>
+
+      {/* Login Modal for Demo Mode */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+          window.location.href = '/login';
+        }}
+      />
     </div>
   );
 };

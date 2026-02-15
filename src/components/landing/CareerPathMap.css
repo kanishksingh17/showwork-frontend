@@ -1,0 +1,125 @@
+.career-path-map {
+    --electric-blue: #3b82f6;
+    /* blue-500 */
+    --bright-cyan: #06b6d4;
+    /* cyan-500 */
+    --danger-red: #ef4444;
+    /* red-500, kept for failure path */
+    --chaos-red: #991b1b;
+    /* red-800 */
+    --faded-gray: #cbd5e1;
+}
+
+.bg-grid-mesh {
+    background-size: 40px 40px;
+    background-image: linear-gradient(to right, #cbd5e1 2px, transparent 2px), linear-gradient(to bottom, #cbd5e1 2px, transparent 2px);
+}
+
+.dark .bg-grid-mesh {
+    background-image: linear-gradient(to right, #334155 2px, transparent 2px), linear-gradient(to bottom, #334155 2px, transparent 2px);
+}
+
+.flow-path-h {
+    height: 6px;
+    background: linear-gradient(to right, var(--bright-cyan), var(--electric-blue));
+    border-radius: 3px;
+    box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.blueprint-container {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.spec-label {
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #64748b;
+}
+
+.dark .spec-label {
+    color: #94a3b8;
+}
+
+.motivational-banner {
+    box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.25);
+    border: 2px solid rgba(59, 130, 246, 0.5);
+}
+
+.dead-node {
+    filter: grayscale(1) opacity(0.6);
+    border-style: dashed !important;
+}
+
+.broken-link {
+    stroke: var(--danger-red);
+    stroke-dasharray: 4;
+    opacity: 0.4;
+}
+
+.fork-vs {
+    box-shadow: 0 0 0 8px rgba(255, 255, 255, 1), 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark .fork-vs {
+    box-shadow: 0 0 0 8px rgba(15, 23, 42, 1), 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.next-step-indicator {
+    animation: pulse-blue 2s infinite;
+}
+
+@keyframes pulse-blue {
+    0% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.2);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+}
+
+.stream-line {
+    width: 4px;
+    /* Increased thickness for better visibility */
+    height: 48px;
+    /* Maintain height */
+    position: relative;
+    background: rgba(59, 130, 246, 0.2);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.stream-line::after {
+    content: '';
+    position: absolute;
+    top: -100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            transparent 0%,
+            var(--electric-blue) 50%,
+            var(--bright-cyan) 100%);
+    filter: drop-shadow(0 0 8px var(--electric-blue));
+    animation: stream-flow 2s infinite linear;
+}
+
+@keyframes stream-flow {
+    0% {
+        top: -100%;
+    }
+
+    100% {
+        top: 100%;
+    }
+}

@@ -45,8 +45,14 @@ interface PublishedPost {
 import { ToneSelector } from "../components/ContentManagement/ToneSelector";
 import type { ToneType } from "../components/ContentManagement/ToneSelector";
 import { ContentTemplatesAI } from "@/components/ContentManagement/ContentTemplates";
+import { LoginModal } from "@/components/auth/LoginModal";
 
-export default function ContentManagement() {
+interface ContentManagementProps {
+  isDemo?: boolean;
+}
+
+export default function ContentManagement({ isDemo = false }: ContentManagementProps) {
+  const [showLoginModal, setShowLoginModal] = useState(false);
   // Mock Data for "Creative Flow" style preview
   // Mock Data for "Creative Flow" style preview
   const MOCK_POSTS: PublishedPost[] = [
@@ -136,7 +142,7 @@ export default function ContentManagement() {
     }
   ];
 
-  const [publishedPosts, setPublishedPosts] = useState<PublishedPost[]>(MOCK_POSTS);
+  const [publishedPosts, setPublishedPosts] = useState<PublishedPost[]>(isDemo ? [] : MOCK_POSTS);
   const [activeTab, setActiveTab] = useState("cross-post");
   const [selectedTone, setSelectedTone] = useState<ToneType>("casual");
 
@@ -145,13 +151,13 @@ export default function ContentManagement() {
   // Temporary: Disable fetch to ensure mock data persists
   const fetchPublishedPosts = async () => {
     console.log("Using mock data for preview");
-    setPublishedPosts(MOCK_POSTS);
+    setPublishedPosts(isDemo ? [] : MOCK_POSTS);
   };
 
   return (
-    <UnifiedLayout activePage="content">
+    <UnifiedLayout activePage="content" showAuthButtons={isDemo}>
       <div className="flex-1 flex flex-col h-full overflow-hidden bg-white dark:bg-slate-950">
-        
+
         {/* Unified Header */}
         <div className="flex items-center gap-4 px-6 py-4 border-b border-gray-200 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-slate-950">
           <HoverGradientNavTabs
@@ -165,11 +171,18 @@ export default function ContentManagement() {
             }}
           />
           <div className="flex gap-2 ml-auto">
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => isDemo ? setShowLoginModal(true) : undefined}
+            >
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Button>
-            <Button size="sm">
+            <Button
+              size="sm"
+              onClick={() => isDemo ? setShowLoginModal(true) : undefined}
+            >
               <Plus className="w-4 h-4 mr-2" />
               New Post
             </Button>
@@ -188,7 +201,7 @@ export default function ContentManagement() {
             {/* Create Post Tab (merged Cross-Post and Post Generator) */}
             <TabsContent value="cross-post" className="h-full mt-0 data-[state=active]:flex flex-col">
               <React.Suspense fallback={<div className="text-center py-12"><RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4 text-gray-400" /><p className="text-gray-600">Loading composer...</p></div>}>
-                <CrossPostComposer />
+                <CrossPostComposer isDemo={isDemo} />
               </React.Suspense>
             </TabsContent>
 
@@ -249,6 +262,16 @@ export default function ContentManagement() {
           </Tabs>
         </div>
       </div>
+
+      {/* Login Modal for Demo Mode */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onLoginSuccess={() => {
+          setShowLoginModal(false);
+          window.location.href = '/login';
+        }}
+      />
     </UnifiedLayout>
   );
 }

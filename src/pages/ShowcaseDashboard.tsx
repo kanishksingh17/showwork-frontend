@@ -446,7 +446,7 @@ const ShowcaseDashboard = ({
   };
 
   return (
-    <UnifiedLayout activePage="showcase">
+    <UnifiedLayout activePage="showcase" showAuthButtons={isDemo}>
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden h-full">
         {/* Header */}
