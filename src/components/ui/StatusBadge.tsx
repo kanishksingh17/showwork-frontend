@@ -16,6 +16,8 @@ export function StatusBadge({ status, type = 'portfolio', className = '' }: Stat
                     return { color: 'bg-green-100 text-green-700 border-green-200', icon: CheckCircle, label: 'Active' };
                 case 'draft':
                     return { color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: Clock, label: 'Draft' };
+                case 'pending_review':
+                    return { color: 'bg-orange-100 text-orange-700 border-orange-200', icon: AlertCircle, label: 'Pending Review' };
                 case 'archived':
                     return { color: 'bg-gray-100 text-gray-700 border-gray-200', icon: Archive, label: 'Archived' };
                 default:

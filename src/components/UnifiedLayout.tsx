@@ -7,6 +7,7 @@ interface UnifiedLayoutProps {
     activePage: string;
     showSidebar?: boolean; // New prop to allow external control (e.g., hiding in editor)
     showAuthButtons?: boolean; // New prop to control demo/showcase mode sidebar
+    isDemo?: boolean; // Demo mode flag
 }
 
 export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
@@ -14,6 +15,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     activePage,
     showSidebar = true,
     showAuthButtons = false,
+    isDemo = false,
 }) => {
     // Initialize state from localStorage if available, default to true
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -58,7 +60,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         isOpen={isSidebarOpen}
                         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                         currentPage={activePage}
-                        showAuthButtons={showAuthButtons}
+                        showAuthButtons={showAuthButtons || isDemo}
                     />
                 </div>
             </div>

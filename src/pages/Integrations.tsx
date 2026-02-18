@@ -30,6 +30,7 @@ interface IntegrationItem {
   icon: React.ElementType;
   color: string;
   isNew?: boolean;
+  comingSoon?: boolean;
   category: "Developer tools" | "Design tools" | "Communication" | "Productivity" | "Browser tools";
 }
 
@@ -57,6 +58,7 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Tweet your updates and projects.",
     icon: XIcon,
     color: "bg-black",
+    comingSoon: true,
     category: "Communication"
   },
   {
@@ -65,6 +67,7 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Share visual content and updates.",
     icon: Instagram,
     color: "bg-pink-600",
+    comingSoon: true,
     category: "Communication"
   },
   {
@@ -73,6 +76,7 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Post to your Facebook pages.",
     icon: Facebook,
     color: "bg-blue-700",
+    comingSoon: true,
     category: "Communication"
   },
   {
@@ -81,6 +85,7 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Share projects on Reddit.",
     icon: RedditIcon,
     color: "bg-orange-600",
+    comingSoon: true,
     category: "Communication"
   }
 ];
@@ -128,7 +133,11 @@ export default function Integrations() {
   const { data } = useQuery<{ success: boolean; statuses: IntegrationStatus[] }>({
     queryKey: ["integrationStatus"],
     queryFn: async () => {
-      const response = await fetch("/api/integrations/status");
+      // Use credentials: 'include' to ensure cookies are sent, even though proxy should handle it
+      const response = await fetch("/api/integrations/status", {
+        headers: { "Content-Type": "application/json" },
+        // credentials: "include" // Redundant for same-origin but explicit
+      });
       if (!response.ok) throw new Error("Failed to fetch status");
       return response.json();
     },
@@ -142,7 +151,11 @@ export default function Integrations() {
   // Connect/Disconnect Mutations
   const connectMutation = useMutation({
     mutationFn: async (platform: string) => {
-      const response = await fetch(`/api/integrations/connect/${platform}`, { method: "POST" });
+      const response = await fetch(`/api/integrations/connect/${platform}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // credentials: "include" 
+      });
       const data = await response.json();
       if (data.authUrl) window.location.href = data.authUrl;
       else if (data.url) window.location.href = data.url;
@@ -235,10 +248,7 @@ export default function Integrations() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add integrations</h1>
               <p className="text-gray-500 mt-1">Connect your favorite tools to supercharge your workflow.</p>
             </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="text-gray-600">I'll do this later</Button>
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white">Continue</Button>
-            </div>
+
           </div>
 
           {/* List */}
@@ -254,7 +264,9 @@ export default function Integrations() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
-                        {item.isNew && (
+                        {item.comingSoon ? (
+                          <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-gray-100 text-gray-500 hover:bg-gray-100">Coming Soon</Badge>
+                        ) : item.isNew && (
                           <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-green-100 text-green-700 hover:bg-green-100">NEW</Badge>
                         )}
                       </div>
@@ -264,6 +276,7 @@ export default function Integrations() {
 
                   <Switch
                     checked={isConnected}
+                    disabled={!!item.comingSoon}
                     onCheckedChange={(checked) => handleToggle(item.id, isConnected)}
                     className="data-[state=checked]:bg-blue-600"
                   />

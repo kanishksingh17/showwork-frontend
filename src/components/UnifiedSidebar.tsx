@@ -106,10 +106,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       items: group.items
         .filter(item => ['dashboard', 'portfolio', 'content', 'showcase', 'analytics'].includes(item.id))
         .map(item => {
-          if (item.id === 'dashboard') return { ...item, path: "/demo-showcase" };
+          if (item.id === 'dashboard') return { ...item, path: "/", state: { fromDemo: true } };
           if (item.id === 'portfolio') return { ...item, path: "/demo-portfolio" };
           if (item.id === 'showcase') return { ...item, path: "/demo-showcase" };
           if (item.id === 'content') return { ...item, path: "/demo-content" };
+          if (item.id === 'analytics') return { ...item, path: "/demo-analytics" };
           return item;
         })
     })).filter(group => group.items.length > 0)
@@ -186,7 +187,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
                       ? "bg-blue-600 text-white shadow-sm"
                       : "text-[#9CA3AF] hover:bg-white/10 hover:text-white"
                       }`}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => navigate(item.path, { state: (item as any).state })}
                     title={!isOpen ? item.label : undefined}
                   >
                     <IconComponent className={`w-5 h-5 ${isOpen ? "mr-3" : ""}`} />

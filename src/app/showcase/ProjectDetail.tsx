@@ -461,6 +461,12 @@ const ProjectDetail = () => {
             Draft
           </Badge>
         );
+      case "pending_review":
+        return (
+          <Badge variant="outline" className="border-orange-500 text-orange-600 bg-orange-50">
+            Pending Review
+          </Badge>
+        );
       case "in-progress":
         return (
           <Badge variant="outline" className="border-blue-500 text-blue-600">
@@ -1466,12 +1472,12 @@ This project is licensed under the MIT License.`,
                                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                                   <div
                                     className={`h-2 rounded-full transition-all duration-500 ${tech.proficiency >= 80
-                                        ? "bg-gradient-to-r from-green-500 to-emerald-500"
-                                        : tech.proficiency >= 60
-                                          ? "bg-gradient-to-r from-blue-500 to-cyan-500"
-                                          : tech.proficiency >= 40
-                                            ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                                            : "bg-gradient-to-r from-red-500 to-pink-500"
+                                      ? "bg-gradient-to-r from-green-500 to-emerald-500"
+                                      : tech.proficiency >= 60
+                                        ? "bg-gradient-to-r from-blue-500 to-cyan-500"
+                                        : tech.proficiency >= 40
+                                          ? "bg-gradient-to-r from-yellow-500 to-orange-500"
+                                          : "bg-gradient-to-r from-red-500 to-pink-500"
                                       }`}
                                     style={{ width: `${tech.proficiency}%` }}
                                   />
@@ -1974,8 +1980,8 @@ This project is licensed under the MIT License.`,
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
                       className={`flex items-center gap-2 py-4 px-1 border-b-2 font-medium text-sm transition-colors ${isActive
-                          ? "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                        ? "border-blue-500 text-blue-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                         }`}
                     >
                       <Icon className="w-4 h-4" />

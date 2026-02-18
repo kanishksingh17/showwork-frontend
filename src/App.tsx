@@ -3,10 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import Dashboard from "./pages/Dashboard";
-import EnhancedProjectCreation from "./pages/EnhancedProjectCreation";
 import ShowcaseDashboard from "./pages/ShowcaseDashboard";
 import ManualProjectForm from "./app/showcase/ManualProjectForm";
-import ProjectForm from "./app/showcase/ProjectForm";
 import QuickAdd from "./pages/QuickAdd";
 import ContentManagement from "./pages/ContentManagement";
 import ErrorBoundary from "./components/preview/ErrorBoundary";
@@ -24,12 +22,12 @@ import ApplicationTracker from "./pages/ApplicationTracker";
 import Integrations from "./pages/Integrations";
 import Settings from "./pages/Settings";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import ShowWorkLanding from "./components/ShowWorkLanding";
 import Login from "./pages/Login";
 import DeveloperSetupPage from "./pages/DeveloperSetupPage";
 import ProjectDetail from "./app/showcase/ProjectDetail";
 import { CustomCursor } from "./components/ui/custom-cursor";
-import showworkLogo from "/showwork-logo.svg";
 
 // Create QueryClient instance with smart defaults
 const queryClient = new QueryClient({
@@ -70,7 +68,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
         // If no localStorage, check for session-based authentication (OAuth)
         try {
-          const response = await fetch('/api/auth/me', {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
             method: 'GET',
             credentials: 'include', // Important: send cookies
           });
@@ -101,16 +100,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div>
-          <a href="/" target="_blank">
-            <img src={showworkLogo} className="logo" alt="ShowWork logo" />
-          </a>
-        </div>
-        <h1>ShowWork</h1>
-      </div>
-    );
+    return null;
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
@@ -125,9 +115,11 @@ function App() {
           {/* Public routes */}
           <Route path="/" element={<ShowWorkLanding />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/u/:username" element={<PublicProfile />} />
           <Route path="/demo-showcase" element={<ShowcaseDashboard isDemo={true} />} />
           <Route path="/demo-portfolio" element={<PortfolioBuilder isDemo={true} />} />
           <Route path="/demo-content" element={<ContentManagement isDemo={true} />} />
+          <Route path="/demo-analytics" element={<Analytics isDemo={true} />} />
 
 
           {/* Protected routes */}
@@ -160,7 +152,7 @@ function App() {
           } />
           <Route path="/showcase/add" element={
             <ProtectedRoute>
-              <EnhancedProjectCreation />
+              <ManualProjectForm />
             </ProtectedRoute>
           } />
           <Route path="/showcase/quick-add" element={
@@ -180,7 +172,7 @@ function App() {
           } />
           <Route path="/showcase/edit/:id" element={
             <ProtectedRoute>
-              <ProjectForm />
+              <ManualProjectForm />
             </ProtectedRoute>
           } />
 

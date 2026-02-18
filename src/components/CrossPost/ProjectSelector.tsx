@@ -18,7 +18,8 @@ import {
   Twitter,
   Instagram,
   Facebook,
-  Github
+  Github,
+  Plus
 } from "lucide-react";
 import { FaReddit } from "react-icons/fa";
 import { cn } from "@/lib/utils";
@@ -42,6 +43,8 @@ interface ProjectSelectorProps {
   selectedProject: Project | null;
   onSelect: (project: Project | null) => void;
   isLoading?: boolean;
+  isDemo?: boolean;
+  onShowLogin?: () => void;
 }
 
 const statusDotColors = {
@@ -56,6 +59,8 @@ export function ProjectSelector({
   selectedProject,
   onSelect,
   isLoading = false,
+  isDemo = false,
+  onShowLogin = () => { },
 }: ProjectSelectorProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [viewMode, setViewMode] = useState<"board" | "grid">("board");
@@ -95,25 +100,27 @@ export function ProjectSelector({
             </p>
           </div>
           <div className="flex items-center gap-4">
-            {/* Connected Platforms */}
-            <div className="hidden md:flex items-center gap-2 mr-2">
-              <span className="text-xs text-gray-400 font-medium">Connected:</span>
-              <div className="flex -space-x-2">
-                {[
-                  { Icon: Linkedin, bg: "bg-[#0077b5]" },
-                  { Icon: Twitter, bg: "bg-[#1DA1F2]" },
-                  { Icon: Instagram, bg: "bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888]" }, // Instagram Gradient
-                  { Icon: Facebook, bg: "bg-[#4267B2]" },
-                  { Icon: Github, bg: "bg-[#333333]" },
-                  { Icon: FaReddit, bg: "bg-[#FF4500]" }
-                ].map(({ Icon, bg }, i) => (
-                  <div key={i} className={cn("w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow-sm hover:z-10 hover:scale-110 transition-all cursor-pointer text-white", bg)}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                ))}
+            {/* Connected Platforms - Hidden in demo mode */}
+            {!isDemo && (
+              <div className="hidden md:flex items-center gap-2 mr-2">
+                <span className="text-xs text-gray-400 font-medium">Connected:</span>
+                <div className="flex -space-x-2">
+                  {[
+                    { Icon: Linkedin, bg: "bg-[#0077b5]" },
+                    { Icon: Twitter, bg: "bg-[#1DA1F2]" },
+                    { Icon: Instagram, bg: "bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888]" }, // Instagram Gradient
+                    { Icon: Facebook, bg: "bg-[#4267B2]" },
+                    { Icon: Github, bg: "bg-[#333333]" },
+                    { Icon: FaReddit, bg: "bg-[#FF4500]" }
+                  ].map(({ Icon, bg }, i) => (
+                    <div key={i} className={cn("w-7 h-7 rounded-full border-2 border-white flex items-center justify-center shadow-sm hover:z-10 hover:scale-110 transition-all cursor-pointer text-white", bg)}>
+                      <Icon className="w-3.5 h-3.5" />
+                    </div>
+                  ))}
 
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="flex items-center gap-2">
               <div className="relative w-48 lg:w-64">
@@ -351,6 +358,40 @@ export function ProjectSelector({
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Empty State - When no projects */}
+      {filteredProjects.length === 0 && !isLoading && (
+        <div className="flex-1 flex items-center justify-center py-12">
+          <div className="max-w-md text-center space-y-4">
+            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center">
+              <Box className="w-8 h-8 text-gray-400" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Projects Yet</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                To post content, you need to add a project or connect your GitHub
+              </p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                onClick={() => isDemo ? onShowLogin() : window.location.href = '/showcase/add'}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Project
+              </Button>
+              <Button
+                onClick={() => isDemo ? onShowLogin() : window.location.href = '/integrations'}
+                variant="outline"
+                className="border-gray-300"
+              >
+                <Github className="w-4 h-4 mr-2" />
+                Connect GitHub
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

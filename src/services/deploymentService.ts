@@ -33,7 +33,7 @@ export class DeploymentService {
   private apiKey: string;
   private baseUrl: string;
 
-  constructor(apiKey: string, baseUrl: string = "https://api.showwork.com") {
+  constructor(apiKey: string, baseUrl: string = "https://api.showwork.in") {
     this.apiKey = apiKey;
     this.baseUrl = baseUrl;
   }
@@ -199,13 +199,13 @@ export class DeploymentService {
     <title>${config.content.name} - Portfolio</title>
     <meta name="description" content="${config.content.seo.metaDescription}">
     <meta name="keywords" content="${config.content.seo.keywords.join(", ")}">
-    <link rel="canonical" href="${config.customDomain || "https://portfolio.showwork.com"}">
+    <link rel="canonical" href="${config.customDomain || "https://portfolio.showwork.in"}">
     
     <!-- Open Graph -->
     <meta property="og:title" content="${config.content.name} - Portfolio">
     <meta property="og:description" content="${config.content.seo.metaDescription}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${config.customDomain || "https://portfolio.showwork.com"}">
+    <meta property="og:url" content="${config.customDomain || "https://portfolio.showwork.in"}">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -460,7 +460,7 @@ body { font-family: 'Inter', sans-serif; }
   private getCDNBaseUrl(provider: string): string {
     const urls = {
       aws: "https://d1234567890.cloudfront.net",
-      cloudflare: "https://portfolio.showwork.com",
+      cloudflare: "https://portfolio.showwork.in",
       vercel: "https://portfolio-showwork.vercel.app",
     };
 
@@ -474,7 +474,7 @@ export class DeploymentTracker {
   private callbacks: Map<string, Function[]> = new Map();
 
   connect(portfolioId: string) {
-    this.ws = new WebSocket(`wss://api.showwork.com/deploy/${portfolioId}`);
+    this.ws = new WebSocket(`wss://api.showwork.in/deploy/${portfolioId}`);
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

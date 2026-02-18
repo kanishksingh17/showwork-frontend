@@ -42,6 +42,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import type { GeneratedContent } from "@/lib/services/contentGenerator";
+import { LoginModal } from "@/components/auth/LoginModal";
 
 // Image component with fallback handling
 function ImageWithFallback({
@@ -439,6 +440,7 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
     error?: string;
   }>>([]);
   const [showPublishModal, setShowPublishModal] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
   const [projectMedia, setProjectMedia] = useState<Array<{
@@ -1317,6 +1319,8 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
                 setGeneratedContent({});
               }}
               isLoading={projectsLoading}
+              isDemo={isDemo}
+              onShowLogin={() => setShowLoginModal(true)}
             />
             {/* {!projectsLoading && (!projectsData?.data?.projects || projectsData.data.projects.length === 0) && (
               <div className="mt-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
@@ -1961,6 +1965,14 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Login Modal for demo mode */}
+      {showLoginModal && (
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+        />
+      )}
     </div >
   );
 }

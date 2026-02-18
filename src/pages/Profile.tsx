@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { UserProfileView } from "../components/Community/UserProfileView";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 
 export default function Profile() {
     const navigate = useNavigate();
@@ -15,14 +16,20 @@ export default function Profile() {
         avatar: currentUser?.avatar || `https://ui-avatars.com/api/?name=${currentUser?.name || "U"}&background=3B82F6&color=fff`,
         role: currentUser?.role || "Developer",
         bio: currentUser?.bio || "Full Stack Developer",
-        points: currentUser?.points || "12.4k",
+        points: currentUser?.points || "0",
+        level: currentUser?.level || "1",
+        levelProgress: currentUser?.levelProgress || 0,
+        streak: currentUser?.streak || 0,
         username: currentUser?.username || currentUser?.email?.split("@")[0] || "username",
     };
 
     return (
-        <UserProfileView
-            user={userProfile}
-            onBack={() => navigate("/dashboard")}
-        />
+        <UnifiedLayout activePage="profile">
+            <UserProfileView
+                user={userProfile}
+                mode="owner"
+                onBack={() => navigate("/dashboard")}
+            />
+        </UnifiedLayout>
     );
 }

@@ -374,11 +374,10 @@ export default function OnboardingFlow({
                               onClick={() =>
                                 handleQuizAnswer(skill, qIndex, oIndex)
                               }
-                              className={`p-3 text-left rounded-lg border transition-colors ${
-                                quizAnswers[skill]?.[qIndex] === oIndex
+                              className={`p-3 text-left rounded-lg border transition-colors ${quizAnswers[skill]?.[qIndex] === oIndex
                                   ? "border-teal-500 bg-teal-50 text-teal-700"
                                   : "border-gray-200 hover:border-gray-300"
-                              }`}
+                                }`}
                             >
                               {option}
                             </button>
@@ -467,7 +466,7 @@ export default function OnboardingFlow({
               <button
                 onClick={() =>
                   navigator.clipboard.writeText(
-                    `showwork.com/${user?.username}`,
+                    `showwork.in/${user?.username}`,
                   )
                 }
                 className="w-full px-8 py-3 border border-teal-500 text-teal-500 rounded-xl font-medium hover:bg-teal-50 transition-colors"
@@ -516,11 +515,10 @@ export default function OnboardingFlow({
               <button
                 onClick={prevStep}
                 disabled={currentStep === 0}
-                className={`px-6 py-3 rounded-xl font-medium transition-colors ${
-                  currentStep === 0
+                className={`px-6 py-3 rounded-xl font-medium transition-colors ${currentStep === 0
                     ? "text-gray-400 cursor-not-allowed"
                     : "text-gray-600 hover:text-gray-800 hover:bg-gray-100"
-                }`}
+                  }`}
               >
                 ← Back
               </button>
@@ -528,11 +526,10 @@ export default function OnboardingFlow({
               <button
                 onClick={nextStep}
                 disabled={!canProceed()}
-                className={`px-8 py-3 rounded-xl font-semibold transition-all ${
-                  canProceed()
+                className={`px-8 py-3 rounded-xl font-semibold transition-all ${canProceed()
                     ? "bg-teal-500 text-white hover:bg-teal-600 shadow-lg hover:shadow-xl"
                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                }`}
+                  }`}
               >
                 {currentStep === 2 ? "Complete Quiz" : "Continue →"}
               </button>

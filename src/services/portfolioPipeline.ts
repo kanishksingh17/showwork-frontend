@@ -302,13 +302,13 @@ export class PortfolioGenerationPipeline {
     <title>${content.seoMetadata.metaTitle}</title>
     <meta name="description" content="${content.seoMetadata.metaDescription}">
     <meta name="keywords" content="${content.seoMetadata.keywords.join(", ")}">
-    <link rel="canonical" href="${content.customUrl || "https://portfolio.showwork.com"}">
+    <link rel="canonical" href="${content.customUrl || "https://portfolio.showwork.in"}">
     
     <!-- Open Graph -->
     <meta property="og:title" content="${content.seoMetadata.metaTitle}">
     <meta property="og:description" content="${content.seoMetadata.metaDescription}">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="${content.customUrl || "https://portfolio.showwork.com"}">
+    <meta property="og:url" content="${content.customUrl || "https://portfolio.showwork.in"}">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -323,7 +323,7 @@ export class PortfolioGenerationPipeline {
       "name": "${content.name}",
       "jobTitle": "${content.title}",
       "description": "${content.bio}",
-      "url": "${content.customUrl || "https://portfolio.showwork.com"}"
+      "url": "${content.customUrl || "https://portfolio.showwork.in"}"
     }
     </script>
     
@@ -360,8 +360,8 @@ export class PortfolioGenerationPipeline {
                 <h2>Featured Projects</h2>
                 <div class="project-grid">
                     ${content.projects
-                      .map(
-                        (project: any, index: number) => `
+        .map(
+          (project: any, index: number) => `
                         <div class="project-card">
                             <h3>${project.name}</h3>
                             <p>${content.projectDescriptions[index]}</p>
@@ -370,8 +370,8 @@ export class PortfolioGenerationPipeline {
                             </div>
                         </div>
                     `,
-                      )
-                      .join("")}
+        )
+        .join("")}
                 </div>
             </div>
         </section>

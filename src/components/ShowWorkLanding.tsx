@@ -57,6 +57,7 @@ const ShowWorkLanding = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [viewMode, setViewMode] = useState<'landing' | 'onboarding'>('landing');
   const [expandedCard, setExpandedCard] = useState<number | null>(null);
+
   const [isSidebarJoined, setIsSidebarJoined] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const startBuildingRef = useRef<HTMLButtonElement>(null);

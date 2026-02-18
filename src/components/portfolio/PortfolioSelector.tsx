@@ -768,7 +768,7 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
                       if (template) onTemplateSelect(template);
                     }
                   }}
-                  className={`${(card as any).isRecommended ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold shadow-lg`}
+                  className={`${!isDemo && (card as any).isRecommended ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold shadow-lg`}
                 >
                   <span className="text-sm">+</span> Create
                 </Button>

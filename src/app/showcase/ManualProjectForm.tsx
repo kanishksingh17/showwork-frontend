@@ -1,16 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import {
-  LayoutDashboard,
-  Package,
-  BarChart3,
-  Users,
-  FolderOpen,
-  Settings,
-  LogOut,
   CheckCircle,
   Info,
   Image,
@@ -41,6 +34,7 @@ import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
 import type { MediaFile } from "@/types/project";
 import GitHubScraper from "@/components/GitHubScraper";
+import { UnifiedLayout } from "@/components/UnifiedLayout";
 
 interface ProjectFormData {
   name: string;
@@ -50,23 +44,96 @@ interface ProjectFormData {
   features: string[];
   teamMembers: string[];
   mediaUrl?: string;
+  customUrl?: string;
+  commentsEnabled?: boolean;
+  publicVisibility?: boolean;
+  status?: string;
 }
 
 // MediaFile interface is now imported from @/types/project
 
 export default function ManualProjectForm() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const location = useLocation();
+  const effectiveId = id || location.state?.projectData?.id || location.state?.projectData?._id;
+  const isEdit = Boolean(effectiveId);
+
   const [currentSection, setCurrentSection] = useState(0);
-  const [formData, setFormData] = useState<ProjectFormData>({
+  const [isScraping, setIsScraping] = useState(false);
+
+  // Initialize from location state if available (for GitHub import)
+  const initialData = location.state?.projectData ? {
+    name: location.state.projectData.name || "",
+    description: location.state.projectData.description || "",
+    githubUrl: location.state.projectData.githubUrl || "",
+    techStack: Array.isArray(location.state.projectData.technologies)
+      ? location.state.projectData.technologies.join(", ")
+      : (location.state.projectData.techStack || ""),
+    features: location.state.projectData.features || location.state.projectData.tags || [],
+    teamMembers: location.state.projectData.teamMembers || [],
+    mediaUrl: location.state.projectData.image || location.state.projectData.mediaUrl || "",
+    customUrl: "",
+    commentsEnabled: true,
+    publicVisibility: true,
+    status: location.state.projectData.status || "draft",
+  } : {
     name: "",
     description: "",
     githubUrl: "",
     techStack: "",
     features: [],
     teamMembers: [],
-  });
+    customUrl: "",
+    commentsEnabled: true,
+    publicVisibility: true,
+    status: "draft",
+  };
+
+  const [formData, setFormData] = useState<ProjectFormData>(initialData);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaUrl, setMediaUrl] = useState(initialData.mediaUrl || "");
+
+  // Load project for editing
+  useEffect(() => {
+    if (isEdit && id && !location.state?.projectData) {
+      const fetchProject = async () => {
+        setIsScraping(true);
+        try {
+          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+          const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+            credentials: 'include'
+          });
+          if (res.ok) {
+            const result = await res.json();
+            const projects = result.data?.projects || [];
+            const project = projects.find((p: any) => p.id === effectiveId || p._id === effectiveId);
+            if (project) {
+              setFormData({
+                name: project.title || project.name || "",
+                description: project.description || "",
+                githubUrl: project.githubUrl || "",
+                techStack: Array.isArray(project.technologies) ? project.technologies.join(", ") : "",
+                features: project.tags || project.features || [],
+                teamMembers: project.teamMembers || [],
+                customUrl: project.customUrl || "",
+                commentsEnabled: project.commentsEnabled ?? true,
+                publicVisibility: project.visibility === 'public',
+                status: project.status || "draft",
+              });
+              setMediaUrl(project.image || "");
+            }
+          }
+        } catch (err) {
+          console.error("Failed to fetch project:", err);
+        } finally {
+          setIsScraping(false);
+        }
+      };
+      fetchProject();
+    }
+  }, [isEdit, effectiveId, location.state]);
+
   const [newFeature, setNewFeature] = useState("");
   const [newTeamMember, setNewTeamMember] = useState("");
   const [showPublishModal, setShowPublishModal] = useState(false);
@@ -77,12 +144,11 @@ export default function ManualProjectForm() {
   const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const [paletteFilter, setPaletteFilter] = useState("");
   const paletteQueryRef = useRef<HTMLInputElement | null>(null);
+  const saveTimeoutRef = useRef<any>(null);
   const [particles, setParticles] = useState<
     Array<{ id: string; x: number; y: number; delay: number }>
   >([]);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [isScraping, setIsScraping] = useState(false);
 
   // Command palette commands
   const commands = [
@@ -239,6 +305,12 @@ export default function ManualProjectForm() {
       timestamp: new Date().toISOString(),
     };
     localStorage.setItem("manual-project-draft", JSON.stringify(draftData));
+
+    // Also save to Supabase backend (debounced)
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToBackend();
+    }, 1000);
   };
 
   // Show save notification
@@ -350,6 +422,52 @@ export default function ManualProjectForm() {
     setTimeout(() => saveDraft(), 100);
   };
 
+  const saveToBackend = async (isPublishing = false) => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+      const technologies = formData.techStack
+        ? formData.techStack.split(',').map(tech => tech.trim()).filter(tech => tech.length > 0)
+        : [];
+
+      const imageUrl = mediaFiles.length > 0 && mediaFiles[0]?.url
+        ? mediaFiles[0].url
+        : mediaUrl || '';
+
+      const projectPayload = {
+        id: effectiveId || undefined,
+        title: formData.name || 'Untitled Project',
+        name: formData.name || 'Untitled Project',
+        description: formData.description || '',
+        technologies: technologies,
+        githubUrl: formData.githubUrl || '',
+        image: imageUrl,
+        status: isPublishing ? 'pending_review' : (formData.status || 'draft'),
+        tags: formData.features || [],
+        category: 'Web Development',
+        visibility: formData.publicVisibility ? 'public' : 'private',
+      };
+
+      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(projectPayload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("💾 Project saved to backend:", result);
+        // If we just created a new project and got an ID back, we could navigate to edit URL
+        // but for draft-like feel without reload, we just keep current state
+      }
+    } catch (error) {
+      console.error("❌ Failed to save project to backend:", error);
+    }
+  };
+
   // Handle GitHub scraping data
   const handleGitHubDataScraped = (data: {
     name: string;
@@ -367,11 +485,13 @@ export default function ManualProjectForm() {
       description: prev.description || data.description || "",
       // Convert languages object to tech stack string
       techStack: prev.techStack || Object.keys(data.languages).slice(0, 5).join(", "),
+      status: "pending_review",
     }));
 
     // Save immediately after scraping
     setTimeout(() => {
       saveDraft();
+      saveToBackend(); // Also save to backend after scraping
       setIsScraping(false);
     }, 100);
   };
@@ -395,14 +515,12 @@ export default function ManualProjectForm() {
 
   const goToNextSection = () => {
     if (currentSection < sections.length - 1) {
-      setIsAnimating(true);
       setCompletedSections((prev) => [...prev, currentSection]);
       setCurrentSection((prev) => prev + 1);
 
       // Create particle burst effect
       setTimeout(() => {
         createParticleBurst(200, 100);
-        setIsAnimating(false);
       }, 300);
     } else {
       setShowPublishModal(true);
@@ -435,7 +553,7 @@ export default function ManualProjectForm() {
         liveUrl: '', // TODO: Add liveUrl field to manual form UI
         image: imageUrl,
         featured: false,
-        status: 'published', // ✅ Set as published when user clicks publish
+        status: 'pending_review', // Set as pending review when user clicks publish
         visibility: 'public', // Default to public
         category: 'Web Development', // Default category
         tags: formData.features || [], // Use features as tags for now
@@ -986,7 +1104,7 @@ Or JSON: {"frontend": ["React", "Vue"]}'
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-300 relative overflow-hidden gap-0">
+    <UnifiedLayout activePage="showcase">
       {/* Particle Effects */}
       {particles.map((particle) => (
         <div
@@ -1000,72 +1118,9 @@ Or JSON: {"frontend": ["React", "Vue"]}'
           }}
         />
       ))}
-      {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-br from-[#1E293B] to-[#0F172A] text-white flex flex-col rounded-xl shadow-lg m-4 mr-0 flex-shrink-0">
-        <div className="p-6 flex items-center space-x-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-md">
-            <span className="text-white font-mono text-sm font-bold">
-              &lt;/&gt;
-            </span>
-          </div>
-          <h1 className="text-xl font-extrabold text-white">ShowWork</h1>
-        </div>
 
-        <nav className="flex-1 px-4 py-2 space-y-1">
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/dashboard")}
-          >
-            <LayoutDashboard className="w-5 h-5 mr-3" />
-            Dashboard
-          </div>
-          <div className="flex items-center px-4 py-3 text-sm font-medium bg-blue-600 text-white rounded-lg shadow-sm">
-            <Package className="w-5 h-5 mr-3" />
-            Showcase
-          </div>
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/analytics")}
-          >
-            <BarChart3 className="w-5 h-5 mr-3" />
-            Analytics
-          </div>
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/community")}
-          >
-            <Users className="w-5 h-5 mr-3" />
-            Community
-          </div>
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/portfolio")}
-          >
-            <FolderOpen className="w-5 h-5 mr-3" />
-            Portfolio
-          </div>
-        </nav>
-
-        <div className="px-4 py-2 border-t border-gray-700">
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/settings")}
-          >
-            <Settings className="w-5 h-5 mr-3" />
-            Settings
-          </div>
-          <div
-            className="flex items-center px-4 py-3 text-sm font-medium text-[#9CA3AF] hover:bg-white/10 hover:text-white rounded-lg cursor-pointer transition-all duration-200"
-            onClick={() => navigate("/login")}
-          >
-            <LogOut className="w-5 h-5 mr-3" />
-            Logout
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 p-6 pl-2 overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 p-6 overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
           <div className="lg:col-span-2 flex flex-col h-full min-h-0">
             {/* Header */}
@@ -1075,17 +1130,17 @@ Or JSON: {"frontend": ["React", "Vue"]}'
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate("/showcase/add")}
+                    onClick={() => navigate("/showcase")}
                     className="flex items-center gap-2 text-gray-500 hover:text-gray-700"
                   >
                     <ArrowLeft className="w-4 h-4" />
-                    Back to AI Assistant
+                    Back to Showcase
                   </Button>
                 </div>
                 <p className="text-sm text-gray-500">
-                  Showcase / Add New Project
+                  Showcase / {isEdit ? "Edit Project" : "Add New Project"}
                 </p>
-                <h2 className="text-3xl font-bold">Add New Project</h2>
+                <h2 className="text-3xl font-bold">{isEdit ? "Edit Project" : "Add New Project"}</h2>
                 <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
                   <Cloud className="w-4 h-4" />
                   <span>Draft saved automatically</span>
@@ -1102,19 +1157,22 @@ Or JSON: {"frontend": ["React", "Vue"]}'
                   ⌘K
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={() => navigate("/showcase/add")}
-                  className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
-                >
-                  <Bot className="w-4 h-4" />
-                  Try AI Assistant
-                </Button>
-                <Button
                   onClick={() => setShowPublishModal(true)}
                   className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300"
                 >
                   <span>Publish Project</span>
                 </Button>
+
+                {/* Commented out AI Assistant button as requested
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate("/showcase/add")}
+                  className="flex items-center gap-2 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  Try AI Assistant
+                </Button>
+                */}
               </div>
               <div className="absolute -top-8 left-0 right-0 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
@@ -1128,7 +1186,7 @@ Or JSON: {"frontend": ["React", "Vue"]}'
 
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto pr-2 min-h-0">
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 space-y-6 pb-32">
+              <div className="bg-white dark:bg-slate-800/50 rounded-2xl border border-gray-200 dark:border-slate-700 p-6 space-y-6 pb-32">
                 {renderStepper()}
 
                 <div className="space-y-4">
@@ -1193,7 +1251,7 @@ Or JSON: {"frontend": ["React", "Vue"]}'
             {renderCommandPalette()}
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Command Palette Modal */}
       {isPaletteOpen && (
@@ -1315,6 +1373,6 @@ Or JSON: {"frontend": ["React", "Vue"]}'
           </div>
         </div>
       )}
-    </div>
+    </UnifiedLayout>
   );
 }

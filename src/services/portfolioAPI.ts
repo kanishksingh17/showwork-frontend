@@ -37,12 +37,12 @@ export interface GenerationResponse {
 export interface GenerationStatus {
   jobId: string;
   status:
-    | "queued"
-    | "processing"
-    | "generating"
-    | "deploying"
-    | "completed"
-    | "failed";
+  | "queued"
+  | "processing"
+  | "generating"
+  | "deploying"
+  | "completed"
+  | "failed";
   progress: number;
   currentStep: string;
   result?: {
@@ -64,7 +64,7 @@ export class PortfolioGenerationAPI {
         // Simulate deployment
         await new Promise((resolve) => setTimeout(resolve, 5000));
         return {
-          url: `https://portfolio.showwork.com/p/${config.portfolioId}`,
+          url: `https://portfolio.showwork.in/p/${config.portfolioId}`,
           customUrl: config.customDomain
             ? `https://${config.customDomain}`
             : undefined,
@@ -271,7 +271,7 @@ export class GenerationWebSocket {
   private callbacks: Map<string, Function[]> = new Map();
 
   connect(jobId: string) {
-    this.ws = new WebSocket(`wss://api.showwork.com/generation/${jobId}`);
+    this.ws = new WebSocket(`wss://api.showwork.in/generation/${jobId}`);
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -340,7 +340,7 @@ export const portfolioAPI = {
       id: portfolioId,
       name: "John Doe",
       title: "Senior Software Engineer",
-      url: `https://portfolio.showwork.com/p/${portfolioId}`,
+      url: `https://portfolio.showwork.in/p/${portfolioId}`,
       performance: {
         pageSpeed: 95,
         loadTime: 1.5,

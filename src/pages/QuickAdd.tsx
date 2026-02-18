@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import QuickAddProject from "@/app/showcase/QuickAddProject";
-import { UnifiedSidebar } from "../components/UnifiedSidebar";
+import { UnifiedLayout } from "../components/UnifiedLayout";
 
 const QuickAdd: React.FC = () => {
   const navigate = useNavigate();
@@ -21,7 +21,7 @@ const QuickAdd: React.FC = () => {
   const handlePublish = async (project: any) => {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      
+
       // Prepare project payload for backend API
       const projectPayload = {
         title: project.title || project.name,
@@ -31,14 +31,14 @@ const QuickAdd: React.FC = () => {
         liveUrl: project.liveUrl || '',
         image: project.mediaPreview || project.imageUrl || '',
         featured: false,
-        status: 'published', // Set status to published
+        status: 'pending_review', // Set status to pending review
         visibility: project.visibility || 'public',
         category: project.category || 'Web Development',
         tags: project.techTags || [],
       };
 
       console.log("📤 Publishing project to backend:", projectPayload);
-      
+
       // Save to backend API
       const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
         method: 'POST',
@@ -55,20 +55,20 @@ const QuickAdd: React.FC = () => {
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         console.log("✅ Project published successfully:", data);
-        
+
         // Also save to localStorage as backup
         const existingProjects = JSON.parse(
           localStorage.getItem("showcase-projects") || "[]",
         );
         const updatedProjects = [...existingProjects, { ...project, ...data.project }];
         localStorage.setItem("showcase-projects", JSON.stringify(updatedProjects));
-        
+
         // Show success message
         alert('Project published successfully! Redirecting to showcase...');
-        
+
         // Navigate to showcase
         navigate("/showcase");
       } else {
@@ -81,12 +81,11 @@ const QuickAdd: React.FC = () => {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      <UnifiedSidebar currentPage="showcase" />
-      <div className="flex-1 overflow-y-auto">
+    <UnifiedLayout activePage="showcase">
+      <div className="flex-1 overflow-y-auto p-6">
         <QuickAddProject onSave={handleSave} onPublish={handlePublish} />
       </div>
-    </div>
+    </UnifiedLayout>
   );
 };
 

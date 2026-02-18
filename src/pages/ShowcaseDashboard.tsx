@@ -24,6 +24,7 @@ import {
   ArrowUp,
   ArrowUpDown,
   Package,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,12 +39,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UnifiedLayout } from "../components/UnifiedLayout";
+import { cn } from "@/lib/utils";
 
 interface Project {
   id: string;
   name: string;
   description: string;
-  status: "draft" | "pending" | "published" | "in-progress" | "saved";
+  status: "draft" | "pending" | "published" | "in-progress" | "saved" | "pending_review";
   lastUpdated: string;
   category: string;
   views?: number;
@@ -111,17 +113,184 @@ const ShowcaseDashboard = ({
 
 
 
-  // Extract loadProjects function so it can be called from other handlers
-  const loadProjects = async () => {
-    // Projects cleared from dashboard as per request
-    setProjects([]);
-    console.log("Projects cleared from dashboard");
+  const [isGitHubConnected, setIsGitHubConnected] = useState(false);
+  const [isLoadingData, setIsLoadingData] = useState(true);
+  const [isFetchingGithub, setIsFetchingGithub] = useState(false);
+  const [githubRepos, setGithubRepos] = useState<Project[]>([]);
+
+  // Parallelize status check and project loading for faster initialization
+  const initializeShowcase = async () => {
+    if (isDemo) {
+      setIsLoadingData(false);
+      return;
+    }
+
+    setIsLoadingData(true);
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+      console.log("🚀 Initializing showcase data...");
+
+      // Helper to handle status check immediately
+      const fetchStatus = async () => {
+        try {
+          const res = await fetch("/api/integrations/status");
+          if (res.ok) {
+            const data = await res.json();
+            const github = data.statuses?.find((s: any) => s.platform === "github");
+            const connected = !!github?.connected;
+            setIsGitHubConnected(connected);
+            if (!connected) setGithubRepos([]);
+            return connected;
+          }
+        } catch (err) {
+          console.error("Status check failed:", err);
+        }
+        return false;
+      };
+
+      // Helper to handle projects independently
+      const fetchPrimaryProjects = async () => {
+        try {
+          const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, { credentials: 'include' });
+          if (res.ok) {
+            const result = await res.json();
+            const mapped = (result.data?.projects || []).map((p: any) => ({
+              id: p.id || p._id,
+              name: p.name || p.title,
+              description: p.description,
+              status: p.status || "draft",
+              lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
+              category: p.category || "Web Development",
+              githubUrl: p.githubUrl,
+              visibility: p.visibility || "public",
+              tags: p.technologies || []
+            }));
+            setProjects(mapped);
+            return mapped;
+          }
+        } catch (err) {
+          console.error("Projects fetch failed:", err);
+        }
+        return [];
+      };
+
+      // Run both in parallel but allow them to finish whenever
+      const [isConnected, apiProjects] = await Promise.all([
+        fetchStatus(),
+        fetchPrimaryProjects()
+      ]);
+
+      // Release global loading once both primary tracks are done
+      setIsLoadingData(false);
+
+      // Stage 2: Background sync for GitHub repos if connected
+      if (isConnected) {
+        fetchGitHubRepos(apiProjects);
+      }
+
+    } catch (error) {
+      console.error("❌ Error initializing showcase:", error);
+      setIsLoadingData(false);
+    }
   };
+
+
+  const fetchGitHubRepos = async (existingProjects?: Project[]) => {
+    setIsFetchingGithub(true);
+    try {
+      console.log("📂 Background sync: Fetching GitHub repositories...");
+      const res = await fetch("/api/integrations/github/repos");
+      if (!res.ok) throw new Error("Failed to fetch repos");
+      const repos = await res.json();
+
+      const importedUrls = new Set((existingProjects || projects).map(p => p.githubUrl?.toLowerCase()));
+
+      const mappedRepos: Project[] = repos
+        .map((repo: any) => ({
+          id: repo.id.toString(),
+          name: repo.name,
+          description: repo.description || "Project from GitHub",
+          status: "pending_review" as const,
+          lastUpdated: repo.updated_at,
+          category: repo.language || "Uncategorized",
+          githubUrl: repo.html_url,
+          visibility: repo.private ? "private" : "public",
+          tags: [repo.language].filter(Boolean),
+          isGithubRepo: true
+        }))
+        .filter((repo: Project) => !repo.githubUrl || !importedUrls.has(repo.githubUrl.toLowerCase()));
+
+      setGithubRepos(mappedRepos);
+    } catch (error) {
+      console.error("Error fetching GitHub repos:", error);
+    } finally {
+      setIsFetchingGithub(false);
+    }
+  };
+
+
+
+  const handleImportAndEdit = async (project: Project) => {
+    setIsLoadingData(true);
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+
+      const payload = {
+        title: project.name,
+        description: project.description,
+        githubUrl: project.githubUrl,
+        technologies: project.tags || [],
+        status: 'pending_review',
+        visibility: project.visibility || 'public',
+        category: project.category || 'Web Development'
+      };
+
+      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const projectData = result.data?.project || result.data;
+        if (projectData && (projectData.id || projectData._id)) {
+          const newId = projectData.id || projectData._id;
+          // Use the manual form route
+          navigate(`/showcase/manual-add`, {
+            state: {
+              projectData: {
+                ...project,
+                id: newId
+              }
+            }
+          });
+          return;
+        }
+      }
+
+      // Fallback
+      navigate(`/showcase/manual-add`, { state: { projectData: project } });
+    } catch (error) {
+      console.error("Failed to import project before editing:", error);
+      navigate(`/showcase/manual-add`, { state: { projectData: project } });
+    } finally {
+      setIsLoadingData(false);
+    }
+  };
+
+  const loadProjects = initializeShowcase;
+
+
 
   // Load projects from API on component mount
   useEffect(() => {
-    loadProjects();
-  }, []);
+    initializeShowcase();
+  }, [isDemo]);
 
   // Real-time updates simulation
   useEffect(() => {
@@ -392,6 +561,7 @@ const ShowcaseDashboard = ({
           </Badge>
         );
       case "pending":
+      case "pending_review":
         return (
           <Badge
             variant="outline"
@@ -853,7 +1023,7 @@ const ShowcaseDashboard = ({
                         <SelectContent>
                           <SelectItem value="all">All Status</SelectItem>
                           <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="pending_review">Pending Review</SelectItem>
                           <SelectItem value="published">Published</SelectItem>
                           <SelectItem value="in-progress">
                             In Progress
@@ -908,6 +1078,28 @@ const ShowcaseDashboard = ({
 
               {/* Projects Display */}
               <div className="space-y-6">
+                {/* Localized Loading State */}
+                {isLoadingData && projects.length === 0 && (
+                  <Card className="border-dashed border-2 p-12 mb-8">
+                    <CardContent className="flex flex-col items-center text-center animate-pulse">
+                      <div className="w-16 h-16 bg-gray-100 rounded-full mb-6"></div>
+                      <div className="h-6 bg-gray-100 rounded w-48 mb-4"></div>
+                      <div className="h-4 bg-gray-50 rounded w-64 mb-8"></div>
+                      <div className="flex gap-4">
+                        <div className="w-32 h-10 bg-gray-100 rounded"></div>
+                        <div className="w-32 h-10 bg-gray-100 rounded"></div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {isLoadingData && projects.length > 0 && (
+                  <div className="flex items-center justify-center py-6 bg-blue-50/30 rounded-xl border border-blue-100/50 mb-6">
+                    <RefreshCw className="w-5 h-5 text-blue-500 animate-spin mr-3" />
+                    <span className="text-sm font-medium text-blue-700">Checking for updates...</span>
+                  </div>
+                )}
+
                 {/* All Projects */}
                 {filteredAndSortedProjects.length > 0 && (
                   <div>
@@ -1265,11 +1457,7 @@ const ShowcaseDashboard = ({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={() =>
-                                    navigate(
-                                      `/showcase/edit/${project.id}`,
-                                    )
-                                  }
+                                  onClick={() => handleImportAndEdit(project)}
                                 >
                                   <Edit3 className="w-3 h-3" />
                                 </Button>
@@ -1423,11 +1611,7 @@ const ShowcaseDashboard = ({
                                       View
                                     </button>
                                     <button
-                                      onClick={() =>
-                                        navigate(
-                                          `/showcase/edit/${project.id}`,
-                                        )
-                                      }
+                                      onClick={() => handleImportAndEdit(project)}
                                       className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-2"
                                     >
                                       <Edit3 className="w-4 h-4" />
@@ -1444,8 +1628,81 @@ const ShowcaseDashboard = ({
                   </div>
                 )}
 
+                {/* Available on GitHub Section */}
+                {!isLoadingData && isGitHubConnected && (isFetchingGithub || githubRepos.length > 0) && (
+                  <div className="mt-8 mb-12">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center shadow-sm">
+                          <Github className="w-6 h-6 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-gray-900 text-xl font-bold flex items-center gap-2">
+                            From GitHub
+                            {isFetchingGithub && <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />}
+                          </h2>
+                          <p className="text-sm text-gray-500">Repositories ready to be showcased</p>
+                        </div>
+                      </div>
+                      {!isFetchingGithub && (
+                        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-medium">
+                          {githubRepos.length} Available
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {isFetchingGithub ? (
+                        [1, 2, 3].map((i) => (
+                          <Card key={i} className="animate-pulse border-dashed">
+                            <CardContent className="p-4 h-40 flex flex-col justify-center items-center">
+                              <div className="h-4 bg-gray-100 rounded w-3/4 mb-4"></div>
+                              <div className="h-3 bg-gray-50 rounded w-1/2"></div>
+                            </CardContent>
+                          </Card>
+                        ))
+                      ) : (
+                        githubRepos.slice(0, 6).map((repo) => (
+                          <Card key={repo.id} className="group hover:border-blue-300 transition-all border-dashed hover:shadow-sm">
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-start mb-3">
+                                <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{repo.name}</h3>
+                                {repo.category !== "Uncategorized" && (
+                                  <Badge variant="secondary" className="text-[10px] uppercase tracking-wider bg-gray-100 text-gray-600">
+                                    {repo.category}
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[40px]">
+                                {repo.description}
+                              </p>
+                              <Button
+                                onClick={() => handleImportAndEdit(repo)}
+                                variant="outline"
+                                className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-100 hover:border-blue-200 font-medium"
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Import & Showcase
+                              </Button>
+                            </CardContent>
+                          </Card>
+                        ))
+                      )}
+                    </div>
+
+                    {!isFetchingGithub && githubRepos.length > 6 && (
+                      <div className="mt-6 text-center">
+                        <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
+                          View all repositories
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Empty State */}
-                {filteredAndSortedProjects.length === 0 && (
+                {!isLoadingData && filteredAndSortedProjects.length === 0 && (!isGitHubConnected || (!isFetchingGithub && githubRepos.length === 0)) && (
                   <Card className="border-dashed border-2">
                     <CardContent className="p-12 flex flex-col items-center text-center">
                       {searchQuery ||
@@ -1484,31 +1741,29 @@ const ShowcaseDashboard = ({
                           </h3>
 
                           <p className="text-gray-600 max-w-lg mb-8 leading-relaxed">
-                            Connect your GitHub to automatically import your
-                            repositories. We'll fetch the{" "}
-                            <span className="font-semibold text-gray-900">
-                              raw data
-                            </span>{" "}
-                            including project names, descriptions, and tech stacks
-                            so you don't have to type them manually.
+                            {isGitHubConnected ?
+                              "Import repositories from your connected GitHub account to showcase them in your portfolio." :
+                              "Connect your GitHub to automatically import your repositories. We'll fetch the raw data including project names, descriptions, and tech stacks so you don't have to type them manually."
+                            }
                           </p>
 
                           <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
                             <Button
-                              onClick={() => {
+                              onClick={async () => {
                                 if (isDemo) {
                                   setIsLoginModalOpen(true);
                                   return;
                                 }
-                                window.open(
-                                  "https://github.com/login/oauth/authorize",
-                                  "_blank",
-                                );
+                                if (isGitHubConnected) {
+                                  navigate("/showcase/add?mode=github");
+                                } else {
+                                  window.open("https://github.com/login/oauth/authorize", "_blank");
+                                }
                               }}
                               className="bg-[#24292e] hover:bg-[#2f363d] text-white h-11 px-8 rounded-md font-medium shadow-sm hover:shadow-md transition-all duration-200"
                             >
                               <Github className="w-4 h-4 mr-2" />
-                              Connect GitHub
+                              {isGitHubConnected ? "Import from GitHub" : "Connect GitHub"}
                             </Button>
 
                             <div className="text-sm text-gray-400 font-medium px-2">

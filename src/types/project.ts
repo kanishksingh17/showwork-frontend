@@ -101,7 +101,7 @@ export interface Project {
   description: string;
   longDescription?: string;
   category: string;
-  status: "draft" | "in-progress" | "completed" | "archived";
+  status: "draft" | "in-progress" | "completed" | "archived" | "pending_review";
   visibility: "public" | "private" | "unlisted";
   technologies: Technology[];
   media: {
@@ -138,7 +138,7 @@ export interface CreateProjectRequest {
   description: string;
   longDescription?: string;
   category: string;
-  status?: "draft" | "in-progress" | "completed" | "archived";
+  status?: "draft" | "in-progress" | "completed" | "archived" | "pending_review";
   visibility?: "public" | "private" | "unlisted";
   technologies: Technology[];
   githubUrl?: string;
@@ -151,7 +151,7 @@ export interface UpdateProjectRequest {
   description?: string;
   longDescription?: string;
   category?: string;
-  status?: "draft" | "in-progress" | "completed" | "archived";
+  status?: "draft" | "in-progress" | "completed" | "archived" | "pending_review";
   visibility?: "public" | "private" | "unlisted";
   technologies?: Technology[];
   githubUrl?: string;
@@ -173,12 +173,12 @@ export interface ProjectFilters {
 
 export interface ProjectSortOptions {
   field:
-    | "name"
-    | "createdAt"
-    | "updatedAt"
-    | "views"
-    | "likes"
-    | "codeQuality.overallScore";
+  | "name"
+  | "createdAt"
+  | "updatedAt"
+  | "views"
+  | "likes"
+  | "codeQuality.overallScore";
   order: "asc" | "desc";
 }
 

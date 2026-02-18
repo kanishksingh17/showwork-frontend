@@ -39,7 +39,7 @@ interface Project {
   description: string;
   technologies: string[];
   category: string;
-  status: "draft" | "published" | "archived";
+  status: "draft" | "published" | "archived" | "pending_review";
   githubUrl?: string;
   liveUrl?: string;
   imageUrl?: string;
@@ -381,7 +381,7 @@ const ProjectShowcase: React.FC = () => {
                   <Select
                     value={project.status}
                     onValueChange={(
-                      value: "draft" | "published" | "archived",
+                      value: "draft" | "published" | "archived" | "pending_review",
                     ) => setProject((prev) => ({ ...prev, status: value }))}
                   >
                     <SelectTrigger>
@@ -389,6 +389,7 @@ const ProjectShowcase: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="pending_review">Pending Review</SelectItem>
                       <SelectItem value="published">Published</SelectItem>
                       <SelectItem value="archived">Archived</SelectItem>
                     </SelectContent>

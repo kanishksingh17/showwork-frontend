@@ -148,10 +148,52 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
 
   const tabItems = createContentManagementTabs();
 
-  // Temporary: Disable fetch to ensure mock data persists
   const fetchPublishedPosts = async () => {
-    console.log("Using mock data for preview");
-    setPublishedPosts(isDemo ? [] : MOCK_POSTS);
+    if (isDemo) {
+      setPublishedPosts([]);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/content/published-posts", {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include", // Send session cookies
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && Array.isArray(data.posts)) {
+          // Transform backend data to frontend interface if needed
+          // The backend returns: ID, ProjectName, ProjectImage, Platforms, PublishedAt, Results, Content
+          // Frontend expects: id, projectId, projectName, projectImage, platforms, status, publishedAt, createdAt, mediaUrls, feedback, messages, platformResults
+
+          const transformedPosts: PublishedPost[] = data.posts.map((p: any) => ({
+            id: p.id,
+            projectId: p.id, // Fallback
+            projectName: p.projectName,
+            projectImage: p.projectImage || "https://images.unsplash.com/photo-1572635196237-14b3f281503f?q=80&w=800&auto=format&fit=crop", // Fallback image
+            platforms: p.platforms || [],
+            messages: { instagram: p.content || "" },
+            platformResults: p.results ? p.results.reduce((acc: any, r: any) => ({ ...acc, [r.platform]: { status: "success", url: r.url, publishedAt: p.publishedAt } }), {}) : {},
+            status: "posted",
+            publishedAt: p.publishedAt,
+            createdAt: p.publishedAt,
+            mediaUrls: p.projectImage ? [p.projectImage] : [],
+            feedback: { positive: 0, negative: 0, neutral: 0 }
+          }));
+
+          setPublishedPosts(transformedPosts.length > 0 ? transformedPosts : MOCK_POSTS);
+          return;
+        }
+      }
+      console.warn("Failed to fetch published posts, using mock data");
+      setPublishedPosts(MOCK_POSTS);
+    } catch (error) {
+      console.error("Error fetching published posts:", error);
+      setPublishedPosts(MOCK_POSTS);
+    }
   };
 
   return (
@@ -208,40 +250,37 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
             {/* Content Calendar Tab */}
             <TabsContent value="calendar" className="h-full mt-0 overflow-hidden flex flex-col">
               <div className="h-full p-6 overflow-hidden">
-                <ContentCalendar compact={false} />
+                <ContentCalendar compact={false} isDemo={isDemo} onShowLogin={() => setShowLoginModal(true)} />
               </div>
             </TabsContent>
 
             {/* Published Posts Tab */}
             <TabsContent value="published" className="flex-1 mt-0 flex flex-col h-full">
-              <div className="h-full overflow-y-auto p-6 scrollbar-hide">
-                {/* Header Section */}
-                <div className="flex justify-between items-center mb-6">
-                  <div>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Published Posts</h2>
-                    <p className="text-gray-500 text-sm">Manage and view your social media content</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        placeholder="Search generated post..."
-                        className="pl-9 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm w-64 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                      />
-                      <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                    </div>
-                    <Button variant="outline" size="sm" onClick={fetchPublishedPosts} className="rounded-full">
-                      <RefreshCw className="w-4 h-4 mr-2" />
-                      Refresh
-                    </Button>
+              {/* Compact Filter Bar */}
+              <div className="flex items-center justify-between px-6 py-3 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-slate-950 shrink-0">
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search posts..."
+                      className="pl-9 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-full text-sm w-56 focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                    />
+                    <svg className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                   </div>
                 </div>
+                <Button variant="outline" size="sm" onClick={fetchPublishedPosts} className="rounded-full h-8">
+                  <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                  Refresh
+                </Button>
+              </div>
 
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto p-6 scrollbar-hide">
                 {publishedPosts.length === 0 ? (
-                  <div className="text-center py-20 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
-                    <CheckCircle className="w-16 h-16 mx-auto mb-4 opacity-50 text-blue-500" />
-                    <h3 className="text-xl font-medium mb-2 text-gray-900 dark:text-white">No Published Posts</h3>
-                    <p className="text-gray-500">Your published content will appear here in a gallery view.</p>
+                  <div className="text-center py-16 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-dashed border-slate-200 dark:border-slate-800">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-3 opacity-50 text-blue-500" />
+                    <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-white">No Published Posts</h3>
+                    <p className="text-sm text-gray-500">Your published content will appear here in a gallery view.</p>
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pb-20">
@@ -255,7 +294,14 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
 
             {/* Templates Tab */}
             <TabsContent value="templates" className="flex-1 mt-0 flex flex-col h-full">
-              <div className="h-full overflow-y-auto p-8 scrollbar-hide">
+              <div className="h-full overflow-y-auto p-8 scrollbar-hide relative">
+                {isDemo && (
+                  <div
+                    className="absolute inset-0 z-10 cursor-pointer"
+                    onClick={() => setShowLoginModal(true)}
+                    aria-label="Click to login"
+                  />
+                )}
                 <ContentTemplatesAI />
               </div>
             </TabsContent>

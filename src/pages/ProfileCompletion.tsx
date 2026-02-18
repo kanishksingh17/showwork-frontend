@@ -375,7 +375,7 @@ export default function ProfileCompletion({
               <div className="mt-4 p-3 bg-white/10 rounded-lg">
                 <p className="text-white/60 text-xs mb-1">Available at:</p>
                 <p className="text-white text-sm font-mono break-all">
-                  showwork.com/<strong>{profileData.username}</strong>
+                  showwork.in/<strong>{profileData.username}</strong>
                 </p>
               </div>
             )}
@@ -461,13 +461,12 @@ export default function ProfileCompletion({
                     <input
                       type="text"
                       placeholder="Choose a unique username"
-                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-gray-900 placeholder-gray-400 pr-10 ${
-                        usernameValidation.isValid === false
+                      className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-gray-900 placeholder-gray-400 pr-10 ${usernameValidation.isValid === false
                           ? "border-red-300 focus:border-red-500"
                           : usernameValidation.isValid === true
                             ? "border-green-300 focus:border-green-500"
                             : "border-gray-300"
-                      }`}
+                        }`}
                       required
                       value={profileData.username}
                       onChange={(e) => {
@@ -494,13 +493,12 @@ export default function ProfileCompletion({
                   </div>
                   {usernameValidation.message && (
                     <p
-                      className={`text-sm ${
-                        usernameValidation.isValid === false
+                      className={`text-sm ${usernameValidation.isValid === false
                           ? "text-red-600"
                           : usernameValidation.isValid === true
                             ? "text-green-600"
                             : "text-blue-600"
-                      }`}
+                        }`}
                     >
                       {usernameValidation.message}
                     </p>
@@ -516,7 +514,7 @@ export default function ProfileCompletion({
                           Your profile will be available at:
                         </p>
                         <p className="text-base font-mono text-green-700 break-all">
-                          showwork.com/<strong>{profileData.username}</strong>
+                          showwork.in/<strong>{profileData.username}</strong>
                         </p>
                       </div>
                     )}
@@ -577,14 +575,13 @@ export default function ProfileCompletion({
                 usernameValidation.isValid !== true ||
                 !profileData.username
               }
-              className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 ${
-                loading ||
-                usernameValidation.isChecking ||
-                usernameValidation.isValid !== true ||
-                !profileData.username
+              className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 ${loading ||
+                  usernameValidation.isChecking ||
+                  usernameValidation.isValid !== true ||
+                  !profileData.username
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-green-600 text-white hover:bg-green-700"
-              }`}
+                }`}
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-2">

@@ -24,7 +24,7 @@ import {
 } from 'lucide-react';
 
 
-export function ComprehensiveAnalyticsDashboard({ portfolioId }: { portfolioId: string }) {
+export function ComprehensiveAnalyticsDashboard({ portfolioId, isDemo = false }: { portfolioId: string; isDemo?: boolean }) {
   const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 
   return (

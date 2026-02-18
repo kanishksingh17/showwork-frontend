@@ -14,11 +14,13 @@ import {
   Terminal,
   Brain,
   Shield,
-  ArrowLeft,
   Loader,
   CheckCircle,
   XCircle,
   X,
+  ArrowLeft,
+  Target,
+  Sparkles,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -34,6 +36,7 @@ import {
 } from "@/utils/questionBank";
 import type { Question as QuizQuestion } from "@/utils/questionBank";
 import { getHybridQuestions } from "@/utils/webQuestionService";
+import { UnifiedLayout } from "./UnifiedLayout";
 
 // Types
 interface TechStack {
@@ -67,6 +70,7 @@ interface Platform {
   icon: React.ReactNode;
   description: string;
   color: string;
+  comingSoon?: boolean;
 }
 
 interface Answer {
@@ -86,6 +90,9 @@ interface DeveloperProfileSetupProps {
     email?: string;
     avatar?: string;
     username?: string;
+    bio?: string;
+    techStack?: string[];
+    platformPreferences?: string[];
   };
   onComplete?: (setupData?: ProfileData) => void;
 }
@@ -649,18 +656,12 @@ const PLATFORMS: Platform[] = [
     color: "bg-blue-600",
   },
   {
-    id: "github",
-    name: "GitHub",
-    icon: <GitHubIcon className="w-6 h-6" />,
-    description: "Code repositories and open source contributions",
-    color: "bg-gray-800",
-  },
-  {
     id: "twitter",
     name: "Twitter/X",
     icon: <TwitterIcon className="w-6 h-6" />,
     description: "Tech discussions and industry updates",
     color: "bg-black",
+    comingSoon: true,
   },
   {
     id: "instagram",
@@ -668,6 +669,7 @@ const PLATFORMS: Platform[] = [
     icon: <InstagramIcon className="w-6 h-6" />,
     description: "Visual content and behind-the-scenes",
     color: "bg-gradient-to-r from-purple-500 to-pink-500",
+    comingSoon: true,
   },
   {
     id: "reddit",
@@ -675,6 +677,7 @@ const PLATFORMS: Platform[] = [
     icon: <RedditIcon className="w-6 h-6" />,
     description: "Community discussions and knowledge sharing",
     color: "bg-orange-600",
+    comingSoon: true,
   },
 ];
 
@@ -714,7 +717,20 @@ export default function DeveloperProfileSetup({
         ...prev,
         fullName: user.name || prev.fullName,
         username: suggestedUsername || prev.username,
+        bio: user.bio || prev.bio,
       }));
+
+      // Pre-populate tech stack if available
+      if (user.techStack && Array.isArray(user.techStack) && user.techStack.length > 0) {
+        console.log("💻 Pre-populating tech stack:", user.techStack);
+        setSelectedTechStacks(user.techStack);
+      }
+
+      // Pre-populate platforms if available
+      if (user.platformPreferences && Array.isArray(user.platformPreferences) && user.platformPreferences.length > 0) {
+        console.log("🌐 Pre-populating platforms:", user.platformPreferences);
+        setSelectedPlatforms(user.platformPreferences);
+      }
     }
   }, [user]);
 
@@ -798,9 +814,14 @@ export default function DeveloperProfileSetup({
   // Check username availability
   const checkUsernameAvailability = useCallback(
     async (username: string): Promise<boolean> => {
+      // Don't check availability if it's the user's current username
+      if (user?.username && username === user.username) {
+        return true;
+      }
+
       try {
         const response = await fetch(
-          `/api/portfolio/check-username/${username}`,
+          `/api/check-username?username=${encodeURIComponent(username)}`,
           {
             method: "GET",
             credentials: "include",
@@ -830,7 +851,7 @@ export default function DeveloperProfileSetup({
         return true;
       }
     },
-    [],
+    [user?.username],
   );
 
   // Debounced username validation
@@ -1197,43 +1218,34 @@ export default function DeveloperProfileSetup({
 
   // Render Step 0: Profile Setup
   const renderProfileStep = () => (
-    <div className="space-y-8">
-      <div className="text-center space-y-4">
-        <h2 className="text-3xl font-bold text-gray-900">Basic Information</h2>
-        <p className="text-gray-600 text-lg">
-          Let's start with your essential details
-        </p>
+    <div className="space-y-6">
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl font-bold text-gray-900">Basic Information</h2>
+        <p className="text-gray-500 text-base">Essential details for your public profile</p>
         {user && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-4 max-w-md mx-auto">
-            <div className="flex items-center justify-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <span className="text-green-700 font-medium text-sm">
-                Pre-filled from Google
-              </span>
+          <div className="bg-green-50/50 border border-green-100 rounded-lg p-3 max-w-sm mx-auto flex items-center space-x-3">
+            <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
             </div>
-            <p className="text-green-600 text-xs">
-              We've automatically filled in your details from your Google
-              account to save you time!
+            <p className="text-green-700 text-xs text-left">
+              <strong>Google Sync:</strong> Details automatically pre-filled to save your time.
             </p>
           </div>
         )}
       </div>
 
-      <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-sm space-y-6">
-        {/* Username Field */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Username *
-          </label>
+      <div className="bg-white rounded-xl p-6 border border-gray-100 space-y-5">
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">Username *</label>
           <div className="relative">
             <input
               type="text"
               placeholder="Choose a unique username"
               className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-gray-900 placeholder-gray-400 pr-10 ${usernameValidation.isValid === false
-                  ? "border-red-300 focus:border-red-500"
-                  : usernameValidation.isValid === true
-                    ? "border-green-300 focus:border-green-500"
-                    : "border-gray-300"
+                ? "border-red-300"
+                : usernameValidation.isValid === true
+                  ? "border-green-300"
+                  : "border-gray-200"
                 }`}
               required
               value={profileData.username}
@@ -1243,89 +1255,50 @@ export default function DeveloperProfileSetup({
                   .replace(/[^a-zA-Z0-9_-]/g, "");
                 handleProfileDataChange("username", value);
               }}
-              onBlur={() => {
-                // Trigger validation when user leaves the field
-                if (profileData.username) {
-                  const validation = validateUsername(profileData.username);
-                  if (!validation.isValid) {
-                    setUsernameValidation({
-                      isChecking: false,
-                      isValid: false,
-                      message: validation.message,
-                    });
-                  }
-                }
-              }}
             />
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
               {usernameValidation.isChecking && (
                 <Loader className="h-4 w-4 text-gray-400 animate-spin" />
               )}
-              {!usernameValidation.isChecking &&
-                usernameValidation.isValid === true && (
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                )}
-              {!usernameValidation.isChecking &&
-                usernameValidation.isValid === false &&
-                profileData.username && (
-                  <XCircle className="h-4 w-4 text-red-500" />
-                )}
+              {!usernameValidation.isChecking && usernameValidation.isValid === true && (
+                <CheckCircle className="h-4 w-4 text-green-500" />
+              )}
+              {!usernameValidation.isChecking && usernameValidation.isValid === false && profileData.username && (
+                <XCircle className="h-4 w-4 text-red-500" />
+              )}
             </div>
           </div>
           {usernameValidation.message && (
-            <p
-              className={`text-sm ${usernameValidation.isValid === false
-                  ? "text-red-600"
-                  : usernameValidation.isValid === true
-                    ? "text-green-600"
-                    : "text-blue-600"
-                }`}
-            >
+            <p className={`text-xs ml-1 ${usernameValidation.isValid === false ? "text-red-600" : "text-green-600"}`}>
               {usernameValidation.message}
             </p>
           )}
-          <p className="text-sm text-gray-500">
-            Your username is required and will be displayed in your public
-            profile. It must be unique.
-          </p>
           {profileData.username && usernameValidation.isValid === true && (
-            <div className="mt-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-              <p className="text-sm text-gray-600 mb-1">
-                Your profile will be available at:
-              </p>
-              <p className="text-base font-mono text-green-700 break-all">
-                showwork.com/<strong>{profileData.username}</strong>
-              </p>
+            <div className="mt-2 py-2 px-3 bg-slate-50 border border-slate-100 rounded-lg">
+              <p className="text-[10px] text-gray-500 uppercase font-bold mb-0.5">Profile Preview</p>
+              <p className="text-xs font-mono text-green-700 truncate">showwork.in/<strong>{profileData.username}</strong></p>
             </div>
           )}
         </div>
 
-        {/* Full Name Field */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Full Name *
-          </label>
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">Full Name *</label>
           <input
             type="text"
             placeholder="Enter your full name"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-gray-900 placeholder-gray-400"
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 text-gray-900"
             required
             value={profileData.fullName}
-            onChange={(e) =>
-              handleProfileDataChange("fullName", e.target.value)
-            }
+            onChange={(e) => handleProfileDataChange("fullName", e.target.value)}
           />
         </div>
 
-        {/* Bio Field */}
-        <div className="space-y-2">
-          <label className="block text-sm font-semibold text-gray-700">
-            Professional Bio
-          </label>
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider ml-1">Professional Bio</label>
           <textarea
-            placeholder="Share a brief summary of your professional journey..."
-            rows={4}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 resize-none text-gray-900 placeholder-gray-400"
+            placeholder="Share a brief summary of your journey..."
+            rows={3}
+            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 resize-none text-gray-900"
             value={profileData.bio}
             onChange={(e) => handleProfileDataChange("bio", e.target.value)}
           />
@@ -1336,159 +1309,100 @@ export default function DeveloperProfileSetup({
 
   // Render Skill Assessment Introduction
   const renderSkillAssessmentIntro = () => {
-    const questionCount = getQuestionsForSelectedTech().length;
-    const selectedTechNames = selectedTechStacks
-      .map((techId) => {
-        const tech = TECH_STACKS.find((t) => t.id === techId);
-        return tech?.name;
-      })
-      .filter(Boolean);
-
     return (
-      <div className="space-y-8">
-        <div className="text-center space-y-6">
-          <div className="space-y-4">
-            <h2 className="text-3xl font-bold text-gray-900">
-              Skill Assessment
-            </h2>
-            <h3 className="text-xl font-semibold text-green-600">
-              Validate Your Expertise
-            </h3>
-          </div>
-
-          <div className="space-y-6">
-            <p className="text-gray-600 text-lg leading-relaxed">
-              Thank you for sharing your tech stack. To further personalize your
-              experience, we'd like to assess your skills in the technologies
-              you selected.
-            </p>
-
-            <p className="text-gray-600 text-lg leading-relaxed">
-              You'll be presented with one short question for each selected
-              technology. Please answer to the best of your ability.
-            </p>
-          </div>
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h2 className="text-2xl font-bold text-gray-900">
+            Skill Assessment <span className="text-green-600 ml-2">• Validate Expertise</span>
+          </h2>
+          <p className="text-gray-600 text-base max-w-2xl mx-auto">
+            Answer a quick question for each selected technology to personalize your showcase experience.
+          </p>
         </div>
 
         {/* Selected Technologies Preview */}
-        <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
-          <h4 className="text-xl font-semibold text-gray-900 mb-4 text-center">
-            Your Selected Technologies ({selectedTechStacks.length})
-          </h4>
-          <div className="flex flex-wrap justify-center gap-3">
+        <div className="bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+          <div className="flex flex-wrap justify-center gap-2">
             {selectedTechStacks.map((techId) => {
               const tech = TECH_STACKS.find((t) => t.id === techId);
               if (!tech) return null;
               return (
                 <div
                   key={tech.id}
-                  className={`flex items-center space-x-2 px-4 py-2 rounded-full ${tech.color} text-white shadow-md`}
+                  className={`flex items-center space-x-2 px-3 py-1.5 rounded-full ${tech.color} text-white text-xs font-medium shadow-sm`}
                 >
-                  <div className="bg-white/20 p-1 rounded-lg">{tech.icon}</div>
-                  <span className="font-medium text-sm">{tech.name}</span>
+                  <div className="bg-white/20 p-0.5 rounded-md">{tech.icon}</div>
+                  <span>{tech.name}</span>
                 </div>
               );
             })}
           </div>
         </div>
 
-        {/* Information Cards */}
-        <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-6">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🎯</span>
-              </div>
-              <h5 className="text-lg font-semibold text-gray-900">
-                One question at a time
-              </h5>
+        {/* Information Cards - Premium Style */}
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 transition-all duration-300 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-500/5 flex items-center space-x-4">
+            <div className="w-10 h-10 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+              <Target className="w-5 h-5 text-blue-600 dark:text-blue-400" />
             </div>
-            <p className="text-gray-600">
-              Each technology will have its own question.
-            </p>
+            <div>
+              <h5 className="font-bold text-slate-900 dark:text-white text-sm">One question per tech</h5>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Quick, focused evaluation for each skill.</p>
+            </div>
           </div>
 
-          <div className="bg-purple-50 border border-purple-200 rounded-2xl p-6">
-            <div className="flex items-center space-x-3 mb-3">
-              <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                <span className="text-2xl">🎨</span>
-              </div>
-              <h5 className="text-lg font-semibold text-gray-900">
-                Tailored feedback
-              </h5>
+          <div className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/5 flex items-center space-x-4">
+            <div className="w-10 h-10 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform duration-300">
+              <Sparkles className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
             </div>
-            <p className="text-gray-600">
-              Your responses help us curate content and opportunities that match
-              your skills.
-            </p>
+            <div>
+              <h5 className="font-bold text-slate-900 dark:text-white text-sm">Tailored Feedback</h5>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Personalized content based on your results.</p>
+            </div>
           </div>
         </div>
 
-        {/* Ready to Begin Section */}
-        <div className="text-center space-y-6">
-          <div className="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-            <h4 className="text-2xl font-bold text-gray-900 mb-4">
-              Ready to begin?
-            </h4>
-            <p className="text-gray-600 mb-6">Click "Start Quiz" to proceed.</p>
-
+        {/* Action Section - Merged & Compact */}
+        <div className="text-center space-y-4 pt-2">
+          <div className="flex flex-col items-center space-y-4">
             <button
               onClick={() => {
                 setShowSkillAssessmentIntro(false);
                 setCurrentStep(2);
                 setCurrentQuestionIndex(0);
-                // Fetch fresh questions when starting quiz
                 fetchQuestionsForTechStacks();
               }}
               disabled={questionsLoading}
-              className={`group px-8 py-4 rounded-xl font-semibold text-lg transition-all duration-300 shadow-lg hover:shadow-xl flex items-center space-x-3 mx-auto ${questionsLoading
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
+              className={`group px-10 py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-3 ${questionsLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
                 }`}
             >
               {questionsLoading ? (
                 <>
                   <Loader className="w-5 h-5 animate-spin" />
-                  <span>Preparing Questions...</span>
+                  <span>Preparing...</span>
                 </>
               ) : (
                 <>
                   <span>Start Quiz</span>
-                  <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-300" />
+                  <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
             </button>
+            <p className="text-xs text-gray-500">Ready to begin? You can update tech stack later.</p>
           </div>
 
-          <p className="text-gray-500 text-sm">
-            You can navigate back to update your tech stack at any time.
-          </p>
-        </div>
-
-        {/* Progress Information */}
-        <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6">
-          <div className="flex items-center justify-center space-x-4">
+          {/* Progress Mini Info */}
+          <div className="flex items-center justify-center space-x-6 text-xs text-gray-500 bg-gray-50/50 border border-gray-100 rounded-lg py-2 max-w-xs mx-auto">
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                <span className="text-[#1E40AF] font-bold text-sm">
-                  {selectedTechStacks.length * 2}
-                </span>
-              </div>
-              <span className="text-gray-700">Questions Prepared</span>
+              <span className="font-bold text-[#1E40AF]">{selectedTechStacks.length * 2}</span>
+              <span>Questions</span>
             </div>
-            <div className="w-1 h-6 bg-gray-300 rounded-full"></div>
+            <div className="w-px h-3 bg-gray-200" />
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500 font-bold text-sm">0</span>
-              </div>
-              <span className="text-gray-500">Completed</span>
+              <span>Fresh API Data 🌐</span>
             </div>
-          </div>
-          <div className="mt-4 text-center">
-            <p className="text-sm text-gray-600">
-              🌐 Questions will be fetched fresh from our API for maximum
-              variety
-            </p>
           </div>
         </div>
       </div>
@@ -1514,54 +1428,49 @@ export default function DeveloperProfileSetup({
     );
 
     return (
-      <div className="space-y-10">
-        <div className="text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-4">
-            Choose Your Tech Stack
-          </h2>
-          <p className="text-gray-600 text-lg">
-            Select the technologies you work with. This helps us personalize
-            your experience.
-          </p>
+      <div className="space-y-6">
+        <div className="text-center space-y-1">
+          <h2 className="text-2xl font-bold text-gray-900">Choose Your Tech Stack</h2>
+          <p className="text-gray-500 text-sm">Select the technologies you work with for a personalized profile.</p>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {groupedTechStacks.map((category) => (
-            <div key={category.name} className="space-y-4">
-              <h3 className="text-xl font-semibold text-gray-800 text-center">
+            <div key={category.name} className="space-y-3">
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest text-center border-b border-gray-100 pb-1">
                 {category.name}
               </h3>
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-center gap-2">
                 {category.technologies.map((tech) => {
                   const isSelected = selectedTechStacks.includes(tech.id);
                   return (
                     <button
                       key={tech.id}
                       onClick={() => toggleTechStack(tech.id)}
-                      className={`group relative px-6 py-3 rounded-full border-2 transition-all duration-300 hover:scale-105 transform flex items-center space-x-3 min-w-[140px] justify-center ${isSelected
-                          ? `${tech.color} border-white/30 shadow-lg scale-105`
-                          : "bg-white border-gray-300 hover:border-gray-400 hover:shadow-md"
+                      className={`group relative px-4 py-2 rounded-full border transition-all duration-300 transform flex items-center space-x-2 min-w-[120px] justify-center ${isSelected
+                        ? `${tech.color} border-white/20 shadow-md scale-105`
+                        : "bg-white border-gray-200 hover:border-gray-300"
                         }`}
                     >
                       <div
-                        className={`flex items-center justify-center w-6 h-6 rounded-lg transition-all duration-300 ${isSelected
-                            ? "bg-white/20 text-white"
-                            : "bg-gray-100 text-gray-600 group-hover:text-gray-700"
+                        className={`flex items-center justify-center w-5 h-5 rounded transition-all duration-300 ${isSelected
+                          ? "bg-white/20 text-white"
+                          : "bg-gray-50 text-gray-500"
                           }`}
                       >
                         {tech.icon}
                       </div>
                       <span
-                        className={`font-medium text-sm transition-all duration-300 ${isSelected
-                            ? "text-white"
-                            : "text-gray-700 group-hover:text-gray-800"
+                        className={`font-medium text-xs transition-all duration-300 ${isSelected
+                          ? "text-white"
+                          : "text-gray-600 group-hover:text-gray-900"
                           }`}
                       >
                         {tech.name}
                       </span>
                       {isSelected && (
-                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow-lg">
-                          <Check className="w-3 h-3 text-gray-900" />
+                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-white rounded-full flex items-center justify-center shadow-md">
+                          <Check className="w-2.5 h-2.5 text-blue-600" />
                         </div>
                       )}
                     </button>
@@ -1573,20 +1482,15 @@ export default function DeveloperProfileSetup({
         </div>
 
         {selectedTechStacks.length > 0 && (
-          <div className="text-center bg-blue-50 border border-blue-200 rounded-2xl p-6">
-            <div className="flex items-center justify-center space-x-2 mb-3">
+          <div className="text-center bg-blue-50/50 border border-blue-100 rounded-xl p-3 flex items-center justify-between max-w-2xl mx-auto">
+            <div className="flex items-center space-x-2">
               <div className="w-2 h-2 bg-[#1E40AF] rounded-full animate-pulse"></div>
-              <p className="text-[#1E40AF] font-semibold">
-                {selectedTechStacks.length} technolog
-                {selectedTechStacks.length === 1 ? "y" : "ies"} selected
+              <p className="text-[#1E40AF] font-bold text-xs uppercase tracking-wider">
+                {selectedTechStacks.length} Selected
               </p>
             </div>
-            <p className="text-[#1E40AF] text-sm">
-              🌐 Fresh questions will be fetched from our API for each
-              technology
-            </p>
-            <p className="text-gray-600 text-xs mt-2">
-              Expected: {selectedTechStacks.length * 2} unique questions
+            <p className="text-gray-500 text-[10px] uppercase font-bold">
+              🌐 Fresh Questions Prepared: {selectedTechStacks.length * 2}
             </p>
           </div>
         )}
@@ -1667,129 +1571,102 @@ export default function DeveloperProfileSetup({
     };
 
     return (
-      <div className="space-y-8">
-        {/* Progress Header */}
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center space-x-4">
-            <div
-              className={`flex items-center space-x-3 px-6 py-3 rounded-full ${displayTech.color} text-white shadow-lg`}
-            >
-              <div className="bg-white/20 p-2 rounded-lg">
-                {displayTech.icon}
+      <div className="space-y-4">
+        {/* Progress Header - Ultra Compact */}
+        <div className="flex items-center justify-between px-1">
+          <div className={`flex items-center space-x-2 px-2.5 py-1 rounded-full ${displayTech.color} text-white shadow-sm`}>
+            {displayTech.icon && React.isValidElement(displayTech.icon) && (
+              <div className="bg-white/20 p-0.5 rounded">
+                {React.cloneElement(displayTech.icon as React.ReactElement, { className: 'w-3 h-3' })}
               </div>
-              <span className="font-semibold text-lg">{displayTech.name}</span>
-            </div>
+            )}
+            <span className="font-bold text-[10px] uppercase tracking-wider">{displayTech.name}</span>
           </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center justify-center space-x-2">
-              <span className="text-[#1E40AF] font-medium">
-                Question {currentQuestionIndex + 1}
-              </span>
-              <span className="text-gray-400">of</span>
-              <span className="text-gray-700 font-medium">
-                {questions.length}
-              </span>
+          <div className="flex items-center space-x-2.5">
+            <div className="text-right">
+              <p className="text-[9px] text-slate-400 font-bold uppercase leading-none">Step</p>
+              <p className="text-xs font-bold text-slate-700">
+                {currentQuestionIndex + 1}/{questions.length}
+              </p>
             </div>
-
-            {/* Mini Progress Bar */}
-            <div className="w-32 h-2 bg-gray-200 rounded-full mx-auto overflow-hidden">
+            <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
               <div
-                className="h-full bg-[#1E40AF] rounded-full transition-all duration-500 ease-out"
+                className="h-full bg-blue-600 rounded-full transition-all duration-500"
                 style={{ width: `${progress}%` }}
               />
             </div>
           </div>
         </div>
 
-        {/* Question Card */}
-        <div className="bg-white rounded-3xl p-8 border border-gray-200 shadow-sm relative overflow-hidden">
-          {/* Subtle Background */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full -translate-y-16 translate-x-16"></div>
+        {/* Question Card - Streamlined */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="space-y-4">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white leading-snug">
+              {currentQuestion.question}
+            </h3>
 
-          <div className="relative z-10 space-y-8">
-            {/* Question */}
-            <div className="text-center">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2 leading-relaxed">
-                {currentQuestion.question}
-              </h3>
-              <div className="w-16 h-1 bg-[#1E40AF] rounded-full mx-auto"></div>
-            </div>
+            {/* Options */}
+            <div className="grid gap-1.5">
+              {currentQuestion.options.map((option, index) => {
+                const isSelected = lastAnswer?.selectedIndex === index;
+                const isCorrect = index === currentQuestion.correctAnswer;
+                const isWrong = showAnswerFeedback && isSelected && !isCorrect;
 
-            {/* Answer Options */}
-            <div className="space-y-6">
-              <div className="grid gap-3">
-                {currentQuestion.options.map((option, index) => {
-                  const isSelected = lastAnswer?.selectedIndex === index;
-                  const isCorrect = index === currentQuestion.correctAnswer;
-                  const isWrong =
-                    showAnswerFeedback && isSelected && !isCorrect;
-                  const showCorrect = showAnswerFeedback && isCorrect;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => !showAnswerFeedback && handleAnswer(index)}
-                      disabled={showAnswerFeedback}
-                      className={`group p-5 rounded-2xl border-2 transition-all duration-300 text-left relative overflow-hidden ${showAnswerFeedback
+                return (
+                  <button
+                    key={index}
+                    onClick={() => !showAnswerFeedback && handleAnswer(index)}
+                    disabled={showAnswerFeedback}
+                    className={`group p-2.5 rounded-lg border transition-all duration-200 text-left relative overflow-hidden ${showAnswerFeedback
+                      ? isCorrect
+                        ? "border-green-500 bg-green-50/50 dark:bg-green-900/10"
+                        : isWrong
+                          ? "border-red-500 bg-red-50/50 dark:bg-red-900/10"
+                          : "border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/30 opacity-60"
+                      : isSelected
+                        ? "border-blue-600 bg-blue-50 dark:bg-blue-900/10"
+                        : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
+                  >
+                    <div className="flex items-center space-x-3 relative z-10">
+                      <div
+                        className={`w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 transition-all duration-200 ${showAnswerFeedback
                           ? isCorrect
-                            ? "border-green-500 bg-green-50 shadow-lg scale-[1.02]"
+                            ? "border-green-500 bg-green-500 text-white"
                             : isWrong
-                              ? "border-red-500 bg-red-50 shadow-lg scale-[1.02]"
-                              : "border-gray-200 bg-gray-100 opacity-75"
+                              ? "border-red-500 bg-red-500 text-white"
+                              : "border-slate-300 dark:border-slate-700"
                           : isSelected
-                            ? "border-[#1E40AF] bg-blue-50 shadow-lg scale-[1.02]"
-                            : "border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 hover:scale-[1.01]"
-                        } ${showAnswerFeedback ? "cursor-not-allowed" : "cursor-pointer"}`}
-                    >
-                      <div className="flex items-center space-x-4 relative z-10">
-                        <div
-                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-300 ${showAnswerFeedback
-                              ? isCorrect
-                                ? "border-green-500 bg-green-500"
-                                : isWrong
-                                  ? "border-red-500 bg-red-500"
-                                  : "border-gray-400 bg-gray-200"
-                              : isSelected
-                                ? "border-[#1E40AF] bg-[#1E40AF]"
-                                : "border-gray-400 group-hover:border-gray-500"
-                            }`}
-                        >
-                          {showAnswerFeedback ? (
-                            isCorrect ? (
-                              <Check className="w-3 h-3 text-white" />
-                            ) : isWrong ? (
-                              <X className="w-3 h-3 text-white" />
-                            ) : null
-                          ) : isSelected ? (
-                            <Check className="w-3 h-3 text-white" />
-                          ) : null}
-                        </div>
-                        <span
-                          className={`font-medium transition-all duration-300 ${showAnswerFeedback
-                              ? isCorrect
-                                ? "text-green-800"
-                                : isWrong
-                                  ? "text-red-800"
-                                  : "text-gray-500"
-                              : isSelected
-                                ? "text-gray-900"
-                                : "text-gray-700 group-hover:text-gray-800"
-                            }`}
-                        >
-                          {option}
-                        </span>
+                            ? "border-blue-600 bg-blue-600 text-white"
+                            : "border-slate-300 dark:border-slate-700 group-hover:border-slate-400"
+                          }`}
+                      >
+                        {(isSelected || (showAnswerFeedback && isCorrect)) && (
+                          <Check className="w-2 h-2" />
+                        )}
+                        {!isSelected && showAnswerFeedback && isWrong && (
+                          <X className="w-2 h-2" />
+                        )}
                       </div>
-                      {showAnswerFeedback && isCorrect && (
-                        <div className="absolute inset-0 bg-green-100/30 rounded-2xl"></div>
-                      )}
-                      {showAnswerFeedback && isWrong && (
-                        <div className="absolute inset-0 bg-red-100/30 rounded-2xl"></div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+                      <span
+                        className={`text-sm font-medium ${showAnswerFeedback
+                          ? isCorrect
+                            ? "text-green-900 dark:text-green-400"
+                            : isWrong
+                              ? "text-red-900 dark:text-red-400"
+                              : "text-slate-400"
+                          : isSelected
+                            ? "text-blue-900 dark:text-blue-400"
+                            : "text-slate-700 dark:text-slate-300"
+                          }`}
+                      >
+                        {option}
+                      </span>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1799,48 +1676,48 @@ export default function DeveloperProfileSetup({
 
   // Render Step 3: Platform Selection
   const renderPlatformSelection = () => (
-    <div className="space-y-8">
-      <div className="text-center">
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">
-          Connect Your Platforms
-        </h2>
-        <p className="text-gray-600 text-lg">
-          Choose where you want to showcase your work
-        </p>
+    <div className="space-y-6">
+      <div className="text-center space-y-1">
+        <h2 className="text-2xl font-bold text-gray-900">Connect Your Platforms</h2>
+        <p className="text-gray-500 text-sm">Choose where you want to showcase your work.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {PLATFORMS.map((platform) => {
           const isSelected = selectedPlatforms.includes(platform.id);
+          const isComingSoon = platform.comingSoon;
+
           return (
             <button
               key={platform.id}
-              onClick={() => togglePlatform(platform.id)}
-              className={`p-6 rounded-2xl border-2 transition-all duration-300 hover:scale-105 transform text-left ${isSelected
-                  ? "border-green-500 bg-green-50 shadow-lg"
-                  : "bg-white border-gray-200 hover:border-gray-300 shadow-sm hover:shadow-md"
+              onClick={() => !isComingSoon && togglePlatform(platform.id)}
+              disabled={isComingSoon}
+              className={`p-4 rounded-xl border transition-all duration-300 text-left flex flex-col h-full relative ${isComingSoon
+                  ? "bg-gray-50/50 border-gray-100 opacity-80 cursor-not-allowed"
+                  : isSelected
+                    ? "border-blue-600 bg-blue-50/50 shadow-md scale-[1.02]"
+                    : "bg-white border-gray-100 hover:border-blue-200 hover:shadow-sm"
                 }`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-xl ${platform.color} text-white`}>
-                  {platform.icon}
+              <div className="flex items-start justify-between mb-3">
+                <div className={`p-2 rounded-lg ${isComingSoon ? "bg-gray-300" : platform.color} text-white`}>
+                  {React.cloneElement(platform.icon as React.ReactElement, { className: 'w-5 h-5' })}
                 </div>
-                {isSelected && (
-                  <div className="w-6 h-6 bg-[#1E40AF] rounded-full flex items-center justify-center">
-                    <Check className="w-4 h-4 text-white" />
+                {isSelected && !isComingSoon && (
+                  <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Check className="w-3 h-3 text-white" />
                   </div>
                 )}
+                {isComingSoon && (
+                  <span className="text-[9px] font-bold bg-gray-200 text-gray-500 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                    Soon
+                  </span>
+                )}
               </div>
-              <h3
-                className={`font-semibold text-lg mb-2 ${isSelected ? "text-gray-900" : "text-gray-800"
-                  }`}
-              >
+              <h3 className={`font-bold text-sm mb-1 ${isComingSoon ? "text-gray-400" : "text-slate-900"}`}>
                 {platform.name}
               </h3>
-              <p
-                className={`text-sm ${isSelected ? "text-gray-700" : "text-gray-600"
-                  }`}
-              >
+              <p className={`text-[11px] leading-relaxed flex-1 ${isComingSoon ? "text-gray-400" : "text-slate-500"}`}>
                 {platform.description}
               </p>
             </button>
@@ -1849,10 +1726,9 @@ export default function DeveloperProfileSetup({
       </div>
 
       {selectedPlatforms.length > 0 && (
-        <div className="text-center bg-blue-50 border border-blue-200 rounded-2xl p-4">
-          <p className="text-[#1E40AF] font-medium">
-            {selectedPlatforms.length} platform
-            {selectedPlatforms.length === 1 ? "" : "s"} selected
+        <div className="text-center bg-blue-50/50 border border-blue-100 rounded-lg py-2 max-w-sm mx-auto">
+          <p className="text-[#1E40AF] font-bold text-xs uppercase tracking-wider">
+            {selectedPlatforms.length} Platform{selectedPlatforms.length === 1 ? "" : "s"} Connected
           </p>
         </div>
       )}
@@ -1876,121 +1752,127 @@ export default function DeveloperProfileSetup({
     );
   }
 
-  return (
-    <div className="min-h-screen bg-white flex">
-      {/* Left Progress Panel */}
-      <div className="w-2/5 bg-gradient-to-br from-[#1E293B] via-[#1E40AF] to-[#0F172A] p-8 flex flex-col justify-between relative overflow-hidden">
-        {/* Background Decoration */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full"></div>
-          <div className="absolute bottom-20 right-10 w-24 h-24 bg-white rounded-full"></div>
-          <div className="absolute top-1/2 right-20 w-16 h-16 bg-white rounded-full"></div>
-        </div>
+  const LeftPanelContent = (
+    <div className="h-full flex flex-col justify-between py-8">
+      {/* Header */}
+      <div>
+        <button
+          onClick={() => navigate("/login")}
+          className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors mb-8"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="text-sm">Back to Login</span>
+        </button>
 
-        {/* Header */}
-        <div className="relative z-10">
-          <button
-            onClick={() => navigate("/dashboard")}
-            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors mb-8"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-sm">Back to Dashboard</span>
-          </button>
-
-          <div className="space-y-4">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
-                <Code2 className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold text-white">Profile Setup</h1>
+        <div className="space-y-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+              <Code2 className="w-6 h-6 text-white" />
             </div>
-            <p className="text-white/80 text-lg leading-relaxed">
-              Complete your developer profile in 4 easy steps to showcase your
-              skills and connect with opportunities.
-            </p>
+            <h1 className="text-2xl font-bold text-white">Profile Setup</h1>
           </div>
+          <p className="text-white/80 text-lg leading-relaxed">
+            Complete your developer profile in 4 easy steps to showcase your
+            skills and connect with opportunities.
+          </p>
         </div>
+      </div>
 
-        {/* Progress Steps */}
-        <div className="relative z-10 space-y-6">
-          {[
-            {
-              number: 1,
-              title: "Basic Information",
-              description: "Username and personal details",
-              icon: <Users className="w-5 h-5" />,
-            },
-            {
-              number: 2,
-              title: "Tech Stack",
-              description: "Select your technologies",
-              icon: <Code2 className="w-5 h-5" />,
-            },
-            {
-              number: 3,
-              title: "Skill Assessment",
-              description: "Quick skill evaluation",
-              icon: <Brain className="w-5 h-5" />,
-            },
-            {
-              number: 4,
-              title: "Platform Selection",
-              description: "Choose your platforms",
-              icon: <Globe className="w-5 h-5" />,
-            },
-          ].map((step, index) => {
-            const isActive = !showSkillAssessmentIntro && currentStep === index;
-            const isCompleted =
-              !showSkillAssessmentIntro && currentStep > index;
-            const isIntroActive = showSkillAssessmentIntro && index === 2;
+      {/* Progress Steps */}
+      <div className="space-y-6 my-auto">
+        {[
+          {
+            number: 1,
+            title: "Basic Information",
+            description: "Username and personal details",
+            icon: <Users className="w-5 h-5" />,
+          },
+          {
+            number: 2,
+            title: "Tech Stack",
+            description: "Select your technologies",
+            icon: <Code2 className="w-5 h-5" />,
+          },
+          {
+            number: 3,
+            title: "Skill Assessment",
+            description: "Quick skill evaluation",
+            icon: <Brain className="w-5 h-5" />,
+          },
+          {
+            number: 4,
+            title: "Platform Selection",
+            description: "Choose your platforms",
+            icon: <Globe className="w-5 h-5" />,
+          },
+        ].map((step, index) => {
+          const isActive = !showSkillAssessmentIntro && currentStep === index;
+          const isCompleted =
+            !showSkillAssessmentIntro && currentStep > index;
+          const isIntroActive = showSkillAssessmentIntro && index === 2;
 
-            return (
-              <div key={step.number} className="flex items-start space-x-4">
-                <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${isCompleted
-                      ? "bg-white text-[#1E40AF]"
-                      : isActive || isIntroActive
-                        ? "bg-white text-[#1E40AF] ring-4 ring-white/30"
-                        : "bg-white/20 text-white/60"
+          return (
+            <div key={step.number} className="flex items-start space-x-4">
+              <div
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-semibold transition-all duration-300 ${isCompleted
+                  ? "bg-white text-[#1E40AF]"
+                  : isActive || isIntroActive
+                    ? "bg-white text-[#1E40AF] ring-4 ring-white/30"
+                    : "bg-white/20 text-white/60"
+                  }`}
+              >
+                {isCompleted ? (
+                  <Check className="w-5 h-5" />
+                ) : isActive || isIntroActive ? (
+                  step.icon
+                ) : (
+                  step.number
+                )}
+              </div>
+              <div className="flex-1">
+                <h3
+                  className={`font-semibold transition-colors duration-300 ${isActive || isCompleted || isIntroActive
+                    ? "text-white"
+                    : "text-white/60"
                     }`}
                 >
-                  {isCompleted ? (
-                    <Check className="w-5 h-5" />
-                  ) : isActive || isIntroActive ? (
-                    step.icon
-                  ) : (
-                    step.number
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3
-                    className={`font-semibold transition-colors duration-300 ${isActive || isCompleted || isIntroActive
-                        ? "text-white"
-                        : "text-white/60"
-                      }`}
-                  >
-                    {step.title}
-                  </h3>
-                  <p
-                    className={`text-sm transition-colors duration-300 ${isActive || isCompleted || isIntroActive
-                        ? "text-white/80"
-                        : "text-white/40"
-                      }`}
-                  >
-                    {step.description}
-                  </p>
-                </div>
+                  {step.title}
+                </h3>
+                <p
+                  className={`text-sm transition-colors duration-300 ${isActive || isCompleted || isIntroActive
+                    ? "text-white/80"
+                    : "text-white/40"
+                    }`}
+                >
+                  {step.description}
+                </p>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Progress Bar */}
-        <div className="relative z-10">
-          <div className="flex items-center justify-between text-white/80 text-sm mb-2">
-            <span>Progress</span>
-            <span>
-              {showSkillAssessmentIntro
+      {/* Progress Bar */}
+      <div>
+        <div className="flex items-center justify-between text-white/80 text-sm mb-2">
+          <span>Progress</span>
+          <span>
+            {showSkillAssessmentIntro
+              ? "50%"
+              : currentStep === 0
+                ? "25%"
+                : currentStep === 1
+                  ? "50%"
+                  : currentStep === 2
+                    ? `${50 + calculateQAProgress() * 0.25}%`
+                    : "100%"}
+          </span>
+        </div>
+        <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-white rounded-full transition-all duration-500 ease-out"
+            style={{
+              width: showSkillAssessmentIntro
                 ? "50%"
                 : currentStep === 0
                   ? "25%"
@@ -1998,156 +1880,138 @@ export default function DeveloperProfileSetup({
                     ? "50%"
                     : currentStep === 2
                       ? `${50 + calculateQAProgress() * 0.25}%`
-                      : "100%"}
-            </span>
-          </div>
-          <div className="w-full h-2 bg-white/20 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-white rounded-full transition-all duration-500 ease-out"
-              style={{
-                width: showSkillAssessmentIntro
-                  ? "50%"
-                  : currentStep === 0
-                    ? "25%"
-                    : currentStep === 1
-                      ? "50%"
-                      : currentStep === 2
-                        ? `${50 + calculateQAProgress() * 0.25}%`
-                        : "100%",
-              }}
-            />
-          </div>
+                      : "100%",
+            }}
+          />
         </div>
       </div>
+    </div>
+  );
 
-      {/* Right Content Panel */}
-      <div className="flex-1 bg-gray-50 flex flex-col">
-        {/* Content Area */}
-        <div className="flex-1 p-8 overflow-y-auto">
-          <div className="max-w-2xl mx-auto">
-            {(() => {
-              console.log(
-                "🎨 Rendering content - showSkillAssessmentIntro:",
-                showSkillAssessmentIntro,
-                "currentStep:",
-                currentStep,
-              );
-              if (showSkillAssessmentIntro) {
-                console.log("📚 Rendering quiz intro screen");
-                return renderSkillAssessmentIntro();
-              } else if (currentStep === 0) {
-                console.log("👤 Rendering profile step");
-                return renderProfileStep();
-              } else if (currentStep === 1) {
-                console.log("⚙️ Rendering tech stack selection");
-                return renderTechStackSelection();
-              } else if (currentStep === 2) {
-                console.log("❓ Rendering quiz questions");
-                return renderQuestionsStep();
-              } else if (currentStep === 3) {
-                console.log("🌐 Rendering platform selection");
-                return renderPlatformSelection();
-              }
-              return null;
-            })()}
+  return (
+    <UnifiedLayout activePage="profile-setup" showAuthButtons={true}>
+      <div className="flex h-full w-full overflow-hidden">
+        {/* Left Section - Internal Illustration Split */}
+        <div className="hidden xl:flex w-1/3 bg-[#0F172A] text-white p-12 flex-col justify-center relative overflow-hidden h-full">
+          {/* Animated Mesh Gradient Background */}
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-[-10%] left-[-10%] w-[80%] h-[80%] bg-blue-600/15 rounded-full blur-[100px] animate-pulse"></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[80%] h-[80%] bg-indigo-600/15 rounded-full blur-[100px] animate-pulse" style={{ animationDelay: "-5s" }}></div>
+            <div className="absolute top-[20%] right-[10%] w-[50%] h-[50%] bg-blue-400/10 rounded-full blur-[80px] animate-pulse" style={{ animationDelay: "-3s" }}></div>
+
+            {/* Subtle Dot Pattern Overlay */}
+            <div className="absolute inset-0 opacity-[0.1]" style={{ backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+          </div>
+          <div className="relative z-10 h-full">
+            {LeftPanelContent}
           </div>
         </div>
 
-        {/* Navigation Footer */}
-        <div className="border-t border-gray-200 bg-white p-6">
-          <div className="max-w-2xl mx-auto flex justify-between items-center">
+        <div className="flex-1 bg-white dark:bg-slate-900 flex flex-col h-full overflow-hidden">
+          <style dangerouslySetInnerHTML={{
+            __html: `
+            .scrollbar-hide-container::-webkit-scrollbar {
+              display: none;
+            }
+            .scrollbar-hide-container {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+            }
+          `}} />
+
+          {/* Main Content Area - Scrollable */}
+          <div className="flex-1 overflow-y-auto scrollbar-hide-container py-8 px-6 md:px-12">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-slate-50/50 dark:bg-slate-800/50 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+                {(() => {
+                  if (showSkillAssessmentIntro) {
+                    return renderSkillAssessmentIntro();
+                  } else if (currentStep === 0) {
+                    return renderProfileStep();
+                  } else if (currentStep === 1) {
+                    return renderTechStackSelection();
+                  } else if (currentStep === 2) {
+                    return renderQuestionsStep();
+                  } else if (currentStep === 3) {
+                    return renderPlatformSelection();
+                  }
+                  return null;
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* Navigation Footer - Sticky at bottom */}
+          <div className="bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 p-6 md:px-12 flex justify-between items-center bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm">
+            {/* Previous Button */}
             <button
               onClick={prevStep}
               disabled={currentStep === 0 && !showSkillAssessmentIntro}
               className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all duration-300 ${currentStep === 0 && !showSkillAssessmentIntro
-                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-slate-100 text-slate-400 cursor-not-allowed"
+                : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 }`}
             >
               <ChevronLeft className="w-4 h-4 mr-2" />
               {showSkillAssessmentIntro
                 ? "Back to Tech Stack"
                 : currentStep === 0
-                  ? "Dashboard"
+                  ? "Login"
                   : "Previous"}
             </button>
 
+            {/* Next/Complete Button */}
             {!showSkillAssessmentIntro && (
               <button
                 onClick={async () => {
-                  console.log("Button clicked! Current step:", currentStep);
-                  console.log("Selected platforms:", selectedPlatforms);
-                  console.log("Can proceed:", canProceed());
-
                   if (currentStep === 3) {
-                    // Handle completion - save data and redirect
                     setIsCompleting(true);
-                    console.log("Starting completion process...");
-                    console.log("Setup completed!", {
-                      profileData,
-                      selectedTechStacks,
-                      answers,
-                      selectedPlatforms,
-                    });
-
-                    // Save profile data to backend BEFORE redirecting
                     try {
-                      console.log("💾 Saving profile data to MongoDB...");
                       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-                      const response = await fetch(`${apiBaseUrl}/api/auth/profile/update`, {
+                      const response = await fetch(`${apiBaseUrl}/api/profile/update`, {
                         method: "POST",
                         headers: {
                           "Content-Type": "application/json",
                         },
                         credentials: "include",
                         body: JSON.stringify({
+                          name: profileData.fullName,
                           username: profileData.username,
-                          fullName: profileData.fullName,
                           bio: profileData.bio,
-                          techStacks: selectedTechStacks,
+                          techStack: selectedTechStacks,
                           platformPreferences: selectedPlatforms,
-                          answers: answers,
-                          profileCompleted: true,
                         }),
                       });
 
                       if (response.ok) {
                         const result = await response.json();
-                        console.log("✅ Profile saved to MongoDB:", result);
-
-                        // Update local storage with updated user data
                         const updatedUser = {
                           ...result.user,
                           profileCompleted: true,
                         };
                         localStorage.setItem("user", JSON.stringify(updatedUser));
-
-                        // Navigate to dashboard after successful save
                         if (onComplete) {
                           onComplete(profileData);
                         } else {
                           navigate("/dashboard");
                         }
                       } else {
-                        const errorData = await response.json();
-                        console.error("❌ Failed to save profile:", errorData);
+                        await response.json(); // Consuming the response without storing
                         alert("Failed to save profile. Please try again.");
                         setIsCompleting(false);
                       }
                     } catch (error) {
-                      console.error("❌ Error saving profile:", error);
                       alert("An error occurred while saving your profile. Please try again.");
                       setIsCompleting(false);
                     }
                   } else {
-                    console.log("Going to next step...");
                     nextStep();
                   }
                 }}
                 disabled={!canProceed()}
                 className={`flex items-center px-8 py-3 rounded-lg font-medium transition-all duration-300 ${canProceed() && !isCompleting
-                    ? "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
-                    : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  ? "bg-[#1E40AF] text-white hover:bg-[#1D4ED8]"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
               >
                 {isCompleting ? (
@@ -2194,6 +2058,6 @@ export default function DeveloperProfileSetup({
         `,
         }}
       />
-    </div>
+    </UnifiedLayout >
   );
 }

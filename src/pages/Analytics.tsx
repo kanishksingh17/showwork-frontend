@@ -1,11 +1,15 @@
 import { UnifiedLayout } from "../components/UnifiedLayout";
 import { ComprehensiveAnalyticsDashboard } from "../components/analytics/ComprehensiveAnalyticsDashboard";
 
-const Analytics = () => {
+interface AnalyticsProps {
+  isDemo?: boolean;
+}
+
+const Analytics = ({ isDemo = false }: AnalyticsProps) => {
   return (
-    <UnifiedLayout activePage="analytics">
+    <UnifiedLayout activePage="analytics" isDemo={isDemo}>
       <div className="h-full overflow-hidden">
-        <ComprehensiveAnalyticsDashboard portfolioId="current_user" />
+        <ComprehensiveAnalyticsDashboard portfolioId="current_user" isDemo={isDemo} />
       </div>
     </UnifiedLayout>
   );
