@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -11,30 +11,27 @@ import {
   Zap,
   Group,
   Cloud,
-  Upload,
   X,
   Plus,
   UserPlus,
-  Search,
-  Monitor,
-  Smartphone,
-  Github,
   Sparkles,
-  Bot,
   ArrowLeft,
   ArrowRight,
   FileText,
   Loader2,
+  Github,
+  Monitor,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import MediaUploader from "@/components/media/MediaUploader";
 import type { MediaFile } from "@/types/project";
 import GitHubScraper from "@/components/GitHubScraper";
 import { UnifiedLayout } from "@/components/UnifiedLayout";
+import { toast } from "sonner";
 
 interface ProjectFormData {
   name: string;
@@ -61,6 +58,8 @@ export default function ManualProjectForm() {
 
   const [currentSection, setCurrentSection] = useState(0);
   const [isScraping, setIsScraping] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [enhancingFieldName, setEnhancingFieldName] = useState<string | null>(null);
 
   // Initialize from location state if available (for GitHub import)
   const initialData = location.state?.projectData ? {
@@ -416,11 +415,6 @@ export default function ManualProjectForm() {
     createParticleBurst(400, 200);
   };
 
-  const removeMediaFile = (id: string) => {
-    setMediaFiles((prev) => prev.filter((f) => f.id !== id));
-    // Save immediately after removing media file
-    setTimeout(() => saveDraft(), 100);
-  };
 
   const saveToBackend = async (isPublishing = false) => {
     try {
@@ -459,12 +453,17 @@ export default function ManualProjectForm() {
 
       if (response.ok) {
         const result = await response.json();
-        console.log("💾 Project saved to backend:", result);
-        // If we just created a new project and got an ID back, we could navigate to edit URL
-        // but for draft-like feel without reload, we just keep current state
+        const savedProject = result.data?.project || result.project || result.data || {};
+        const newId = savedProject.id || savedProject._id;
+        if (newId) {
+          setBackendProjectId(newId);
+          return newId;
+        }
       }
+      return null;
     } catch (error) {
       console.error("❌ Failed to save project to backend:", error);
+      return null;
     }
   };
 
@@ -513,19 +512,84 @@ export default function ManualProjectForm() {
     }, 1000);
   };
 
-  const goToNextSection = () => {
-    if (currentSection < sections.length - 1) {
-      setCompletedSections((prev) => [...prev, currentSection]);
-      setCurrentSection((prev) => prev + 1);
+  const handleAIAnalyze = async () => {
+    if (!formData.githubUrl) {
+      toast.error("Please enter a GitHub URL first");
+      return;
+    }
 
-      // Create particle burst effect
-      setTimeout(() => {
-        createParticleBurst(200, 100);
-      }, 300);
-    } else {
-      setShowPublishModal(true);
+    setIsAnalyzing(true);
+    toast.info("AI Analysis started...");
+    try {
+      console.log("AI: Analyzing repo:", formData.githubUrl);
+      const response = await fetch(`/api/ai/generate-from-repo?url=${encodeURIComponent(formData.githubUrl)}`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+      console.log("AI: Analysis response:", data);
+
+      if (data.success && data.data) {
+        const analysis = data.data;
+        console.log("AI: Analysis data:", analysis);
+        setFormData((prev) => ({
+          ...prev,
+          name: analysis.name || prev.name,
+          description: analysis.description || analysis.summary || prev.description,
+          techStack: analysis.techStack ? analysis.techStack.join(", ") : prev.techStack,
+          features: Array.from(new Set([...prev.features, ...(analysis.features || [])])),
+        }));
+        toast.success("AI analysis complete! Fields pre-filled.");
+        // Create success effect
+        createParticleBurst(window.innerWidth / 2, window.innerHeight / 2);
+      } else {
+        throw new Error(data.message || "Failed to analyze repository");
+      }
+    } catch (error) {
+      console.error("AI Analysis Error:", error);
+      toast.error("AI analysis failed. Please fill manually.");
+    } finally {
+      setIsAnalyzing(false);
     }
   };
+
+  const handleAIEnhanceField = async (field: "name" | "description") => {
+    const content = formData[field];
+    if (!content) {
+      toast.error(`Please enter some ${field} content first`);
+      return;
+    }
+
+    setEnhancingFieldName(field);
+    toast.info(`Enhancing project ${field}...`);
+    try {
+      console.log(`AI: Enhancing field ${field}:`, content);
+      const response = await fetch("/api/ai/enhance-section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ section: field, content }),
+      });
+      const data = await response.json();
+      console.log("AI: Enhancement response:", data);
+
+      if (data.success && data.data.section) {
+        setFormData((prev) => ({
+          ...prev,
+          [field]: data.data.section,
+        }));
+        toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} enhanced!`);
+        createParticleBurst(window.innerWidth / 2, window.innerHeight / 2);
+      } else {
+        throw new Error(data.message || "Failed to enhance field");
+      }
+    } catch (error) {
+      console.error("AI Enhancement Error:", error);
+      toast.error("AI enhancement failed.");
+    } finally {
+      setEnhancingFieldName(null);
+    }
+  };
+
 
   const handlePublish = async () => {
     try {
@@ -660,21 +724,54 @@ export default function ManualProjectForm() {
     <div className="space-y-6">
       <h3 className="font-semibold text-xl">Project Info</h3>
       <div className="relative">
+        <div className="flex items-center justify-between mb-1">
+          <label className="text-sm font-medium text-gray-500">
+            Project Name *
+          </label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            onClick={() => handleAIEnhanceField("name")}
+            disabled={enhancingFieldName === "name" || !formData.name}
+          >
+            {enhancingFieldName === "name" ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="w-3 h-3 mr-1" />
+            )}
+            Enhance
+          </Button>
+        </div>
         <Input
           value={formData.name}
           onChange={(e) => handleInputChange("name", e.target.value)}
-          className="peer"
-          placeholder=" "
+          placeholder="Enter your project name"
         />
-        <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-800 px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2">
-          Project Name *
-        </label>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-500 mb-2">
-          Project Description (Markdown Supported)
-        </label>
+        <div className="flex items-center justify-between mb-1">
+          <label className="block text-sm font-medium text-gray-500">
+            Project Description (Markdown Supported)
+          </label>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            onClick={() => handleAIEnhanceField("description")}
+            disabled={enhancingFieldName === "description" || !formData.description}
+          >
+            {enhancingFieldName === "description" ? (
+              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+            ) : (
+              <Sparkles className="w-3 h-3 mr-1" />
+            )}
+            Enhance
+          </Button>
+        </div>
         <Textarea
           value={formData.description}
           onChange={(e) => handleInputChange("description", e.target.value)}
@@ -693,12 +790,28 @@ export default function ManualProjectForm() {
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Github className="w-6 h-6 text-gray-400" />
           </div>
-          <Input
-            value={formData.githubUrl}
-            onChange={(e) => handleInputChange("githubUrl", e.target.value)}
-            className="pl-12"
-            placeholder="https://github.com/username/repo"
-          />
+          <div className="flex gap-2">
+            <Input
+              value={formData.githubUrl}
+              onChange={(e) => handleInputChange("githubUrl", e.target.value)}
+              className="pl-12 flex-1"
+              placeholder="https://github.com/username/repo"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleAIAnalyze}
+              disabled={isAnalyzing || !formData.githubUrl}
+              className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 whitespace-nowrap"
+            >
+              {isAnalyzing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 mr-2" />
+              )}
+              Analyze with AI
+            </Button>
+          </div>
           <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-800 px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-10">
             GitHub URL
           </label>
@@ -936,46 +1049,6 @@ Or JSON: {"frontend": ["React", "Vue"]}'
     </div>
   );
 
-  const renderSEOSettings = () => (
-    <div className="space-y-6">
-      <h3 className="font-semibold text-xl">SEO & Settings</h3>
-      <div className="relative">
-        <Input
-          value={formData.customUrl}
-          onChange={(e) => handleInputChange("customUrl", e.target.value)}
-          placeholder=" "
-          className="peer"
-        />
-        <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-800 px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-2">
-          Custom URL (Optional)
-        </label>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <label className="text-base">Enable Comments</label>
-        <input
-          type="checkbox"
-          checked={formData.commentsEnabled}
-          onChange={(e) =>
-            handleInputChange("commentsEnabled", e.target.checked)
-          }
-          className="relative peer h-6 w-11 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 outline-none transition-colors before:absolute before:left-1 before:top-1 before:h-4 before:w-4 before:rounded-full before:bg-white dark:before:bg-gray-400 before:transition-all before:duration-300 peer-checked:bg-primary peer-checked:before:left-6 peer-checked:before:bg-white"
-        />
-      </div>
-
-      <div className="flex items-center justify-between">
-        <label className="text-base">Public Visibility</label>
-        <input
-          type="checkbox"
-          checked={formData.publicVisibility}
-          onChange={(e) =>
-            handleInputChange("publicVisibility", e.target.checked)
-          }
-          className="relative peer h-6 w-11 cursor-pointer appearance-none rounded-full bg-gray-200 dark:bg-gray-700 outline-none transition-colors before:absolute before:left-1 before:top-1 before:h-4 before:w-4 before:rounded-full before:bg-white dark:before:bg-gray-400 before:transition-all before:duration-300 peer-checked:bg-primary peer-checked:before:left-6 peer-checked:before:bg-white"
-        />
-      </div>
-    </div>
-  );
 
   const renderLivePreview = () => (
     <div className="bg-white/20 dark:bg-gray-800/20 backdrop-blur-lg rounded-2xl border border-gray-200/20 dark:border-gray-700/20 p-4 shadow-lg mb-4">

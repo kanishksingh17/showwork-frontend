@@ -8,6 +8,7 @@ interface UnifiedLayoutProps {
     showSidebar?: boolean; // New prop to allow external control (e.g., hiding in editor)
     showAuthButtons?: boolean; // New prop to control demo/showcase mode sidebar
     isDemo?: boolean; // Demo mode flag
+    header?: React.ReactNode; // Embedded header content
 }
 
 export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
@@ -16,6 +17,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     showSidebar = true,
     showAuthButtons = false,
     isDemo = false,
+    header,
 }) => {
     // Initialize state from localStorage if available, default to true
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -72,6 +74,11 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                     actualShowSidebar && isSidebarOpen && "transition-all duration-700",
                 )}
             >
+                {header && (
+                    <div className="flex-shrink-0">
+                        {header}
+                    </div>
+                )}
                 {children}
             </div>
         </div>

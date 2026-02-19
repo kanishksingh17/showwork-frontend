@@ -493,7 +493,7 @@ class GitHubService {
             headers: {
               'Content-Type': 'application/json',
             },
-            credentials: 'omit',
+            credentials: 'include',
             signal: controller.signal,
           });
 
@@ -674,4 +674,4 @@ class GitHubService {
 }
 
 export default GitHubService;
-export type { GitHubRepo, GitHubLanguages, FileNode, GitHubTreeItem, GitHubTreeResponse };
+export type { GitHubRepo, GitHubLanguages };

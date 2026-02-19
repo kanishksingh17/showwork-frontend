@@ -17,7 +17,6 @@ import { UnifiedSidebar } from "../components/UnifiedSidebar";
 import {
   ArrowLeft,
   Save,
-  Upload,
   Link,
   Code,
   Globe,
@@ -27,7 +26,10 @@ import {
   X,
   Settings,
   RefreshCw,
+  Sparkles,
+  Brain,
 } from "lucide-react";
+import { toast } from "sonner";
 
 interface ProjectData {
   name: string;
@@ -52,7 +54,7 @@ export default function ManualProjectForm() {
     githubUrl: "",
     liveUrl: "",
     imageUrl: "",
-    category: "",
+    category: "Web Development",
     status: "draft",
     visibility: "public",
   });
@@ -60,6 +62,8 @@ export default function ManualProjectForm() {
   const [newTech, setNewTech] = useState("");
   const [newTag, setNewTag] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [enhancingField, setEnhancingField] = useState<string | null>(null);
 
   const categories = [
     "Web Development",
@@ -120,30 +124,96 @@ export default function ManualProjectForm() {
     }));
   };
 
+  const handleAIAnalyze = async () => {
+    if (!projectData.githubUrl) {
+      toast.error("Please enter a GitHub URL first");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch(`/api/ai/generate-from-repo?url=${encodeURIComponent(projectData.githubUrl)}`, {
+        credentials: "include",
+      });
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        const analysis = data.data;
+        setProjectData((prev) => ({
+          ...prev,
+          name: analysis.name || prev.name,
+          description: analysis.description || analysis.summary || prev.description,
+          technologies: Array.from(new Set([...prev.technologies, ...(analysis.techStack || [])])),
+          category: analysis.category || prev.category,
+        }));
+        toast.success("AI analysis complete! Fields pre-filled.");
+      } else {
+        throw new Error(data.message || "Failed to analyze repository");
+      }
+    } catch (error) {
+      console.error("AI Analysis Error:", error);
+      toast.error("AI analysis failed. Please fill manually.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleAIEnhance = async (field: "name" | "description") => {
+    const content = projectData[field];
+    if (!content) {
+      toast.error(`Please enter some ${field} content first`);
+      return;
+    }
+
+    setEnhancingField(field);
+    try {
+      const response = await fetch("/api/ai/enhance-section", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ section: field, content }),
+      });
+      const data = await response.json();
+
+      if (data.success && data.data.section) {
+        setProjectData((prev) => ({
+          ...prev,
+          [field]: data.data.section,
+        }));
+        toast.success(`${field.charAt(0).toUpperCase() + field.slice(1)} enhanced!`);
+      } else {
+        throw new Error(data.message || "Failed to enhance field");
+      }
+    } catch (error) {
+      console.error("AI Enhancement Error:", error);
+      toast.error("AI enhancement failed.");
+    } finally {
+      setEnhancingField(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      // Save project to localStorage (you can replace this with API call)
-      const projects = JSON.parse(localStorage.getItem("showcase-projects") || "[]");
-      const newProject = {
-        ...projectData,
-        id: Date.now().toString(),
-        lastUpdated: new Date().toISOString(),
-        submittedAt: new Date().toISOString(),
-        views: 0,
-        likes: 0,
-        codeQualityScore: 0,
-      };
-      
-      projects.push(newProject);
-      localStorage.setItem("showcase-projects", JSON.stringify(projects));
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(projectData),
+      });
+      const data = await response.json();
 
-      // Navigate back to showcase dashboard
-      navigate("/showcase");
+      if (data.success) {
+        toast.success("Project saved successfully!");
+        navigate("/showcase");
+      } else {
+        throw new Error(data.message || "Failed to save project");
+      }
     } catch (error) {
       console.error("Error saving project:", error);
+      toast.error("Failed to save project. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -192,7 +262,24 @@ export default function ManualProjectForm() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div>
-                      <Label htmlFor="name">Project Name *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="name" className="mb-0">Project Name *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => handleAIEnhance("name")}
+                          disabled={enhancingField === "name" || !projectData.name}
+                        >
+                          {enhancingField === "name" ? (
+                            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3 h-3 mr-1" />
+                          )}
+                          Enhance
+                        </Button>
+                      </div>
                       <Input
                         id="name"
                         value={projectData.name}
@@ -205,7 +292,24 @@ export default function ManualProjectForm() {
                     </div>
 
                     <div>
-                      <Label htmlFor="description">Description *</Label>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label htmlFor="description" className="mb-0">Description *</Label>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                          onClick={() => handleAIEnhance("description")}
+                          disabled={enhancingField === "description" || !projectData.description}
+                        >
+                          {enhancingField === "description" ? (
+                            <RefreshCw className="w-3 h-3 mr-1 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3 h-3 mr-1" />
+                          )}
+                          Enhance
+                        </Button>
+                      </div>
                       <Textarea
                         id="description"
                         value={projectData.description}
@@ -323,17 +427,37 @@ export default function ManualProjectForm() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div>
+                    <div className="space-y-2">
                       <Label htmlFor="githubUrl">GitHub URL</Label>
-                      <Input
-                        id="githubUrl"
-                        type="url"
-                        value={projectData.githubUrl}
-                        onChange={(e) =>
-                          setProjectData((prev) => ({ ...prev, githubUrl: e.target.value }))
-                        }
-                        placeholder="https://github.com/username/repo"
-                      />
+                      <div className="flex gap-2">
+                        <Input
+                          id="githubUrl"
+                          type="url"
+                          value={projectData.githubUrl}
+                          onChange={(e) =>
+                            setProjectData((prev) => ({ ...prev, githubUrl: e.target.value }))
+                          }
+                          placeholder="https://github.com/username/repo"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAIAnalyze}
+                          disabled={isAnalyzing || !projectData.githubUrl}
+                          className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100 whitespace-nowrap"
+                        >
+                          {isAnalyzing ? (
+                            <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                          ) : (
+                            <Brain className="w-4 h-4 mr-2" />
+                          )}
+                          Analyze with AI
+                        </Button>
+                      </div>
+                      <p className="text-[10px] text-gray-500 italic">
+                        Fetch name, description, and tech stack from README
+                      </p>
                     </div>
 
                     <div>

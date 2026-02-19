@@ -110,6 +110,22 @@ export interface SocialLink {
   isVisible: boolean;
 }
 
+export interface MediaFile {
+  id: string;
+  name: string;
+  type?: string;
+  url: string;
+  thumbnailUrl?: string;
+  category: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  avatar?: string;
+}
+
 export interface Project {
   id: string;
   title: string;
@@ -119,6 +135,9 @@ export interface Project {
   liveUrl?: string;
   imageUrl?: string;
   isFeatured: boolean;
+  showcase?: boolean;
+  mediaFiles?: MediaFile[];
+  teamMembers?: TeamMember[];
   relevanceScore: number; // AI-calculated relevance to job role
 }
 

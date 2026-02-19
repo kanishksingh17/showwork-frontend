@@ -143,8 +143,8 @@ export function createContentManagementTabs() {
       icon: <PenSquare className="h-5 w-5" />,
       label: "Create Post",
       value: "cross-post",
-      gradient: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)",
-      iconColor: "group-hover:text-blue-500 dark:group-hover:text-blue-400",
+      gradient: "radial-gradient(circle, rgba(147,51,234,0.15) 0%, rgba(126,34,206,0.06) 50%, rgba(88,28,135,0) 100%)",
+      iconColor: "group-hover:text-purple-500 dark:group-hover:text-purple-400",
     },
     {
       icon: <Calendar className="h-5 w-5" />,
@@ -157,15 +157,15 @@ export function createContentManagementTabs() {
       icon: <Send className="h-5 w-5" />,
       label: "Published Posts",
       value: "published",
-      gradient: "radial-gradient(circle, rgba(249,115,22,0.15) 0%, rgba(234,88,12,0.06) 50%, rgba(194,65,12,0) 100%)",
-      iconColor: "group-hover:text-orange-500 dark:group-hover:text-orange-400",
+      gradient: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, rgba(37,99,235,0.06) 50%, rgba(29,78,216,0) 100%)",
+      iconColor: "group-hover:text-blue-500 dark:group-hover:text-blue-400",
     },
     {
       icon: <LayoutTemplate className="h-5 w-5" />,
       label: "Templates",
       value: "templates",
-      gradient: "radial-gradient(circle, rgba(147,51,234,0.15) 0%, rgba(126,34,206,0.06) 50%, rgba(88,28,135,0) 100%)",
-      iconColor: "group-hover:text-purple-500 dark:group-hover:text-purple-400",
+      gradient: "radial-gradient(circle, rgba(249,115,22,0.15) 0%, rgba(234,88,12,0.06) 50%, rgba(194,65,12,0) 100%)",
+      iconColor: "group-hover:text-orange-500 dark:group-hover:text-orange-400",
     },
   ];
 }

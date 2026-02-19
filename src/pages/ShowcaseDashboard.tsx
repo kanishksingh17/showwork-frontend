@@ -25,6 +25,7 @@ import {
   ArrowUpDown,
   Package,
   ArrowRight,
+  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { UnifiedLayout } from "../components/UnifiedLayout";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
 interface Project {
@@ -58,6 +61,9 @@ interface Project {
   likes?: number;
   githubUrl?: string;
   liveUrl?: string;
+  showcase?: boolean;
+  mediaFiles?: any[];
+  teamMembers?: any[];
 }
 
 interface ShowcaseDashboardProps {
@@ -185,7 +191,13 @@ const ShowcaseDashboard = ({
       setIsLoadingData(false);
 
       // Stage 2: Background sync for GitHub repos if connected
-      if (isConnected) {
+      // Use a session-local flag to avoid syncing more than once per page session
+      const lastSync = sessionStorage.getItem('last_github_sync');
+      const now = Date.now();
+      const oneHour = 60 * 60 * 1000;
+
+      if (isConnected && (!lastSync || now - parseInt(lastSync) > oneHour)) {
+        sessionStorage.setItem('last_github_sync', now.toString());
         fetchGitHubRepos(apiProjects);
       }
 
@@ -196,7 +208,67 @@ const ShowcaseDashboard = ({
   };
 
 
+  const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
+
+  const handleToggleShowcase = async (project: Project) => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const newShowcaseValue = !project.showcase;
+
+      // Update local state immediately for snappy UI
+      setProjects(prev => prev.map(p => p.id === project.id ? { ...p, showcase: newShowcaseValue } : p));
+
+      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...project,
+          showcase: newShowcaseValue
+        }),
+      });
+
+      if (!response.ok) {
+        // Rollback
+        setProjects(prev => prev.map(p => p.id === project.id ? { ...p, showcase: !newShowcaseValue } : p));
+        console.error("Failed to toggle showcase:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Failed to toggle showcase:", error);
+    }
+  };
+
+  const handleEnhanceWithAI = async (project: Project) => {
+    if (isEnhancing) return;
+    setIsEnhancing(project.id);
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiBaseUrl}/api/projects/enhance?id=${project.id}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        const updatedProject = result.data;
+        setProjects(prev => prev.map(p => p.id === project.id ? {
+          ...p,
+          technologies: updatedProject.technologies,
+          tags: updatedProject.tags
+        } : p));
+      } else {
+        const error = await response.json();
+        console.error(`Enhancement failed: ${error.message}`);
+      }
+    } catch (error) {
+      console.error("AI Enhancement failed:", error);
+    } finally {
+      setIsEnhancing(null);
+    }
+  };
+
   const fetchGitHubRepos = async (existingProjects?: Project[]) => {
+    if (isFetchingGithub) return;
     setIsFetchingGithub(true);
     try {
       console.log("📂 Background sync: Fetching GitHub repositories...");
@@ -222,6 +294,14 @@ const ShowcaseDashboard = ({
         .filter((repo: Project) => !repo.githubUrl || !importedUrls.has(repo.githubUrl.toLowerCase()));
 
       setGithubRepos(mappedRepos);
+
+      // If new repos were synced to DB in background, refresh the main projects list
+      // after a short delay to allow backend to finish
+      if (mappedRepos.length > 0) {
+        setTimeout(() => {
+          fetchPrimaryProjects();
+        }, 2000);
+      }
     } catch (error) {
       console.error("Error fetching GitHub repos:", error);
     } finally {
@@ -555,7 +635,7 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="secondary"
-            className="bg-[#292e38] text-white hover:bg-[#3c4453]"
+            className="bg-[#292e38] text-white hover:bg-[#3c4453] whitespace-nowrap flex-shrink-0"
           >
             Draft
           </Badge>
@@ -565,8 +645,9 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="outline"
-            className="border-[#F59E0B] text-[#F59E0B] bg-[#F59E0B]/10"
+            className="border-orange-200 text-orange-700 bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 whitespace-nowrap flex-shrink-0"
           >
+            <AlertCircle className="w-3 h-3 flex-shrink-0" />
             Pending Review
           </Badge>
         );
@@ -574,7 +655,7 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="outline"
-            className="border-[#10B981] text-[#10B981] bg-[#10B981]/10"
+            className="border-[#10B981] text-[#10B981] bg-[#10B981]/10 whitespace-nowrap flex-shrink-0"
           >
             Published
           </Badge>
@@ -583,7 +664,7 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="outline"
-            className="border-[#8B5CF6] text-[#8B5CF6] bg-[#8B5CF6]/10"
+            className="border-[#8B5CF6] text-[#8B5CF6] bg-[#8B5CF6]/10 whitespace-nowrap flex-shrink-0"
           >
             In Progress
           </Badge>
@@ -592,7 +673,7 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="outline"
-            className="border-[#6366F1] text-[#6366F1] bg-[#6366F1]/10"
+            className="border-[#6366F1] text-[#6366F1] bg-[#6366F1]/10 whitespace-nowrap flex-shrink-0"
           >
             Saved
           </Badge>
@@ -693,6 +774,18 @@ const ShowcaseDashboard = ({
                   <Plus className="w-4 h-4 mr-2" />
                   Add Project
                 </Button>
+
+                {isGitHubConnected && (
+                  <Button
+                    variant="outline"
+                    onClick={() => fetchGitHubRepos()}
+                    disabled={isFetchingGithub}
+                    className="flex items-center gap-2 border-gray-300 text-gray-700 hover:bg-gray-50"
+                  >
+                    <RefreshCw className={cn("w-4 h-4", isFetchingGithub && "animate-spin")} />
+                    {isFetchingGithub ? "Syncing..." : "Sync Repos"}
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -1080,14 +1173,35 @@ const ShowcaseDashboard = ({
               <div className="space-y-6">
                 {/* Localized Loading State */}
                 {isLoadingData && projects.length === 0 && (
-                  <Card className="border-dashed border-2 p-12 mb-8">
-                    <CardContent className="flex flex-col items-center text-center animate-pulse">
-                      <div className="w-16 h-16 bg-gray-100 rounded-full mb-6"></div>
-                      <div className="h-6 bg-gray-100 rounded w-48 mb-4"></div>
-                      <div className="h-4 bg-gray-50 rounded w-64 mb-8"></div>
-                      <div className="flex gap-4">
-                        <div className="w-32 h-10 bg-gray-100 rounded"></div>
-                        <div className="w-32 h-10 bg-gray-100 rounded"></div>
+                  <Card className="border-dashed border-2 p-12 mb-8 bg-white dark:bg-slate-800/50">
+                    <CardContent className="flex flex-col items-center text-center">
+                      <div className="relative mb-6">
+                        <div className="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center animate-pulse">
+                          {isGitHubConnected ? (
+                            <Github className="w-8 h-8 text-gray-400 dark:text-gray-500 animate-bounce" />
+                          ) : (
+                            <Package className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+                          )}
+                        </div>
+                        {isGitHubConnected && (
+                          <div className="absolute -bottom-1 -right-1 bg-blue-500 rounded-full p-1 border-2 border-white dark:border-slate-800">
+                            <RefreshCw className="w-3 h-3 text-white animate-spin" />
+                          </div>
+                        )}
+                      </div>
+
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        {isGitHubConnected ? "Fetching your GitHub projects..." : "Loading your showcase..."}
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 max-w-xs mb-8">
+                        {isGitHubConnected
+                          ? "We're syncing your repositories to help you build your showcase faster."
+                          : "Please wait while we prepare your project dashboard."}
+                      </p>
+
+                      <div className="flex gap-4 opacity-50 pointer-events-none">
+                        <div className="w-32 h-10 bg-gray-100 dark:bg-slate-700 rounded"></div>
+                        <div className="w-32 h-10 bg-gray-100 dark:bg-slate-700 rounded"></div>
                       </div>
                     </CardContent>
                   </Card>
@@ -1140,17 +1254,41 @@ const ShowcaseDashboard = ({
                                     className="rounded"
                                   />
                                   <div className="flex-1">
-                                    <h3 className="font-medium text-gray-900">
-                                      {project.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                      {project.category}
-                                    </p>
+                                    <div className="flex items-center gap-2">
+                                      <h3 className="font-medium text-gray-900 line-clamp-1">
+                                        {project.name}
+                                      </h3>
+                                      {project.githubUrl && (
+                                        <div title="Imported from GitHub">
+                                          <Github className="w-3.5 h-3.5 text-gray-400" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                        {project.category}
+                                      </span>
+                                      {project.technologies?.slice(0, 3).map((tech) => (
+                                        <span key={tech} className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">
+                                          {tech}
+                                        </span>
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-1">
-                                  {getVisibilityIcon(project.visibility)}
-                                  {getStatusBadge(project.status)}
+                                <div className="flex flex-col items-end gap-2">
+                                  <div className="flex items-center gap-1">
+                                    {getVisibilityIcon(project.visibility)}
+                                    {getStatusBadge(project.status)}
+                                  </div>
+                                  <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                                    <Switch
+                                      id={`showcase-${project.id}`}
+                                      checked={project.showcase}
+                                      onCheckedChange={() => handleToggleShowcase(project)}
+                                    />
+                                    <Label htmlFor={`showcase-${project.id}`} className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Showcase</Label>
+                                  </div>
                                 </div>
                               </div>
 
@@ -1800,7 +1938,7 @@ const ShowcaseDashboard = ({
           onLoginSuccess={handleLoginSuccess}
         />
       </main>
-    </UnifiedLayout>
+    </UnifiedLayout >
   );
 };
 
