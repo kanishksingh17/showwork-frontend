@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import {
-  Briefcase,
+  Sparkles,
   ArrowLeft,
+  ExternalLink,
+  Briefcase,
   Wand2,
   FileText,
-  ExternalLink,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import type { PortfolioTemplate, UserPortfolio, JobRole } from "../types/portfolio";
 import { UnifiedLayout } from "../components/UnifiedLayout";
 import { PortfolioSelector } from "../components/portfolio/PortfolioSelector";
-// import { PortfolioCustomizer } from "../components/portfolio/PortfolioCustomizer";
-// import { LiveTemplateFiller } from "../components/portfolio/LiveTemplateFiller"; // Component doesn't exist
 import { PortfolioPreview } from "../components/portfolio/PortfolioPreview";
 import { SimpleFolioLayout } from "../components/portfolio/simplefolio/SimpleFolioTemplate";
 import { ModernPortfolioEditor } from "../components/portfolio/ModernPortfolioEditor";
 import { LoginModal } from "@/components/auth/LoginModal";
+import { TypingText } from "../components/portfolio/TypingText";
+import { usePortfolioDispatch } from "@/store/portfolio/hooks";
+import { setSections, updateUserData, changeWebsitePageComponentContent } from "@/store/portfolio/portfolioSlice";
+import { updateAbout } from "../utils/updaters/updateAbout";
+import { updateSkills } from "../utils/updaters/updateSkills";
+import { updateProjects } from "../utils/updaters/updateProjects";
+import { updateFeatures } from "../utils/updaters/updateFeatures";
 
 type BuilderStep = "landing" | "template-preview" | "customizer" | "preview";
 
@@ -24,18 +31,23 @@ interface PortfolioBuilderProps {
 }
 
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
+  const dispatch = usePortfolioDispatch();
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] =
     useState<PortfolioTemplate | null>(null);
   const [detectedJobRole, setDetectedJobRole] = useState<JobRole | null>(null);
-  const [isDetectingRole, setIsDetectingRole] = useState(true);
+  const [isDetectingRole, setIsDetectingRole] = useState(false);
   const [userPortfolio, setUserPortfolio] = useState<UserPortfolio | null>(
     null,
   );
-  // Removed unused state variables
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState<"templates" | "content" | "preview">("templates");
+  const [viewMode, setViewMode] = useState<"desktop" | "tablet" | "mobile">("desktop");
   const [showContentTypeModal, setShowContentTypeModal] = useState(false);
   const [contentType, setContentType] = useState<"ai" | "manual" | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isTypingContent, setIsTypingContent] = useState(false);
+  const [typingText, setTypingText] = useState("");
+  const [currentTypingSection, setCurrentTypingSection] = useState("");
   const [showLiveBuilder, setShowLiveBuilder] = useState(false);
   const [fetchedProjects, setFetchedProjects] = useState<any[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -77,7 +89,6 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       githubUrl: "https://github.com/johndoe/ecommerce",
       liveUrl: "https://ecommerce-demo.com",
       imageUrl: "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800",
-      featured: true,
     },
     {
       id: "2",
@@ -241,11 +252,11 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
           // Check if it's HTML (404 page) or JSON error
           const contentType = response.headers.get("content-type");
           if (contentType && contentType.includes("text/html")) {
-            console.warn(`⚠️ Projects API endpoint not found (${response.status}). Backend may not be running or route doesn't exist.`);
+            console.warn(`[Projects API] endpoint not found (${response.status}). Backend may not be running or route doesn't exist.`);
           } else {
             // Try to get error details
             const errorData = await response.json().catch(() => ({ error: response.statusText }));
-            console.warn(`⚠️ Projects API returned ${response.status}:`, errorData);
+            console.warn(`[Projects API] returned ${response.status}:`, errorData);
           }
 
           // Continue with empty projects array if API fails
@@ -283,6 +294,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
             tags?: string[];
             category?: string;
             featured?: boolean;
+            showcase?: boolean;
             mediaFiles?: Array<{
               id: string;
               name: string;
@@ -321,6 +333,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               tags: p.tags || [], // Features
               category: p.category,
               isFeatured: p.featured || false,
+              showcase: p.showcase || false,
               teamMembers: p.teamMembers || [],
             };
           });
@@ -385,11 +398,6 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   }, []);
 
 
-  const handlePortfolioPreview = (portfolio: UserPortfolio) => {
-    setUserPortfolio(portfolio);
-    setCurrentStep("preview");
-  };
-
   const handlePortfolioSave = async () => {
     if (!selectedTemplate) return;
 
@@ -447,63 +455,28 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     const loadInitialData = async () => {
       setIsDetectingRole(true);
 
-      // Wait for userData and projects to be loaded, then detect job role using AI
-      const detectJobRole = async () => {
+      // Detect job role using user data and projects
+      const detectJobRoleInternal = async () => {
         try {
+          setIsDetectingRole(true);
           // Wait a bit for userData and fetchedProjects to be loaded
           await new Promise(resolve => setTimeout(resolve, 500));
 
-          // Use real user data and projects if available
           const currentUserData = userData;
           const currentProjects = fetchedProjects.length > 0 ? fetchedProjects : projects;
 
-          if (currentUserData && currentProjects.length > 0) {
-            // Import PortfolioAIService to extract job role
-            // No API key needed - it uses secure server-side routes
-            const { PortfolioAIService } = await import("../services/portfolio-ai-service");
-            const aiService = new PortfolioAIService();
-
-            try {
-              // Cast projects to Project[] type - they might be missing some optional fields
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              const typedProjects = currentProjects.map((p: any) => ({
-                ...p,
-                title: p.title || p.name || '',
-                relevanceScore: p.relevanceScore || 0,
-              }));
-
-              const extractedJobRole = await aiService.extractJobRole(
-                currentUserData,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                typedProjects as any // PortfolioAIService accepts the project structure we have
-              );
-              setDetectedJobRole(extractedJobRole);
-              console.log("✅ Job role detected:", extractedJobRole);
-            } catch (error) {
-              console.warn("⚠️ Job role detection failed, using fallback:", error);
-              // Fallback: Create job role from user's tech stack
-              const techStack = currentUserData.techStack || [];
-              const skills = currentUserData.skills?.map((s: { name?: string } | string) =>
-                typeof s === 'string' ? s : (s.name || '')
-              ) || [];
-              const allSkills = [...techStack, ...skills].filter(Boolean);
-
-              const fallbackJobRole: JobRole = {
-                id: "detected-role",
-                title: techStack.length > 0
-                  ? `${techStack[0]} Developer`
-                  : skills.length > 0
-                    ? `${skills[0]} Developer`
-                    : "Software Developer",
-                industry: "Technology",
-                skills: allSkills.slice(0, 10), // Limit to top 10 skills
-                experienceLevel: "mid",
-                description: techStack.length > 0
-                  ? `Developer specializing in ${techStack.slice(0, 3).join(", ")}`
-                  : "Full-stack developer with experience in modern web technologies",
-              };
-              setDetectedJobRole(fallbackJobRole);
-            }
+          if (currentUserData) {
+            // Fallback: Create job role from user's tech stack
+            const role: JobRole = {
+              id: "detected-role",
+              title: currentUserData.tagline || "Software Developer",
+              industry: "Technology",
+              skills: currentUserData.techStack || ["React", "TypeScript", "Node.js"],
+              experienceLevel: "mid",
+              description: currentUserData.bio || "Full-stack developer with experience in modern web technologies",
+            };
+            setDetectedJobRole(role);
+            console.log("✅ Job role set (via tech stack fallback):", role.title);
           } else {
             // If no user data yet, use a basic fallback
             const mockJobRole: JobRole = {
@@ -518,22 +491,12 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
           }
         } catch (error) {
           console.error("Error in job role detection:", error);
-          // Final fallback
-          const mockJobRole: JobRole = {
-            id: "frontend-dev",
-            title: "Software Developer",
-            industry: "Technology",
-            skills: ["JavaScript", "React", "Node.js"],
-            experienceLevel: "mid",
-            description: "Full-stack developer with experience in modern web technologies",
-          };
-          setDetectedJobRole(mockJobRole);
         } finally {
           setIsDetectingRole(false);
         }
       };
 
-      detectJobRole();
+      await detectJobRoleInternal();
 
       // Mock templates removed as we use API now
     };
@@ -599,6 +562,39 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       const { PortfolioAIService } = await import("../services/portfolio-ai-service");
       const aiService = new PortfolioAIService();
 
+      // Stage 1: Filter projects - ONLY pick those where showcase is true
+      const allProjects = fetchedProjects.length > 0 ? fetchedProjects : projects;
+      const showcaseProjects = allProjects.filter((p: any) => p.showcase === true || p.featured === true);
+
+      // If no projects are marked for showcase, fall back to all projects but log it
+      const projectsToUse = showcaseProjects.length > 0 ? showcaseProjects : allProjects;
+      console.log(`📂 Using ${projectsToUse.length} projects for portfolio generation (Showcase filter: ${showcaseProjects.length > 0 ? 'Applied' : 'No projects marked, using all'})`);
+
+      // Stage 2: Fetch LinkedIn Profile Data for enrichment
+      let linkedInProfile = null;
+      try {
+        const liRes = await fetch("/api/integrations/linkedin/profile", { credentials: 'include' });
+        if (liRes.ok) {
+          const liData = await liRes.json();
+          if (liData.success) {
+            linkedInProfile = liData.profile;
+            console.log("🔗 LinkedIn profile data fetched for enrichment");
+          }
+        }
+      } catch (err) {
+        console.warn("⚠️ Failed to fetch LinkedIn profile for enrichment:", err);
+      }
+
+      // Combine user data with LinkedIn profile if exists
+      const enrichedUserData = {
+        ...userData,
+        linkedInProfile: linkedInProfile
+      };
+
+      setIsGenerating(true);
+      setIsTypingContent(true);
+      setTypingText("Starting AI content generation engine...");
+
       const filledSections = await Promise.all(selectedTemplate.sections!.map(async (section) => {
         // Skip header/footer for AI generation usually, or generate minimal content
         if (section.type === 'header' || section.type === 'footer') {
@@ -606,6 +602,8 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
         }
 
         console.log(`🤖 Generating content for section: ${section.type}...`);
+        setCurrentTypingSection(section.type.toUpperCase());
+
         try {
           const content = await aiService.generatePortfolioContent(
             section.type,
@@ -617,19 +615,26 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               experienceLevel: 'mid',
               description: 'Developer'
             },
-            userData,
-            fetchedProjects.length > 0 ? fetchedProjects : projects
+            enrichedUserData,
+            projectsToUse
           );
+
+          // Update typing text for the overlay
+          setTypingText(prev => prev + `\n\n[${section.type.toUpperCase()}]\n` + content.slice(0, 100) + "...");
 
           return {
             ...section,
-            content: content
+            content: content,
+            isVisible: true
           };
         } catch (err) {
           console.error(`Failed to generate content for ${section.type}`, err);
           return section; // Fallback to original/empty
         }
       }));
+
+      // A small delay to let user "read" the final typing state
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Create the new portfolio object
       const newPortfolio: UserPortfolio = {
@@ -661,6 +666,44 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       };
 
       setUserPortfolio(newPortfolio);
+      setIsTypingContent(false);
+
+      // Targeted Updating System - Surgical content updates pushed to Redux
+      // Map sections to their specific updaters
+      const updaterMap: Record<string, Function> = {
+        'about': updateAbout,
+        'skills': updateSkills,
+        'projects': updateProjects,
+        'features': updateFeatures
+      };
+
+      filledSections.forEach((section) => {
+        // Find existing section content in the store or local state
+        // Note: For a truly surgical update, we'd pull the latest section data from Redux here
+        const sectionType = section.id.split('-')[0]; // e.g., 'about', 'projects'
+        const updater = updaterMap[sectionType];
+
+        let finalContent = section.content;
+
+        // If we have a specialized updater, we could use it here if we had the original content
+        // For now, we rely on the Redux reducer's merge logic or direct replacement
+        if (updater && typeof section.content === 'object' && !Array.isArray(section.content)) {
+          // Example for 'about' or other object-based content
+          // finalContent = updater({}, section.content); 
+        }
+
+        dispatch(changeWebsitePageComponentContent({
+          componentId: section.id,
+          content: finalContent,
+          merge: true
+        }));
+      });
+
+      // Also update overall sections for direct rendering templates
+      dispatch(setSections(filledSections));
+      if (enrichedUserData) {
+        dispatch(updateUserData(enrichedUserData));
+      }
 
       // Move to customizer so they can see/edit the result
       setCurrentStep("customizer");
@@ -683,11 +726,6 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       // Manual: Just go to customizer with placeholder content
       setCurrentStep("customizer");
     }
-  };
-
-  const handleLiveBuilderComplete = (portfolioUrl: string) => {
-    setShowLiveBuilder(false);
-    // ... existing logic ...
   };
 
   const handleLiveBuilderCancel = () => {
@@ -1091,18 +1129,14 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                   onClick={
                     currentStep === "template-preview"
                       ? handleBackToLanding
-                      : currentStep === "customizer"
-                        ? () => setCurrentStep("template-preview")
-                        : handleBackToCustomizer
+                      : handleBackToCustomizer
                   }
                   className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1" />
                   {currentStep === "template-preview"
                     ? "Templates"
-                    : currentStep === "customizer"
-                      ? "Preview"
-                      : "Customize"}
+                    : "Customize"}
                 </Button>
                 <Button variant="outline" size="sm" onClick={handleStartOver}>
                   Start Over
@@ -1114,7 +1148,76 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
 
         {/* Main Content - Scrollable, constrained within sidebar boundary */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden bg-white dark:bg-gray-900">
-          {renderStep()}
+          {/* AI Generating overlay */}
+          {isGenerating ? (
+            <div className="flex flex-col items-center justify-center h-full min-h-[70vh] gap-8 px-6 bg-gradient-to-b from-blue-50/20 to-transparent">
+              {/* Animation and Header */}
+              <div className="flex flex-col items-center gap-4">
+                <div className="relative">
+                  <div className="w-20 h-20 rounded-full border-4 border-blue-100 border-t-blue-600 animate-spin" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Wand2 className="w-8 h-8 text-blue-600 animate-pulse" />
+                  </div>
+                </div>
+                <div className="text-center">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                    Crafting your portfolio
+                    <span className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <span key={i} className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
+                      ))}
+                    </span>
+                  </h3>
+                  <p className="text-gray-500 dark:text-gray-400 mt-2">
+                    {currentTypingSection ? `Generating ${currentTypingSection} section...` : "Analysing your professional profile..."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Live Typing Terminal */}
+              <div className="w-full max-w-2xl bg-gray-900 rounded-xl shadow-2xl border border-gray-800 p-6 font-mono overflow-hidden">
+                <div className="flex items-center gap-2 mb-4 border-b border-gray-800 pb-3">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-red-500/50" />
+                    <div className="w-3 h-3 rounded-full bg-yellow-500/50" />
+                    <div className="w-3 h-3 rounded-full bg-green-500/50" />
+                  </div>
+                  <div className="text-[10px] text-gray-500 uppercase tracking-widest ml-2">Content Generator Console</div>
+                </div>
+
+                <div className="h-64 overflow-y-auto text-sm text-gray-300 custom-scrollbar">
+                  <div className="text-blue-400 mb-2">
+                    $ showwork-ai-generate --user-profile --showcase-projects
+                  </div>
+                  <TypingText
+                    text={typingText || "Initialising AI engine... \nConnecting to LinkedIn... \nFetching showcased projects... \nStarting generation sequence..."}
+                    speed={20}
+                    className="whitespace-pre-wrap leading-relaxed"
+                  />
+                  {!typingText && (
+                    <div className="mt-4 flex flex-col gap-2">
+                      <div className="flex items-center gap-2 text-green-400/70">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        Fetching LinkedIn Summary... OK
+                      </div>
+                      <div className="flex items-center gap-2 text-green-400/70">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        Filtering Showcased Projects... OK
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tips / Info */}
+              <div className="flex items-center gap-3 bg-blue-50 dark:bg-blue-900/10 px-4 py-2 rounded-full text-xs text-blue-700 dark:text-blue-300 border border-blue-100 dark:border-blue-900/30">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>AI is using your LinkedIn data to build a personalized brand story</span>
+              </div>
+            </div>
+          ) : (
+            renderStep()
+          )}
         </div>
       </div>
 

@@ -71,7 +71,33 @@ interface ShowcaseDashboardProps {
   onCreateProject?: () => void;
   onEditProject?: (projectId: string) => void;
   isDemo?: boolean;
+  showcase?: boolean;
 }
+
+const detectProjectDomain = (language?: string, technologies: string[] = []) => {
+  const allTags = [language, ...technologies].map(t => t?.toLowerCase()).filter(Boolean);
+
+  if (allTags.some(t => ['python', 'r', 'jupyter', 'pytorch', 'tensorflow', 'numpy', 'pandas'].includes(t!))) {
+    return "Data Science & AI";
+  }
+  if (allTags.some(t => ['solidity', 'blockchain', 'ethereum', 'web3', 'rust'].includes(t!))) {
+    return "Web3 & Blockchain";
+  }
+  if (allTags.some(t => ['android', 'kotlin', 'swift', 'ios', 'flutter', 'react native'].includes(t!))) {
+    return "Mobile Development";
+  }
+  if (allTags.some(t => ['unity', 'unreal', 'game'].includes(t!))) {
+    return "Game Development";
+  }
+  if (allTags.some(t => ['c', 'cpp', 'arduino', 'embedded', 'raspberry pi'].includes(t!))) {
+    return "Embedded Systems";
+  }
+  if (allTags.some(t => ['javascript', 'typescript', 'react', 'next.js', 'html', 'css', 'vue', 'angular'].includes(t!))) {
+    return "Web Development";
+  }
+
+  return language || "Software Development";
+};
 
 const ShowcaseDashboard = ({
   onBackToDashboard,
@@ -125,6 +151,63 @@ const ShowcaseDashboard = ({
   const [githubRepos, setGithubRepos] = useState<Project[]>([]);
 
   // Parallelize status check and project loading for faster initialization
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("/api/integrations/status");
+      if (res.ok) {
+        const data = await res.json();
+        const github = data.statuses?.find((s: any) => s.platform === "github");
+        const connected = !!github?.connected;
+        setIsGitHubConnected(connected);
+        if (!connected) setGithubRepos([]);
+        return connected;
+      }
+    } catch (err) {
+      console.error("Status check failed:", err);
+    }
+    return false;
+  };
+
+  const fetchPrimaryProjects = async () => {
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, { credentials: 'include' });
+      if (res.ok) {
+        const result = await res.json();
+        const mapped = (result.data?.projects || []).map((p: any) => {
+          const technologies = (p.technologies || [])
+            .map((t: any) => {
+              if (typeof t === 'string') return t;
+              if (t && typeof t === 'object' && t.name) {
+                return t.name;
+              }
+              return null;
+            })
+            .filter((t: string | null): t is string => t !== null && t !== "");
+
+          return {
+            id: p.id || p._id,
+            name: p.name || p.title,
+            description: p.description,
+            status: p.status || "draft",
+            lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
+            category: p.category && p.category !== "Web Development" ? p.category : detectProjectDomain(p.language, technologies),
+            githubUrl: p.githubUrl,
+            visibility: p.visibility || "public",
+            tags: p.tags || [],
+            technologies: technologies,
+            showcase: p.showcase // Ensure showcase state is captured
+          };
+        });
+        setProjects(mapped);
+        return mapped;
+      }
+    } catch (err) {
+      console.error("Projects fetch failed:", err);
+    }
+    return [];
+  };
+
   const initializeShowcase = async () => {
     if (isDemo) {
       setIsLoadingData(false);
@@ -133,53 +216,7 @@ const ShowcaseDashboard = ({
 
     setIsLoadingData(true);
     try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-
       console.log("🚀 Initializing showcase data...");
-
-      // Helper to handle status check immediately
-      const fetchStatus = async () => {
-        try {
-          const res = await fetch("/api/integrations/status");
-          if (res.ok) {
-            const data = await res.json();
-            const github = data.statuses?.find((s: any) => s.platform === "github");
-            const connected = !!github?.connected;
-            setIsGitHubConnected(connected);
-            if (!connected) setGithubRepos([]);
-            return connected;
-          }
-        } catch (err) {
-          console.error("Status check failed:", err);
-        }
-        return false;
-      };
-
-      // Helper to handle projects independently
-      const fetchPrimaryProjects = async () => {
-        try {
-          const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, { credentials: 'include' });
-          if (res.ok) {
-            const result = await res.json();
-            const mapped = (result.data?.projects || []).map((p: any) => ({
-              id: p.id || p._id,
-              name: p.name || p.title,
-              description: p.description,
-              status: p.status || "draft",
-              lastUpdated: p.updatedAt || p.createdAt || new Date().toISOString(),
-              category: p.category || "Web Development",
-              githubUrl: p.githubUrl,
-              visibility: p.visibility || "public",
-              tags: p.technologies || []
-            }));
-            setProjects(mapped);
-            return mapped;
-          }
-        } catch (err) {
-          console.error("Projects fetch failed:", err);
-        }
-        return [];
-      };
 
       // Run both in parallel but allow them to finish whenever
       const [isConnected, apiProjects] = await Promise.all([
@@ -191,7 +228,6 @@ const ShowcaseDashboard = ({
       setIsLoadingData(false);
 
       // Stage 2: Background sync for GitHub repos if connected
-      // Use a session-local flag to avoid syncing more than once per page session
       const lastSync = sessionStorage.getItem('last_github_sync');
       const now = Date.now();
       const oneHour = 60 * 60 * 1000;
@@ -200,6 +236,15 @@ const ShowcaseDashboard = ({
         sessionStorage.setItem('last_github_sync', now.toString());
         fetchGitHubRepos(apiProjects);
       }
+
+      // Automatically trigger a silent category fix on every initialization for debugging
+      fetch(`${apiBaseUrl}/api/projects/fix-categories`, {
+        method: 'POST',
+        credentials: 'include'
+      }).then(() => {
+        // Refresh project list after fix to show new categories
+        setTimeout(fetchPrimaryProjects, 1000);
+      }).catch(err => console.error("Auto category fix failed:", err));
 
     } catch (error) {
       console.error("❌ Error initializing showcase:", error);
@@ -218,12 +263,12 @@ const ShowcaseDashboard = ({
       // Update local state immediately for snappy UI
       setProjects(prev => prev.map(p => p.id === project.id ? { ...p, showcase: newShowcaseValue } : p));
 
-      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+      const response = await fetch(`${apiBaseUrl}/api/projects/toggle-showcase`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...project,
+          id: project.id,
           showcase: newShowcaseValue
         }),
       });
@@ -260,8 +305,6 @@ const ShowcaseDashboard = ({
         const error = await response.json();
         console.error(`Enhancement failed: ${error.message}`);
       }
-    } catch (error) {
-      console.error("AI Enhancement failed:", error);
     } finally {
       setIsEnhancing(null);
     }
@@ -279,18 +322,21 @@ const ShowcaseDashboard = ({
       const importedUrls = new Set((existingProjects || projects).map(p => p.githubUrl?.toLowerCase()));
 
       const mappedRepos: Project[] = repos
-        .map((repo: any) => ({
-          id: repo.id.toString(),
-          name: repo.name,
-          description: repo.description || "Project from GitHub",
-          status: "pending_review" as const,
-          lastUpdated: repo.updated_at,
-          category: repo.language || "Uncategorized",
-          githubUrl: repo.html_url,
-          visibility: repo.private ? "private" : "public",
-          tags: [repo.language].filter(Boolean),
-          isGithubRepo: true
-        }))
+        .map((repo: any) => {
+          const domain = detectProjectDomain(repo.language, []);
+          return {
+            id: repo.id.toString(),
+            name: repo.name,
+            description: repo.description || "Project from GitHub",
+            status: "pending_review" as const,
+            lastUpdated: repo.updated_at,
+            category: domain,
+            githubUrl: repo.html_url,
+            visibility: repo.private ? "private" : "public",
+            tags: [repo.language].filter(Boolean),
+            isGithubRepo: true
+          };
+        })
         .filter((repo: Project) => !repo.githubUrl || !importedUrls.has(repo.githubUrl.toLowerCase()));
 
       setGithubRepos(mappedRepos);
@@ -320,10 +366,10 @@ const ShowcaseDashboard = ({
         title: project.name,
         description: project.description,
         githubUrl: project.githubUrl,
-        technologies: project.tags || [],
+        technologies: project.technologies || project.tags || [],
         status: 'pending_review',
         visibility: project.visibility || 'public',
-        category: project.category || 'Web Development'
+        category: project.category
       };
 
       const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
@@ -460,8 +506,17 @@ const ShowcaseDashboard = ({
           return 0;
       }
 
+      // Primary sort: published first
+      const aStatus = (a.status || '').toLowerCase();
+      const bStatus = (b.status || '').toLowerCase();
+
+      if (aStatus === 'published' && bStatus !== 'published') return -1;
+      if (aStatus !== 'published' && bStatus === 'published') return 1;
+
+      // Secondary sort: by selected field
       if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
       if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
+
       return 0;
     });
   }, [
@@ -645,7 +700,7 @@ const ShowcaseDashboard = ({
         return (
           <Badge
             variant="outline"
-            className="border-orange-200 text-orange-700 bg-orange-100 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 whitespace-nowrap flex-shrink-0"
+            className="border-orange-200 text-orange-700 bg-orange-100 flex items-center gap-1 whitespace-nowrap flex-shrink-0"
           >
             <AlertCircle className="w-3 h-3 flex-shrink-0" />
             Pending Review
@@ -1214,276 +1269,7 @@ const ShowcaseDashboard = ({
                   </div>
                 )}
 
-                {/* All Projects */}
-                {filteredAndSortedProjects.length > 0 && (
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-gray-900 text-2xl font-bold">
-                        My Projects ({filteredAndSortedProjects.length})
-                      </h2>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={handleSelectAll}
-                        className="text-sm"
-                      >
-                        {selectedProjects.length === filteredAndSortedProjects.length
-                          ? "Deselect All"
-                          : "Select All"}
-                      </Button>
-                    </div>
 
-                    {viewMode === "grid" ? (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {filteredAndSortedProjects.map((project) => (
-                          <Card
-                            key={project.id}
-                            className="hover:shadow-md transition-shadow"
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedProjects.includes(
-                                      project.id,
-                                    )}
-                                    onChange={() =>
-                                      handleSelectProject(project.id)
-                                    }
-                                    className="rounded"
-                                  />
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2">
-                                      <h3 className="font-medium text-gray-900 line-clamp-1">
-                                        {project.name}
-                                      </h3>
-                                      {project.githubUrl && (
-                                        <div title="Imported from GitHub">
-                                          <Github className="w-3.5 h-3.5 text-gray-400" />
-                                        </div>
-                                      )}
-                                    </div>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                      <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
-                                        {project.category}
-                                      </span>
-                                      {project.technologies?.slice(0, 3).map((tech) => (
-                                        <span key={tech} className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">
-                                          {tech}
-                                        </span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-2">
-                                  <div className="flex items-center gap-1">
-                                    {getVisibilityIcon(project.visibility)}
-                                    {getStatusBadge(project.status)}
-                                  </div>
-                                  <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
-                                    <Switch
-                                      id={`showcase-${project.id}`}
-                                      checked={project.showcase}
-                                      onCheckedChange={() => handleToggleShowcase(project)}
-                                    />
-                                    <Label htmlFor={`showcase-${project.id}`} className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Showcase</Label>
-                                  </div>
-                                </div>
-                              </div>
-
-                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                                {project.description}
-                              </p>
-
-                              <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                                <div className="flex items-center gap-3">
-                                  {project.views && (
-                                    <span className="flex items-center gap-1">
-                                      <Eye className="w-3 h-3" />
-                                      {project.views}
-                                    </span>
-                                  )}
-                                  {project.likes && (
-                                    <span className="flex items-center gap-1">
-                                      <Star className="w-3 h-3" />
-                                      {project.likes}
-                                    </span>
-                                  )}
-                                  {project.codeQualityScore && (
-                                    <span className="flex items-center gap-1">
-                                      <Code className="w-3 h-3" />
-                                      {project.codeQualityScore}%
-                                    </span>
-                                  )}
-                                </div>
-                                <span>
-                                  {new Date(
-                                    project.lastUpdated,
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-
-                              <div className="flex gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    navigate(
-                                      `/showcase/edit/${project.id}`,
-                                    )
-                                  }
-                                  className="flex-1"
-                                >
-                                  <Edit3 className="w-3 h-3 mr-1" />
-                                  {project.status === "draft"
-                                    ? "Continue"
-                                    : "Edit"}
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() =>
-                                    navigate(`/showcase/view/${project.id}`)
-                                  }
-                                >
-                                  <Eye className="w-3 h-3" />
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="bg-gray-50 border-b border-gray-200">
-                              <th className="px-6 py-4 text-left">
-                                <input
-                                  type="checkbox"
-                                  checked={
-                                    selectedProjects.length ===
-                                    savedProjects.length &&
-                                    savedProjects.length > 0
-                                  }
-                                  onChange={handleSelectAll}
-                                  className="rounded"
-                                />
-                              </th>
-                              <th
-                                className="px-6 py-4 text-left text-gray-900 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors"
-                                onClick={() => handleSort("name")}
-                              >
-                                <div className="flex items-center gap-2">
-                                  Project
-                                  {sortField === "name" &&
-                                    (sortDirection === "asc" ? (
-                                      <ArrowUp className="w-4 h-4" />
-                                    ) : (
-                                      <ArrowDown className="w-4 h-4" />
-                                    ))}
-                                  {sortField !== "name" && (
-                                    <ArrowUpDown className="w-4 h-4 text-gray-400" />
-                                  )}
-                                </div>
-                              </th>
-                              <th className="px-6 py-4 text-left text-gray-900 text-sm font-medium">
-                                Description
-                              </th>
-                              <th
-                                className="px-6 py-4 text-left text-gray-900 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors"
-                                onClick={() => handleSort("status")}
-                              >
-                                <div className="flex items-center gap-2">
-                                  Status
-                                  {sortField === "status" &&
-                                    (sortDirection === "asc" ? (
-                                      <ArrowUp className="w-4 h-4" />
-                                    ) : (
-                                      <ArrowDown className="w-4 h-4" />
-                                    ))}
-                                  {sortField !== "status" && (
-                                    <ArrowUpDown className="w-4 h-4 text-gray-400" />
-                                  )}
-                                </div>
-                              </th>
-                              <th className="px-6 py-4 text-left text-gray-500 text-sm font-medium">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredAndSortedProjects.map((project) => (
-                              <tr
-                                key={project.id}
-                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                              >
-                                <td className="px-6 py-4">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedProjects.includes(
-                                      project.id,
-                                    )}
-                                    onChange={() =>
-                                      handleSelectProject(project.id)
-                                    }
-                                    className="rounded"
-                                  />
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    {getVisibilityIcon(project.visibility)}
-                                    <div>
-                                      <div className="text-gray-900 font-medium">
-                                        {project.name}
-                                      </div>
-                                      <div className="text-gray-500 text-sm">
-                                        {project.category}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </td>
-                                <td className="px-6 py-4 text-gray-500 text-sm max-w-md">
-                                  {project.description}
-                                </td>
-                                <td className="px-6 py-4">
-                                  {getStatusBadge(project.status)}
-                                </td>
-                                <td className="px-6 py-4">
-                                  <div className="flex items-center gap-2">
-                                    <button
-                                      onClick={() =>
-                                        navigate(
-                                          `/showcase/edit/${project.id}`,
-                                        )
-                                      }
-                                      className="text-[#1E3A8A] hover:text-[#1D4ED8] font-medium text-sm transition-colors flex items-center gap-2"
-                                    >
-                                      <Edit3 className="w-4 h-4" />
-                                      {project.status === "draft"
-                                        ? "Continue"
-                                        : "Edit"}
-                                    </button>
-                                    <button
-                                      onClick={() =>
-                                        navigate(`/showcase/view/${project.id}`)
-                                      }
-                                      className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-2"
-                                    >
-                                      <Eye className="w-4 h-4" />
-                                      View
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    )}
-                  </div>
-                )}
 
                 {/* Published Projects */}
                 {filteredAndSortedProjects.filter(p => p.status === 'published').length > 0 && (
@@ -1515,7 +1301,7 @@ const ShowcaseDashboard = ({
                             key={project.id}
                             className="hover:shadow-md transition-shadow"
                           >
-                            <CardContent className="p-4">
+                            <CardContent className="p-4 flex flex-col h-full">
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                   <input
@@ -1580,24 +1366,25 @@ const ShowcaseDashboard = ({
                                 </span>
                               </div>
 
-                              <div className="flex gap-2">
+                              <div className="flex gap-2 flex-nowrap mt-auto pt-3">
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() =>
                                     navigate(`/showcase/view/${project.id}`)
                                   }
-                                  className="flex-1"
+                                  className="flex-1 flex items-center justify-center gap-1 h-8"
                                 >
-                                  <Eye className="w-3 h-3 mr-1" />
+                                  <Eye className="w-3.5 h-3.5" />
                                   View
                                 </Button>
                                 <Button
                                   variant="outline"
                                   size="sm"
                                   onClick={() => handleImportAndEdit(project)}
+                                  className="h-8 w-8 p-0 flex items-center justify-center shrink-0"
                                 >
-                                  <Edit3 className="w-3 h-3" />
+                                  <Edit3 className="w-3.5 h-3.5" />
                                 </Button>
                               </div>
                             </CardContent>
@@ -1739,21 +1526,300 @@ const ShowcaseDashboard = ({
                                 </td>
                                 <td className="px-6 py-4">
                                   <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => navigate(`/showcase/view/${project.id}`)}
+                                      className="flex-1"
+                                    >
+                                      <Eye className="w-3.5 h-3.5 mr-2" />
+                                      View
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => navigate(`/showcase/edit/${project.id}`)}
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* All Other Projects */}
+                {filteredAndSortedProjects.length > 0 && (
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-gray-900 text-2xl font-bold">
+                        All Projects ({filteredAndSortedProjects.length})
+                      </h2>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleSelectAll}
+                        className="text-sm"
+                      >
+                        {selectedProjects.length === filteredAndSortedProjects.length
+                          ? "Deselect All"
+                          : "Select All"}
+                      </Button>
+                    </div>
+
+                    {viewMode === "grid" ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {filteredAndSortedProjects
+                          .map((project) => (
+                            <Card
+                              key={project.id}
+                              className="hover:shadow-md transition-shadow"
+                            >
+                              <CardContent className="p-4 flex flex-col h-full">
+                                <div className="flex items-start justify-between mb-3">
+                                  <div className="flex items-center gap-2">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedProjects.includes(
+                                        project.id,
+                                      )}
+                                      onChange={() =>
+                                        handleSelectProject(project.id)
+                                      }
+                                      className="rounded"
+                                    />
+                                    <div className="flex-1">
+                                      <div className="flex items-center gap-2">
+                                        <h3 className="font-medium text-gray-900 line-clamp-1">
+                                          {project.name}
+                                        </h3>
+                                        {project.githubUrl && (
+                                          <div title="Imported from GitHub">
+                                            <Github className="w-3.5 h-3.5 text-gray-400" />
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-wrap gap-1 mt-1">
+                                        <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
+                                          {project.category}
+                                        </span>
+                                        {project.technologies?.slice(0, 3).map((tech) => (
+                                          <span key={tech} className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">
+                                            {tech}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-2">
+                                    <div className="flex items-center gap-1">
+                                      {getVisibilityIcon(project.visibility)}
+                                      {getStatusBadge(project.status)}
+                                    </div>
+                                    <div className="flex items-center space-x-2 bg-gray-50 px-2 py-1 rounded-md border border-gray-100">
+                                      <Switch
+                                        id={`showcase-${project.id}`}
+                                        checked={project.showcase}
+                                        onCheckedChange={() => handleToggleShowcase(project)}
+                                      />
+                                      <Label htmlFor={`showcase-${project.id}`} className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Showcase</Label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+                                  {project.description}
+                                </p>
+
+                                <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                                  <div className="flex items-center gap-3">
+                                    {project.views && (
+                                      <span className="flex items-center gap-1">
+                                        <Eye className="w-3 h-3" />
+                                        {project.views}
+                                      </span>
+                                    )}
+                                    {project.likes && (
+                                      <span className="flex items-center gap-1">
+                                        <Star className="w-3 h-3" />
+                                        {project.likes}
+                                      </span>
+                                    )}
+                                    {project.codeQualityScore && (
+                                      <span className="flex items-center gap-1">
+                                        <Code className="w-3 h-3" />
+                                        {project.codeQualityScore}%
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span>
+                                    {(() => {
+                                      const d = new Date(project.lastUpdated);
+                                      return isNaN(d.getTime()) ? 'No Date' : d.toLocaleDateString();
+                                    })()}
+                                  </span>
+                                </div>
+
+                                <div className="flex gap-2 flex-nowrap mt-auto pt-3">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => navigate(`/showcase/edit/${project.id}`)}
+                                    className="flex-1 flex items-center justify-center gap-1 h-8"
+                                  >
+                                    <Edit3 className="w-3.5 h-3.5" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => navigate(`/showcase/view/${project.id}`)}
+                                    className="h-8 w-8 p-0 flex items-center justify-center shrink-0"
+                                  >
+                                    <Eye className="w-3.5 h-3.5" />
+                                  </Button>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                              <th className="px-6 py-4 text-left">
+                                <input
+                                  type="checkbox"
+                                  checked={
+                                    selectedProjects.length ===
+                                    savedProjects.length &&
+                                    savedProjects.length > 0
+                                  }
+                                  onChange={handleSelectAll}
+                                  className="rounded"
+                                />
+                              </th>
+                              <th
+                                className="px-6 py-4 text-left text-gray-900 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors"
+                                onClick={() => handleSort("name")}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Project
+                                  {sortField === "name" &&
+                                    (sortDirection === "asc" ? (
+                                      <ArrowUp className="w-4 h-4" />
+                                    ) : (
+                                      <ArrowDown className="w-4 h-4" />
+                                    ))}
+                                  {sortField !== "name" && (
+                                    <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
+                              </th>
+                              <th className="px-6 py-4 text-left text-gray-900 text-sm font-medium">
+                                Description
+                              </th>
+                              <th
+                                className="px-6 py-4 text-left text-gray-900 text-sm font-medium cursor-pointer hover:bg-gray-100 transition-colors"
+                                onClick={() => handleSort("status")}
+                              >
+                                <div className="flex items-center gap-2">
+                                  Status
+                                  {sortField === "status" &&
+                                    (sortDirection === "asc" ? (
+                                      <ArrowUp className="w-4 h-4" />
+                                    ) : (
+                                      <ArrowDown className="w-4 h-4" />
+                                    ))}
+                                  {sortField !== "status" && (
+                                    <ArrowUpDown className="w-4 h-4 text-gray-400" />
+                                  )}
+                                </div>
+                              </th>
+                              <th className="px-6 py-4 text-left text-gray-900 text-sm font-medium">
+                                Showcase
+                              </th>
+                              <th className="px-6 py-4 text-left text-gray-500 text-sm font-medium">
+                                Actions
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-gray-200">
+                            {filteredAndSortedProjects.map((project) => (
+                              <tr
+                                key={project.id}
+                                className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                              >
+                                <td className="px-6 py-4">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedProjects.includes(
+                                      project.id,
+                                    )}
+                                    onChange={() =>
+                                      handleSelectProject(project.id)
+                                    }
+                                    className="rounded"
+                                  />
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2">
+                                    {getVisibilityIcon(project.visibility)}
+                                    <div>
+                                      <div className="text-gray-900 font-medium">
+                                        {project.name}
+                                      </div>
+                                      <div className="text-gray-500 text-sm">
+                                        {project.category}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 text-gray-500 text-sm max-w-md">
+                                  {project.description}
+                                </td>
+                                <td className="px-6 py-4">
+                                  {getStatusBadge(project.status)}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center space-x-2">
+                                    <Switch
+                                      id={`showcase-list-${project.id}`}
+                                      checked={project.showcase}
+                                      onCheckedChange={() => handleToggleShowcase(project)}
+                                    />
+                                    <Label htmlFor={`showcase-list-${project.id}`} className="text-[10px] font-bold uppercase text-gray-500 cursor-pointer">Showcase</Label>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-2">
+                                    <button
+                                      onClick={() =>
+                                        navigate(
+                                          `/showcase/edit/${project.id}`,
+                                        )
+                                      }
+                                      className="text-[#1E3A8A] hover:text-[#1D4ED8] font-medium text-sm transition-colors flex items-center gap-2"
+                                    >
+                                      <Edit3 className="w-4 h-4" />
+                                      {project.status === "draft"
+                                        ? "Continue"
+                                        : "Edit"}
+                                    </button>
                                     <button
                                       onClick={() =>
                                         navigate(`/showcase/view/${project.id}`)
                                       }
-                                      className="text-[#1E3A8A] hover:text-[#1D4ED8] font-medium text-sm transition-colors flex items-center gap-2"
+                                      className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-2"
                                     >
                                       <Eye className="w-4 h-4" />
                                       View
-                                    </button>
-                                    <button
-                                      onClick={() => handleImportAndEdit(project)}
-                                      className="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors flex items-center gap-2"
-                                    >
-                                      <Edit3 className="w-4 h-4" />
-                                      Edit
                                     </button>
                                   </div>
                                 </td>
@@ -1930,14 +1996,15 @@ const ShowcaseDashboard = ({
                 )}
               </div>
             </>
-          )}
-        </div>
+          )
+          }
+        </div >
         <LoginModal
           isOpen={isLoginModalOpen}
           onClose={() => setIsLoginModalOpen(false)}
           onLoginSuccess={handleLoginSuccess}
         />
-      </main>
+      </main >
     </UnifiedLayout >
   );
 };

@@ -77,7 +77,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       items: [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
         { id: "portfolio", label: "Portfolio", icon: FolderOpen, path: "/portfolio" },
-        { id: "portfolio-manage", label: "Manager", icon: Briefcase, path: "/portfolio/manage" },
+        { id: "portfolio-manage", label: "Asset Manager", icon: Briefcase, path: "/portfolio/manage" },
         { id: "content", label: "Content", icon: FileText, path: "/content" },
         { id: "showcase", label: "Showcase", icon: Package, path: "/showcase" },
       ]

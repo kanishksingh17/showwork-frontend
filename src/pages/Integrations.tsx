@@ -133,10 +133,8 @@ export default function Integrations() {
   const { data } = useQuery<{ success: boolean; statuses: IntegrationStatus[] }>({
     queryKey: ["integrationStatus"],
     queryFn: async () => {
-      // Use credentials: 'include' to ensure cookies are sent, even though proxy should handle it
       const response = await fetch("/api/integrations/status", {
         headers: { "Content-Type": "application/json" },
-        // credentials: "include" // Redundant for same-origin but explicit
       });
       if (!response.ok) throw new Error("Failed to fetch status");
       return response.json();
@@ -151,14 +149,14 @@ export default function Integrations() {
   // Connect/Disconnect Mutations
   const connectMutation = useMutation({
     mutationFn: async (platform: string) => {
+      toast.info(`Connecting to ${platform}...`);
       const response = await fetch(`/api/integrations/connect/${platform}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // credentials: "include" 
       });
       const data = await response.json();
-      if (data.authUrl) window.location.href = data.authUrl;
-      else if (data.url) window.location.href = data.url;
+      if (data.url) window.location.href = data.url;
+      else if (data.authUrl) window.location.href = data.authUrl;
       else toast.error("Could not initiate connection");
     },
     onError: (err) => toast.error("Connection failed")
@@ -177,6 +175,7 @@ export default function Integrations() {
   });
 
   const handleToggle = (id: string, currentState: boolean) => {
+    console.log(`Toggling ${id}. Current state: ${currentState}`);
     if (currentState) {
       disconnectMutation.mutate(id);
     } else {
@@ -248,7 +247,6 @@ export default function Integrations() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Add integrations</h1>
               <p className="text-gray-500 mt-1">Connect your favorite tools to supercharge your workflow.</p>
             </div>
-
           </div>
 
           {/* List */}
@@ -256,7 +254,11 @@ export default function Integrations() {
             {INTEGRATIONS.map((item) => {
               const isConnected = getStatus(item.id);
               return (
-                <div key={item.id} className="group flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-700">
+                <div
+                  key={item.id}
+                  onClick={() => !item.comingSoon && handleToggle(item.id, isConnected)}
+                  className={`group flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-700 cursor-pointer`}
+                >
                   <div className="flex items-start gap-4">
                     <div className={`w-10 h-10 ${item.color} rounded-lg flex items-center justify-center shrink-0`}>
                       <item.icon className="w-5 h-5 text-white" />
@@ -277,14 +279,13 @@ export default function Integrations() {
                   <Switch
                     checked={isConnected}
                     disabled={!!item.comingSoon}
-                    onCheckedChange={(checked) => handleToggle(item.id, isConnected)}
-                    className="data-[state=checked]:bg-blue-600"
+                    onCheckedChange={() => { }} // Handle via parent div onClick
+                    className="data-[state=checked]:bg-blue-600 pointer-events-none"
                   />
                 </div>
               );
             })}
           </div>
-
         </div>
       </div>
     </UnifiedLayout>

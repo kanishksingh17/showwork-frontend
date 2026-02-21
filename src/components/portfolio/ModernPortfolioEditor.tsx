@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
+import { motion } from "framer-motion";
 import {
-    Settings,
-    Palette,
-    Layout,
-    Home,
-    Plus,
-    ChevronDown,
     Monitor,
     Smartphone,
     Tablet,
@@ -13,12 +8,13 @@ import {
     Redo,
     Rocket,
     ArrowLeft,
-    Check
+    Layout,
+    Layers as LayersIcon,
+    Settings,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-// import { Badge } from '@/components/ui/badge';
-import { DynamicPortfolioRenderer } from './DynamicPortfolioRenderer';
+import { PortfolioTemplateInner } from './templates/PortfolioTemplate';
 import type { UserPortfolio, PortfolioTemplate } from '@/types/portfolio';
 
 interface ModernPortfolioEditorProps {
@@ -33,11 +29,19 @@ interface ModernPortfolioEditorProps {
 
 import { useEffect } from 'react';
 import { usePortfolioDispatch, usePortfolioSelector } from '@/store/portfolio/hooks';
-import { updateUserData, selectTemplate, setJobRole, setSections, updateTheme } from '@/store/portfolio/portfolioSlice';
+import {
+    selectTemplate,
+    setJobRole,
+    setSections,
+    updateTheme,
+    setEditorMode,
+} from '@/store/portfolio/portfolioSlice';
 
-import { ThemePanel } from './editor/panels/ThemePanel';
 import { PagesPanel } from './editor/panels/PagesPanel';
 import { SettingsPanel } from './editor/panels/SettingsPanel';
+import { ResumeTemplatesPanel } from './editor/panels/ResumeTemplatesPanel';
+import { ResumePreview } from './ResumePreview';
+import { SectionVariantsPanel } from './editor/panels/SectionVariantsPanel';
 
 export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     template,
@@ -48,14 +52,19 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     onClose
 }) => {
     const dispatch = usePortfolioDispatch();
-    const [activeTab, setActiveTab] = useState<'settings' | 'theme' | 'pages'>('pages');
+    const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'styles'>('pages');
     const [deviceView, setDeviceView] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
     const currentTheme = usePortfolioSelector(state => state.portfolio.theme);
+    const editorMode = usePortfolioSelector(state => state.portfolio.editorMode);
+    const sections = usePortfolioSelector(state => state.portfolio.sections);
+    const storeUserData = usePortfolioSelector(state => state.portfolio.userData);
 
     useEffect(() => {
         if (template) {
             dispatch(selectTemplate(template.id));
-            if (template.sections) {
+            // Only set default sections if the store doesn't already have sections populated
+            // This prevents overwriting AI-generated content or user edits
+            if (template.sections && (!sections || sections.length === 0)) {
                 dispatch(setSections(template.sections));
             }
             if (template.theme) {
@@ -70,7 +79,16 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
         if (jobRole) {
             dispatch(setJobRole(jobRole.id));
         }
-    }, [template, jobRole, dispatch]);
+    }, [template, jobRole, dispatch, sections]);
+
+    const activeSection = usePortfolioSelector(state => state.portfolio.activeSection);
+
+    // Effect to switch tab when a section is activated from the canvas
+    useEffect(() => {
+        if (activeSection) {
+            setActiveTab('styles');
+        }
+    }, [activeSection]);
 
     return (
         <div className="flex h-full w-full bg-[#FAFAFA] overflow-hidden font-sans text-gray-900">
@@ -103,13 +121,13 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                         Pages
                     </Button>
                     <Button
-                        variant={activeTab === 'theme' ? 'secondary' : 'ghost'}
+                        variant={activeTab === 'styles' ? 'secondary' : 'ghost'}
                         size="sm"
                         className="flex-1 gap-2 h-9 text-xs font-medium"
-                        onClick={() => setActiveTab('theme')}
+                        onClick={() => setActiveTab('styles')}
                     >
-                        <Palette className="w-3.5 h-3.5" />
-                        Theme
+                        <LayersIcon className="w-3.5 h-3.5" />
+                        Style
                     </Button>
                     <Button
                         variant={activeTab === 'settings' ? 'secondary' : 'ghost'}
@@ -124,9 +142,17 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
 
                 {/* Main Panel Content */}
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
-                    {activeTab === 'pages' && <PagesPanel />}
-                    {activeTab === 'theme' && <ThemePanel />}
-                    {activeTab === 'settings' && <SettingsPanel />}
+                    {editorMode === 'portfolio' ? (
+                        <>
+                            {activeTab === 'pages' && <PagesPanel />}
+                            {activeTab === 'styles' && <SectionVariantsPanel />}
+                            {activeTab === 'settings' && <SettingsPanel />}
+                        </>
+                    ) : (
+                        <>
+                            <ResumeTemplatesPanel />
+                        </>
+                    )}
                 </div>
 
                 {/* Sidebar Footer */}
@@ -137,7 +163,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                     </div>
 
                     <Button className="w-full bg-gray-900 text-white hover:bg-gray-800" onClick={onPublish}>
-                        Publish Portfolio
+                        {editorMode === 'portfolio' ? 'Publish Portfolio' : 'Download Resume'}
                     </Button>
                 </div>
             </aside>
@@ -170,6 +196,25 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                         </button>
                     </div>
 
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-full">
+                        <Button
+                            variant={editorMode === 'portfolio' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className={`h-8 rounded-full px-4 text-xs font-medium transition-all ${editorMode === 'portfolio' ? 'bg-white shadow-sm border-gray-200' : ''}`}
+                            onClick={() => dispatch(setEditorMode('portfolio'))}
+                        >
+                            Portfolio
+                        </Button>
+                        <Button
+                            variant={editorMode === 'resume' ? 'secondary' : 'ghost'}
+                            size="sm"
+                            className={`h-8 rounded-full px-4 text-xs font-medium transition-all ${editorMode === 'resume' ? 'bg-white shadow-sm border-gray-200' : ''}`}
+                            onClick={() => dispatch(setEditorMode('resume'))}
+                        >
+                            Resume
+                        </Button>
+                    </div>
+
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                             <Undo className="w-4 h-4 text-gray-500" />
@@ -189,22 +234,24 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 <div className={`flex-1 overflow-hidden relative flex ${deviceView === 'desktop' ? '' : 'items-center justify-center p-8'}`}>
                     <div
                         className={`
-                bg-white transition-all duration-300 ease-in-out overflow-hidden relative
+                bg-white transition-all duration-300 ease-in-out relative
                 ${deviceView === 'desktop' ? 'w-full h-full' : 'shadow-2xl border border-gray-200'}
-                ${deviceView === 'tablet' ? 'w-[768px] h-[90%] rounded-xl' : ''}
-                ${deviceView === 'mobile' ? 'w-[375px] h-[90%] rounded-2xl' : ''}
+                ${deviceView === 'tablet' ? 'w-[768px] h-[90%] rounded-xl overflow-hidden' : ''}
+                ${deviceView === 'mobile' ? 'w-[375px] h-[90%] rounded-2xl overflow-hidden' : ''}
                 ${currentTheme.mode === 'dark' ? 'dark' : ''}
              `}
                     >
                         {/* This is where rendering happens */}
-                        <div className="w-full h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar">
+                        <div className="w-full h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar pt-16">
                             <div className="min-h-full">
-                                <DynamicPortfolioRenderer
-                                    templateId={template.id}
-                                    sections={template.sections || []}
-                                    userData={userData}
-                                    projects={projects}
-                                />
+                                {editorMode === 'portfolio' ? (
+                                    <PortfolioTemplateInner
+                                        userData={storeUserData}
+                                        projects={projects}
+                                    />
+                                ) : (
+                                    <ResumePreview userData={userData} projects={projects} />
+                                )}
                             </div>
                         </div>
                     </div>

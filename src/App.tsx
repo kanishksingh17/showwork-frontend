@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "sonner";
 import Dashboard from "./pages/Dashboard";
 import ShowcaseDashboard from "./pages/ShowcaseDashboard";
 import ManualProjectForm from "./app/showcase/ManualProjectForm";
@@ -13,7 +14,6 @@ import Community from "./pages/Community";
 import PortfolioBuilder from "./pages/PortfolioBuilder";
 import PortfolioManagement from "./pages/PortfolioManagement";
 import PortfolioDemo from "./pages/PortfolioDemo";
-import PortfolioPreviewFull from "./pages/PortfolioPreviewFull";
 import ApplicationTracker from "./pages/ApplicationTracker";
 
 // ... existing code ...
@@ -188,7 +188,7 @@ function App() {
           } />
           <Route path="/portfolio" element={
             <ProtectedRoute>
-              <Navigate to="/portfolio/builder" replace />
+              <PortfolioBuilder />
             </ProtectedRoute>
           } />
           <Route path="/portfolio/builder" element={
@@ -204,11 +204,6 @@ function App() {
           <Route path="/portfolio/demo/*" element={
             <ProtectedRoute>
               <PortfolioDemo />
-            </ProtectedRoute>
-          } />
-          <Route path="/portfolio/preview-full" element={
-            <ProtectedRoute>
-              <PortfolioPreviewFull />
             </ProtectedRoute>
           } />
 
@@ -241,6 +236,7 @@ function App() {
 
         </Routes>
       </Router>
+      <Toaster position="top-right" richColors />
       {import.meta.env.MODE === "development" && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

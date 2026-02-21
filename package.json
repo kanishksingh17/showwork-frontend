@@ -85,6 +85,7 @@
     "react-resizable-panels": "^0.0.63",
     "react-router-dom": "^7.11.0",
     "react-spring": "^10.0.3",
+    "react-to-print": "^3.2.0",
     "react-tsparticles": "^2.12.2",
     "recharts": "^2.15.4",
     "rehype-highlight": "^7.0.2",

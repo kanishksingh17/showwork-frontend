@@ -58,6 +58,7 @@ export interface PortfolioSection {
   title: string;
   content: string;
   isRequired: boolean;
+  isVisible: boolean;
   order: number;
   variant?: string;
   customData?: any;

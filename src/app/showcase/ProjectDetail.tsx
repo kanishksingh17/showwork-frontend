@@ -39,6 +39,8 @@ import {
   Loader2,
   Play,
   X as XIcon,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -98,6 +100,7 @@ const ProjectDetail = () => {
   const [isLoadingMedia, setIsLoadingMedia] = useState(false);
   const [selectedMedia, setSelectedMedia] = useState<any | null>(null);
   const [showMediaViewer, setShowMediaViewer] = useState(false);
+  const [mediaFilter, setMediaFilter] = useState("all");
   const [editData, setEditData] = useState<Partial<Project>>({});
   const [newMemberName, setNewMemberName] = useState("");
   const [newMemberRole, setNewMemberRole] = useState("");
@@ -447,6 +450,28 @@ const ProjectDetail = () => {
     return () => window.removeEventListener("keydown", handleKeyPress);
   }, [isEditing]);
 
+  // Media Viewer Keyboard Support
+  useEffect(() => {
+    if (!showMediaViewer || !selectedMedia) return;
+
+    const handleMediaKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowMediaViewer(false);
+      } else if (e.key === "ArrowLeft") {
+        const currentIndex = projectMedia.findIndex(m => m.id === selectedMedia.id);
+        const prevIndex = (currentIndex - 1 + projectMedia.length) % projectMedia.length;
+        setSelectedMedia(projectMedia[prevIndex]);
+      } else if (e.key === "ArrowRight") {
+        const currentIndex = projectMedia.findIndex(m => m.id === selectedMedia.id);
+        const nextIndex = (currentIndex + 1) % projectMedia.length;
+        setSelectedMedia(projectMedia[nextIndex]);
+      }
+    };
+
+    window.addEventListener("keydown", handleMediaKeyPress);
+    return () => window.removeEventListener("keydown", handleMediaKeyPress);
+  }, [showMediaViewer, selectedMedia, projectMedia]);
+
   const getCodeQualityColor = (score: number) => {
     if (score >= 80) return "text-green-600";
     if (score >= 60) return "text-yellow-600";
@@ -648,185 +673,58 @@ const ProjectDetail = () => {
     }
   };
 
-  useEffect(() => {
-    // Load project data from localStorage
+  const fetchProjectData = async () => {
+    if (!id) return;
+
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiBaseUrl}/api/projects/${id}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.data?.project) {
+          const fetchedProject = result.data.project;
+          console.log("✅ Project fetched from backend:", fetchedProject);
+          setProject(fetchedProject);
+          setEditData(fetchedProject);
+          setLikes(fetchedProject.likes || 0);
+
+          // Fetch related data
+          fetchCurrentUser();
+          fetchProjectMedia(id);
+          fetchTeamMembers(id);
+          fetchComments(id);
+          setActivities([]);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error fetching project from backend:", error);
+    }
+
+    // Fallback to localStorage if backend fails or doesn't find the project
     const storedProjects = localStorage.getItem("showcase-projects");
-    if (storedProjects && id) {
+    if (storedProjects) {
       const projects = JSON.parse(storedProjects);
       const foundProject = projects.find((p: any) => p.id === id || p._id === id);
       if (foundProject) {
+        console.log("📦 Project loaded from localStorage (fallback)");
         setProject(foundProject);
         setEditData(foundProject);
         setLikes(foundProject.likes || 0);
-
-        // Fetch current user
         fetchCurrentUser();
-
-        // Fetch media from backend API
-        fetchProjectMedia(id);
-
-        // Fetch team members from backend API
-        fetchTeamMembers(id);
-
-        // Fetch comments from backend API
-        fetchComments(id);
-
-        // Initialize with empty activities (will be populated from real events and comments)
+        fetchProjectMedia(foundProject.id);
+        fetchTeamMembers(foundProject.id);
+        fetchComments(foundProject.id);
         setActivities([]);
-
-        // Add mock enhanced data if not present
-        if (foundProject && !foundProject.readme) {
-          const enhancedProject = {
-            ...foundProject,
-            technologies: [
-              {
-                id: "1",
-                name: "React",
-                category: "Frontend",
-                proficiency: 85,
-                experience: "3+ years",
-                projects: 12,
-                isRecommended: true,
-              },
-              {
-                id: "2",
-                name: "TypeScript",
-                category: "Frontend",
-                proficiency: 78,
-                experience: "2+ years",
-                projects: 8,
-                isRecommended: true,
-              },
-              {
-                id: "3",
-                name: "Node.js",
-                category: "Backend",
-                proficiency: 72,
-                experience: "2+ years",
-                projects: 6,
-                isRecommended: false,
-              },
-              {
-                id: "4",
-                name: "PostgreSQL",
-                category: "Database",
-                proficiency: 65,
-                experience: "1+ years",
-                projects: 4,
-                isRecommended: false,
-              },
-              {
-                id: "5",
-                name: "Tailwind CSS",
-                category: "Frontend",
-                proficiency: 90,
-                experience: "2+ years",
-                projects: 15,
-                isRecommended: true,
-              },
-              {
-                id: "6",
-                name: "AWS",
-                category: "Cloud",
-                proficiency: 55,
-                experience: "1+ years",
-                projects: 3,
-                isRecommended: false,
-              },
-            ],
-            readme: `# ${foundProject.name}
-
-## Description
-${foundProject.description}
-
-## Features
-- Modern UI/UX design
-- Responsive layout
-- Interactive components
-- Performance optimized
-
-## Technologies Used
-${foundProject.technologies?.map((tech: any) => `- ${tech.name}`).join("\n") || "- React\n- TypeScript\n- Tailwind CSS"}
-
-## Getting Started
-
-\`\`\`bash
-npm install
-npm run dev
-\`\`\`
-
-## Contributing
-Please read our contributing guidelines before submitting pull requests.
-
-## License
-This project is licensed under the MIT License.`,
-            stats: {
-              commits: 156,
-              pullRequests: 23,
-              releases: 4,
-              issues: 12,
-              contributors: 3,
-              stars: 45,
-              forks: 8,
-              watchers: 12,
-            },
-            performance: {
-              buildTime: 45,
-              bundleSize: 1024000,
-              lighthouse: {
-                performance: 92,
-                accessibility: 88,
-                bestPractices: 95,
-                seo: 89,
-              },
-              dependencies: {
-                total: 156,
-                outdated: 3,
-                vulnerable: 0,
-              },
-            },
-            codeQuality: {
-              ...foundProject.codeQuality,
-              languages: [
-                { name: "TypeScript", percentage: 45 },
-                { name: "JavaScript", percentage: 30 },
-                { name: "CSS", percentage: 15 },
-                { name: "HTML", percentage: 10 },
-              ],
-            },
-          };
-          setProject(enhancedProject);
-        }
       }
     }
+  };
 
-    // Load team members from localStorage
-    const storedTeamMembers = localStorage.getItem(`team-members-${id}`);
-    if (storedTeamMembers) {
-      setTeamMembers(JSON.parse(storedTeamMembers));
-    } else {
-      // Set default team members
-      setTeamMembers([
-        {
-          id: "1",
-          name: "John Doe",
-          role: "Project Lead",
-          email: "john@example.com",
-          initials: "JD",
-          color: "bg-blue-500",
-          joinedAt: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          name: "Jane Smith",
-          role: "Frontend Developer",
-          email: "jane@example.com",
-          initials: "JS",
-          color: "bg-green-500",
-          joinedAt: new Date().toISOString(),
-        },
-      ]);
-    }
+  useEffect(() => {
+    fetchProjectData();
   }, [id]);
 
   if (!project) {
@@ -989,10 +887,11 @@ This project is licensed under the MIT License.`,
                   Media Files
                 </p>
                 <p className="text-3xl font-bold text-gray-900">
-                  {(project.media?.images?.length || 0) +
-                    (project.media?.videos?.length || 0) +
-                    (project.media?.audio?.length || 0) +
-                    (project.media?.documents?.length || 0)}
+                  {projectMedia.length || (project.media ?
+                    (project.media.images?.length || 0) +
+                    (project.media.videos?.length || 0) +
+                    (project.media.audio?.length || 0) +
+                    (project.media.documents?.length || 0) : 0)}
                 </p>
                 <div className="flex items-center gap-1 mt-1">
                   <Image className="w-3 h-3 text-purple-600" />
@@ -1425,11 +1324,13 @@ This project is licensed under the MIT License.`,
               <div className="space-y-6">
                 {/* Group technologies by category */}
                 {(() => {
-                  const groupedTechs = project.technologies.reduce(
+                  const groupedTechs = (project.technologies || []).reduce(
                     (acc, tech) => {
-                      const category = tech.category || "Other";
+                      const techName = typeof tech === 'string' ? tech : tech.name;
+                      const category = (typeof tech === 'string' ? 'Other' : tech.category) || "Other";
+
                       if (!acc[category]) acc[category] = [];
-                      acc[category].push(tech);
+                      acc[category].push(typeof tech === 'string' ? { name: tech, proficiency: 80, experience: 'Proficient' } : tech);
                       return acc;
                     },
                     {} as Record<string, any[]>,
@@ -1522,14 +1423,27 @@ This project is licensed under the MIT License.`,
 
   const renderMediaTab = () => (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h3 className="text-lg font-semibold">Media Gallery</h3>
-        {isEditing && (
-          <Button onClick={() => navigate(`/showcase/edit/${id}`)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Media
-          </Button>
-        )}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
+          {["all", "image", "video", "audio", "document"].map((filter) => (
+            <Button
+              key={filter}
+              variant={mediaFilter === filter ? "default" : "outline"}
+              size="sm"
+              onClick={() => setMediaFilter(filter)}
+              className="capitalize whitespace-nowrap"
+            >
+              {filter === 'all' ? 'All Media' : filter + 's'}
+            </Button>
+          ))}
+          {isEditing && (
+            <Button onClick={() => navigate(`/showcase/edit/${id}`)} size="sm" className="ml-2">
+              <Plus className="w-4 h-4 mr-2" />
+              Add
+            </Button>
+          )}
+        </div>
       </div>
 
       {isLoadingMedia ? (
@@ -1540,70 +1454,79 @@ This project is licensed under the MIT License.`,
           </CardContent>
         </Card>
       ) : projectMedia && projectMedia.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {projectMedia.map((media: any) => {
-            const Icon = getMediaIcon(media.type);
-            return (
-              <Card
-                key={media.id}
-                className="cursor-pointer hover:shadow-md transition-shadow"
-              >
-                <CardContent className="p-4">
-                  {media.type?.startsWith('image/') ? (
-                    <div className="relative w-full h-48 mb-2 rounded-lg overflow-hidden">
-                      <img
-                        src={media.url}
-                        alt={media.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ) : media.type?.startsWith('video/') ? (
-                    <div className="relative w-full h-48 mb-2 rounded-lg overflow-hidden bg-gray-900 group">
-                      <video
-                        src={media.url}
-                        className="w-full h-full object-cover"
-                        preload="metadata"
-                        onLoadedMetadata={(e) => {
-                          // Try to capture a thumbnail frame
-                          const video = e.currentTarget;
-                          video.currentTime = 0.1; // Seek to 0.1 seconds for thumbnail
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center group-hover:bg-opacity-20 transition-all">
-                        <div className="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                          <Play className="w-8 h-8 text-white" />
-                        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {projectMedia
+            .filter((media: any) => {
+              if (mediaFilter === 'all') return true;
+              if (mediaFilter === 'document') return !media.type.startsWith('image/') && !media.type.startsWith('video/') && !media.type.startsWith('audio/');
+              return media.type.startsWith(mediaFilter + '/');
+            })
+            .map((media: any) => {
+              const Icon = getMediaIcon(media.type);
+              return (
+                <motion.div
+                  key={media.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.2 }}
+                  layoutId={`media-${media.id}`}
+                >
+                  <Card
+                    className="cursor-pointer group hover:shadow-xl transition-all duration-300 border-0 overflow-hidden bg-white/50 backdrop-blur-sm h-full flex flex-col"
+                    onClick={() => {
+                      setSelectedMedia(media);
+                      setShowMediaViewer(true);
+                    }}
+                  >
+                    <CardContent className="p-0 flex-1 flex flex-col">
+                      <div className="relative w-full aspect-square overflow-hidden bg-gray-100">
+                        {media.type?.startsWith('image/') ? (
+                          <img
+                            src={media.url.startsWith('http') ? media.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${media.url}`}
+                            alt={media.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : media.type?.startsWith('video/') ? (
+                          <div className="w-full h-full bg-gray-900 flex items-center justify-center group-hover:bg-gray-800 transition-colors">
+                            <video
+                              src={media.url.startsWith('http') ? media.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${media.url}`}
+                              className="w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                              preload="metadata"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Play className="w-6 h-6 text-white fill-current" />
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-blue-100 transition-colors">
+                            <Icon className="w-16 h-16 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                       </div>
-                    </div>
-                  ) : (
-                    <div className="w-full h-48 bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-                      <Icon className="w-12 h-12 text-gray-400" />
-                    </div>
-                  )}
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {media.name}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {formatFileSize(media.size || 0)}
-                      </p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedMedia(media);
-                        setShowMediaViewer(true);
-                      }}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+
+                      <div className="p-3 bg-white border-t border-gray-100 flex-1 flex flex-col justify-center">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-medium text-gray-900 truncate" title={media.name}>
+                            {media.name}
+                          </p>
+                          <Badge variant="secondary" className="text-[10px] px-1.5 h-5 shrink-0">
+                            {media.type.split('/')[1]?.toUpperCase() || 'FILE'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {formatFileSize(media.size || 0)}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              );
+            })}
         </div>
       ) : (
         <Card>
@@ -2004,70 +1927,123 @@ This project is licensed under the MIT License.`,
       </main>
 
       {/* Media Viewer Modal */}
-      {showMediaViewer && selectedMedia && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75 p-4">
-          <div className="relative bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
-            <div className="sticky top-0 bg-white border-b p-4 flex items-center justify-between z-10">
-              <h3 className="text-lg font-semibold">{selectedMedia.name}</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowMediaViewer(false);
-                  setSelectedMedia(null);
-                }}
+      <AnimatePresence>
+        {showMediaViewer && selectedMedia && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 backdrop-blur-md"
+            onClick={() => setShowMediaViewer(false)}
+          >
+            {/* Navigation Buttons */}
+            <button
+              className="absolute left-4 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Find current index and go to previous
+                const currentIndex = projectMedia.findIndex(m => m.id === selectedMedia.id);
+                const prevIndex = (currentIndex - 1 + projectMedia.length) % projectMedia.length;
+                setSelectedMedia(projectMedia[prevIndex]);
+              }}
+            >
+              <ChevronLeft className="w-8 h-8" />
+            </button>
+
+            <button
+              className="absolute right-4 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Find current index and go to next
+                const currentIndex = projectMedia.findIndex(m => m.id === selectedMedia.id);
+                const nextIndex = (currentIndex + 1) % projectMedia.length;
+                setSelectedMedia(projectMedia[nextIndex]);
+              }}
+            >
+              <ChevronRight className="w-8 h-8" />
+            </button>
+
+            {/* Close Button */}
+            <button
+              className="absolute top-4 right-4 p-2 text-white/50 hover:text-white hover:bg-white/10 rounded-full transition-all z-50"
+              onClick={() => setShowMediaViewer(false)}
+            >
+              <X className="w-6 h-6" />
+            </button>
+
+            {/* Content */}
+            <div
+              className="relative max-w-7xl w-full h-full flex flex-col items-center justify-center p-8 pointer-events-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <motion.div
+                key={selectedMedia.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                className="pointer-events-auto max-h-[85vh] max-w-full relative shadow-2xl rounded-lg overflow-hidden bg-black"
               >
-                <XIcon className="w-5 h-5" />
-              </Button>
-            </div>
-            <div className="p-4">
-              {selectedMedia.type?.startsWith('image/') ? (
-                <img
-                  src={selectedMedia.url}
-                  alt={selectedMedia.name}
-                  className="w-full h-auto rounded-lg"
-                />
-              ) : selectedMedia.type?.startsWith('video/') ? (
-                <video
-                  src={selectedMedia.url}
-                  controls
-                  className="w-full h-auto rounded-lg"
-                  autoPlay
-                >
-                  Your browser does not support the video tag.
-                </video>
-              ) : selectedMedia.type?.startsWith('audio/') ? (
-                <div className="p-8">
-                  <div className="flex items-center justify-center mb-4">
-                    <Music className="w-16 h-16 text-gray-400" />
+                {selectedMedia.type?.startsWith('image/') ? (
+                  <img
+                    src={selectedMedia.url.startsWith('http') ? selectedMedia.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${selectedMedia.url}`}
+                    alt={selectedMedia.name}
+                    className="max-h-[85vh] max-w-full object-contain"
+                  />
+                ) : selectedMedia.type?.startsWith('video/') ? (
+                  <div className="relative">
+                    <video
+                      src={selectedMedia.url.startsWith('http') ? selectedMedia.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${selectedMedia.url}`}
+                      controls
+                      autoPlay
+                      className="max-h-[85vh] max-w-full"
+                    />
                   </div>
-                  <audio
-                    src={selectedMedia.url}
-                    controls
-                    className="w-full"
-                    autoPlay
-                  >
-                    Your browser does not support the audio tag.
-                  </audio>
-                </div>
-              ) : (
-                <div className="p-8 text-center">
-                  <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-600 mb-4">
-                    Preview not available for this file type.
-                  </p>
-                  <Button
-                    onClick={() => window.open(selectedMedia.url, '_blank')}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    Open File
-                  </Button>
-                </div>
-              )}
+                ) : selectedMedia.type?.startsWith('audio/') ? (
+                  <div className="bg-gray-900 p-12 rounded-lg flex flex-col items-center min-w-[300px]">
+                    <div className="p-8 bg-gray-800 rounded-full mb-8 animate-pulse">
+                      <Music className="w-16 h-16 text-blue-400" />
+                    </div>
+                    <h3 className="text-white text-xl font-medium mb-6 text-center">{selectedMedia.name}</h3>
+                    <audio
+                      src={selectedMedia.url.startsWith('http') ? selectedMedia.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${selectedMedia.url}`}
+                      controls
+                      autoPlay
+                      className="w-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="bg-white p-16 rounded-lg text-center min-w-[400px]">
+                    <FileText className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                      Preview not available
+                    </h3>
+                    <p className="text-gray-500 mb-8 max-w-xs mx-auto">
+                      This file type cannot be previewed directly in the browser.
+                    </p>
+                    <Button
+                      onClick={() => window.open(selectedMedia.url.startsWith('http') ? selectedMedia.url : `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}${selectedMedia.url}`, '_blank')}
+                      size="lg"
+                      className="w-full"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Download / Open File
+                    </Button>
+                  </div>
+                )}
+
+                {/* Caption / Info Overlay */}
+                {(selectedMedia.type?.startsWith('image/') || selectedMedia.type?.startsWith('video/')) && (
+                  <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent opacity-0 hover:opacity-100 transition-opacity">
+                    <p className="text-white font-medium truncate">{selectedMedia.name}</p>
+                    <p className="text-white/60 text-xs">{formatFileSize(selectedMedia.size || 0)}</p>
+                  </div>
+                )}
+              </motion.div>
             </div>
-          </div>
-        </div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Floating Quick Actions */}
       <motion.div

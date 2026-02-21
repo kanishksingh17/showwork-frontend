@@ -52,13 +52,13 @@ export interface AtomConfig {
   id: string;
   name: string;
   type:
-    | "button"
-    | "typography"
-    | "color"
-    | "spacing"
-    | "border"
-    | "shadow"
-    | "icon";
+  | "button"
+  | "typography"
+  | "color"
+  | "spacing"
+  | "border"
+  | "shadow"
+  | "icon";
   variants: string[];
   properties: Record<string, any>;
 }
@@ -67,13 +67,13 @@ export interface MoleculeConfig {
   id: string;
   name: string;
   type:
-    | "navigation"
-    | "card"
-    | "form"
-    | "button-group"
-    | "media"
-    | "text-group"
-    | "layout";
+  | "navigation"
+  | "card"
+  | "form"
+  | "button-group"
+  | "media"
+  | "text-group"
+  | "layout";
   atoms: string[];
   variants: string[];
   properties: Record<string, any>;
@@ -83,16 +83,16 @@ export interface OrganismConfig {
   id: string;
   name: string;
   type:
-    | "header"
-    | "hero"
-    | "about"
-    | "projects"
-    | "skills"
-    | "experience"
-    | "contact"
-    | "footer"
-    | "gallery"
-    | "testimonials";
+  | "header"
+  | "hero"
+  | "about"
+  | "projects"
+  | "skills"
+  | "experience"
+  | "contact"
+  | "footer"
+  | "gallery"
+  | "testimonials";
   molecules: string[];
   variants: string[];
   properties: Record<string, any>;

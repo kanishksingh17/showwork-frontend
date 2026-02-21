@@ -167,6 +167,16 @@ module.exports = {
             backgroundPosition: "350% 50%, 350% 50%",
           },
         },
+        wave: {
+          "0%": { transform: "rotate(0.0deg)" },
+          "10%": { transform: "rotate(14.0deg)" },
+          "20%": { transform: "rotate(-8.0deg)" },
+          "30%": { transform: "rotate(14.0deg)" },
+          "40%": { transform: "rotate(-4.0deg)" },
+          "50%": { transform: "rotate(10.0deg)" },
+          "60%": { transform: "rotate(0.0deg)" },
+          "100%": { transform: "rotate(0.0deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -184,6 +194,7 @@ module.exports = {
         typewriter: "typewriter 3s steps(40) 1s 1 normal both",
         shimmer: "shimmer 2s linear infinite",
         aurora: "aurora 60s linear infinite",
+        wave: "wave 2.1s infinite",
       },
       transitionTimingFunction: {
         custom: "cubic-bezier(0.19, 1, 0.22, 1)",
@@ -238,7 +249,7 @@ module.exports = {
 };
 
 // This plugin adds each Tailwind color as a global CSS variable, e.g. var(--gray-200).
-function addVariablesForColors({ addBase, theme }: any) {
+function addVariablesForColors({ addBase, theme }) {
   let allColors = flattenColorPalette(theme("colors"));
   let newVars = Object.fromEntries(
     Object.entries(allColors).map(([key, val]) => [`--${key}`, val])

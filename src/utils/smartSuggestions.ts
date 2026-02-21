@@ -89,8 +89,8 @@ export class SmartSuggestionsEngine {
       const roles = this.roleDatabase[category] || [];
       const filteredRoles = input
         ? roles.filter((role) =>
-            role.toLowerCase().includes(input.toLowerCase()),
-          )
+          role.toLowerCase().includes(input.toLowerCase()),
+        )
         : roles;
 
       filteredRoles.slice(0, limit).forEach((role, index) => {

@@ -37,6 +37,7 @@ interface ProjectFormData {
   name: string;
   description: string;
   githubUrl: string;
+  liveUrl: string;
   techStack: string;
   features: string[];
   teamMembers: string[];
@@ -66,8 +67,9 @@ export default function ManualProjectForm() {
     name: location.state.projectData.name || "",
     description: location.state.projectData.description || "",
     githubUrl: location.state.projectData.githubUrl || "",
+    liveUrl: location.state.projectData.liveUrl || "",
     techStack: Array.isArray(location.state.projectData.technologies)
-      ? location.state.projectData.technologies.join(", ")
+      ? location.state.projectData.technologies.map((t: any) => typeof t === 'string' ? t : t.name).join(", ")
       : (location.state.projectData.techStack || ""),
     features: location.state.projectData.features || location.state.projectData.tags || [],
     teamMembers: location.state.projectData.teamMembers || [],
@@ -80,6 +82,7 @@ export default function ManualProjectForm() {
     name: "",
     description: "",
     githubUrl: "",
+    liveUrl: "",
     techStack: "",
     features: [],
     teamMembers: [],
@@ -100,7 +103,7 @@ export default function ManualProjectForm() {
         setIsScraping(true);
         try {
           const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-          const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+          const res = await fetch(`${apiBaseUrl}/api/projects`, {
             credentials: 'include'
           });
           if (res.ok) {
@@ -112,7 +115,10 @@ export default function ManualProjectForm() {
                 name: project.title || project.name || "",
                 description: project.description || "",
                 githubUrl: project.githubUrl || "",
-                techStack: Array.isArray(project.technologies) ? project.technologies.join(", ") : "",
+                liveUrl: project.liveUrl || "",
+                techStack: Array.isArray(project.technologies)
+                  ? project.technologies.map((t: any) => typeof t === 'string' ? t : t.name).join(", ")
+                  : "",
                 features: project.tags || project.features || [],
                 teamMembers: project.teamMembers || [],
                 customUrl: project.customUrl || "",
@@ -148,6 +154,7 @@ export default function ManualProjectForm() {
     Array<{ id: string; x: number; y: number; delay: number }>
   >([]);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
+  const [backendProjectId, setBackendProjectId] = useState<string | null>(effectiveId || null);
 
   // Command palette commands
   const commands = [
@@ -421,7 +428,11 @@ export default function ManualProjectForm() {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
       const technologies = formData.techStack
-        ? formData.techStack.split(',').map(tech => tech.trim()).filter(tech => tech.length > 0)
+        ? formData.techStack.split(/[\n,]+/).map(tech => ({
+          name: tech.trim(),
+          category: 'Other',
+          proficiency: 0
+        })).filter(tech => tech.name.length > 0)
         : [];
 
       const imageUrl = mediaFiles.length > 0 && mediaFiles[0]?.url
@@ -429,20 +440,22 @@ export default function ManualProjectForm() {
         : mediaUrl || '';
 
       const projectPayload = {
-        id: effectiveId || undefined,
+        id: backendProjectId || undefined,
         title: formData.name || 'Untitled Project',
         name: formData.name || 'Untitled Project',
         description: formData.description || '',
         technologies: technologies,
         githubUrl: formData.githubUrl || '',
+        liveUrl: formData.liveUrl || '',
         image: imageUrl,
-        status: isPublishing ? 'pending_review' : (formData.status || 'draft'),
+        status: isPublishing ? 'published' : (formData.status || 'draft'),
         tags: formData.features || [],
         category: 'Web Development',
         visibility: formData.publicVisibility ? 'public' : 'private',
+        mediaFiles: mediaFiles,
       };
 
-      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+      const response = await fetch(`${apiBaseUrl}/api/projects`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -595,70 +608,25 @@ export default function ManualProjectForm() {
     try {
       setIsScraping(true); // Reuse for loading state
 
-      // Get API base URL
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+      const newId = await saveToBackend(true);
 
-      // Prepare project data for backend
-      // Parse technologies from techStack string (comma-separated)
-      const technologies = formData.techStack
-        ? formData.techStack.split(',').map(tech => tech.trim()).filter(tech => tech.length > 0)
-        : [];
-
-      // Get image URL from mediaFiles or mediaUrl
-      const imageUrl = mediaFiles.length > 0 && mediaFiles[0]?.url
-        ? mediaFiles[0].url
-        : mediaUrl || '';
-
-      const projectPayload = {
-        title: formData.name || 'Untitled Project',
-        description: formData.description || '',
-        technologies: technologies,
-        githubUrl: formData.githubUrl || '',
-        liveUrl: '', // TODO: Add liveUrl field to manual form UI
-        image: imageUrl,
-        featured: false,
-        status: 'pending_review', // Set as pending review when user clicks publish
-        visibility: 'public', // Default to public
-        category: 'Web Development', // Default category
-        tags: formData.features || [], // Use features as tags for now
-      };
-
-      console.log("📤 Publishing project to backend:", projectPayload);
-
-      // Save to backend API
-      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
-        method: 'POST',
-        credentials: 'include', // Include cookies for session-based auth
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(projectPayload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || errorData.message || `HTTP ${response.status}: Failed to publish project`);
-      }
-
-      const data = await response.json();
-
-      if (data.success) {
-        console.log("✅ Project published successfully:", data);
+      if (newId) {
+        console.log("✅ Project published successfully:", newId);
 
         // Clear draft after successful publish
         localStorage.removeItem("manual-project-draft");
 
-        // Show success message (simple alert for now, can be replaced with toast)
-        alert('Project published successfully! Redirecting to showcase...');
+        // Show success message
+        toast.success('Project published successfully! Redirecting to showcase...');
 
         // Navigate to showcase
-        navigate("/showcase");
+        setTimeout(() => navigate("/showcase"), 1500);
       } else {
-        throw new Error(data.message || 'Failed to publish project');
+        throw new Error('Failed to save project');
       }
     } catch (error) {
       console.error("❌ Error publishing project:", error);
-      alert(`Failed to publish project: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      toast.error(`Failed to publish project: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsScraping(false);
     }
@@ -814,6 +782,21 @@ export default function ManualProjectForm() {
           </div>
           <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-800 px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-10">
             GitHub URL
+          </label>
+        </div>
+
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <Zap className="w-6 h-6 text-gray-400" />
+          </div>
+          <Input
+            value={formData.liveUrl}
+            onChange={(e) => handleInputChange("liveUrl", e.target.value)}
+            className="pl-12"
+            placeholder="https://your-project-link.com"
+          />
+          <label className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white dark:bg-gray-800 px-2 peer-focus:px-2 peer-focus:text-primary peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-10">
+            Live URL
           </label>
         </div>
 
@@ -1099,28 +1082,41 @@ Or JSON: {"frontend": ["React", "Vue"]}'
             <p className="text-sm text-gray-500">
               {formData.techStack || "No tech stack specified"}
             </p>
-            {mediaUrl && (
-              <div className="mb-3">
-                <img
-                  src={mediaUrl}
-                  alt="media"
-                  className="w-full max-h-40 object-contain rounded"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
-              </div>
-            )}
-            {mediaFiles.length > 0 && mediaFiles[0]?.url && (
-              <div className="mb-3">
-                <img
-                  src={mediaFiles[0].url}
-                  alt="media"
-                  className="w-full max-h-40 object-contain rounded"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = "none";
-                  }}
-                />
+            {(mediaUrl || (mediaFiles.length > 0)) && (
+              <div className="space-y-4">
+                {mediaUrl && !mediaFiles.some(f => f.url === mediaUrl) && (
+                  <div className="rounded-lg overflow-hidden border border-gray-100">
+                    <img
+                      src={mediaUrl}
+                      alt="Project preview"
+                      className="w-full max-h-64 object-contain bg-gray-50"
+                      onError={(e) => (e.currentTarget.style.display = 'none')}
+                    />
+                  </div>
+                )}
+
+                {mediaFiles.map((file, idx) => (
+                  <div key={file.id || idx} className="rounded-lg overflow-hidden border border-gray-100 bg-gray-50 p-2">
+                    {file.type.startsWith('image/') ? (
+                      <img src={file.url} alt={file.name} className="w-full max-h-64 object-contain" />
+                    ) : file.type.startsWith('video/') ? (
+                      <video src={file.url} controls className="w-full max-h-64" />
+                    ) : file.type.startsWith('audio/') ? (
+                      <div className="p-4">
+                        <p className="text-xs font-medium mb-2 truncate">{file.name}</p>
+                        <audio src={file.url} controls className="w-full" />
+                      </div>
+                    ) : (
+                      <div className="p-4 flex items-center gap-3">
+                        <FileText className="w-8 h-8 text-blue-500" />
+                        <div>
+                          <p className="text-sm font-medium truncate">{file.name}</p>
+                          <p className="text-xs text-gray-500">Document File</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
             <div className="prose max-w-none prose-sm dark:prose-invert">

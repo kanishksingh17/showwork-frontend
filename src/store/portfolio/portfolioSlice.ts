@@ -1,13 +1,34 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, type PayloadAction } from '@reduxjs/toolkit';
+import { apiJson } from '@/lib/apiClient';
 
-// Section configuration for portfolio templates
-export interface SectionConfig {
-    id: string;
-    type: 'header' | 'about' | 'skills' | 'certifications' | 'projects' | 'resume' | 'contact' | 'footer';
-    variant: string; // e.g., 'Header01', 'Header02', etc.
+// Thunks
+export const enhanceSectionAI = createAsyncThunk(
+    'portfolio/enhanceSection',
+    async ({ id, type, content, userPrompt }: { id: string; type: string; content: string; userPrompt?: string }) => {
+        const response = await apiJson('/api/ai/enhance-section', {
+            method: 'POST',
+            body: JSON.stringify({ section: type, content, userPrompt })
+        });
+        return { id, enhancedContent: response.data.section };
+    }
+);
+
+export const syncLinkedInProfile = createAsyncThunk(
+    'portfolio/syncLinkedIn',
+    async () => {
+        // First trigger the sync on backend
+        await apiJson('/api/integrations/linkedin/sync', { method: 'POST' });
+        // Then get the profile data
+        const response = await apiJson('/api/integrations/linkedin/profile', { method: 'GET' });
+        return response.profile;
+    }
+);
+
+import type { PortfolioSection } from '@/types/portfolio';
+
+// Section configuration for portfolio templates (extends the base type)
+export interface SectionConfig extends PortfolioSection {
     isVisible: boolean;
-    order: number;
-    customData?: Record<string, any>;
 }
 
 // Portfolio state interface
@@ -40,6 +61,13 @@ export interface PortfolioState {
     // Preview mode
     isPreviewMode: boolean;
     activeSection: string | null;
+
+    // Editor mode (Portfolio vs Resume)
+    editorMode: 'portfolio' | 'resume';
+    resumeTemplateId: string | null;
+
+    // AI Status
+    enhancingSections: Record<string, boolean>;
 }
 
 const initialState: PortfolioState = {
@@ -62,6 +90,9 @@ const initialState: PortfolioState = {
     },
     isPreviewMode: false,
     activeSection: null,
+    editorMode: 'portfolio',
+    resumeTemplateId: 'resume-minimal',
+    enhancingSections: {},
 };
 
 const portfolioSlice = createSlice({
@@ -86,6 +117,13 @@ const portfolioSlice = createSlice({
             state.sections.push(action.payload);
         },
 
+        insertSection: (state, action: PayloadAction<{ section: SectionConfig; index: number }>) => {
+            const { section, index } = action.payload;
+            state.sections.splice(index, 0, section);
+            // Re-order based on new array positions
+            state.sections.forEach((s, i) => { s.order = i; });
+        },
+
         removeSection: (state, action: PayloadAction<string>) => {
             state.sections = state.sections.filter(s => s.id !== action.payload);
         },
@@ -106,6 +144,20 @@ const portfolioSlice = createSlice({
                 }
             });
             state.sections.sort((a, b) => a.order - b.order);
+        },
+
+        moveSection: (state, action: PayloadAction<{ id: string; direction: 'up' | 'down' }>) => {
+            const index = state.sections.findIndex(s => s.id === action.payload.id);
+            if (index === -1) return;
+
+            const newIndex = action.payload.direction === 'up' ? index - 1 : index + 1;
+            if (newIndex < 0 || newIndex >= state.sections.length) return;
+
+            const [movedSection] = state.sections.splice(index, 1);
+            state.sections.splice(newIndex, 0, movedSection);
+
+            // Update order properties
+            state.sections.forEach((s, i) => { s.order = i; });
         },
 
         updateSectionVariant: (state, action: PayloadAction<{ id: string; variant: string }>) => {
@@ -132,6 +184,23 @@ const portfolioSlice = createSlice({
             state.userData = { ...state.userData, ...action.payload };
         },
 
+        // Targeted Updating System - Surgical content updates
+        changeWebsitePageComponentContent: (state, action: PayloadAction<{
+            componentId: string;
+            content: any;
+            merge?: boolean;
+        }>) => {
+            const { componentId, content, merge = true } = action.payload;
+            const section = state.sections.find(s => s.id === componentId);
+            if (section) {
+                if (merge && typeof section.customData === 'object' && typeof content === 'object') {
+                    section.customData = { ...section.customData, ...content };
+                } else {
+                    section.customData = content;
+                }
+            }
+        },
+
         // Preview mode
         togglePreviewMode: (state) => {
             state.isPreviewMode = !state.isPreviewMode;
@@ -144,18 +213,61 @@ const portfolioSlice = createSlice({
         // Initialize with default sections
         initializeDefaultSections: (state) => {
             state.sections = [
-                { id: 'header', type: 'header', variant: 'Header01', isVisible: true, order: 0 },
-                { id: 'about', type: 'about', variant: 'Hero01', isVisible: true, order: 1 },
-                { id: 'skills', type: 'skills', variant: 'Skills01', isVisible: true, order: 2 },
-                { id: 'projects', type: 'projects', variant: 'Projects01', isVisible: true, order: 3 },
-                { id: 'resume', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 4 },
-                { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5 },
-                { id: 'footer', type: 'footer', variant: 'Footer01', isVisible: true, order: 6 },
+                { id: 'header', type: 'header', variant: 'HeaderMain', isVisible: true, order: 0, title: 'Header', content: '', isRequired: true },
+                { id: 'about', type: 'about', variant: 'HeroMain', isVisible: true, order: 1, title: 'About', content: '', isRequired: true },
+                { id: 'skills', type: 'skills', variant: 'SkillsMain', isVisible: true, order: 2, title: 'Skills', content: '', isRequired: true },
+                { id: 'projects', type: 'projects', variant: 'ProjectsMain', isVisible: true, order: 3, title: 'Projects', content: '', isRequired: true },
+                { id: 'resume', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 4, title: 'Resume', content: '', isRequired: true },
+                { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5, title: 'Contact', content: '', isRequired: true },
+                { id: 'footer', type: 'footer', variant: 'FooterMain', isVisible: true, order: 6, title: 'Footer', content: '', isRequired: true },
             ];
+        },
+
+        // Editor mode
+        setEditorMode: (state, action: PayloadAction<'portfolio' | 'resume'>) => {
+            state.editorMode = action.payload;
+        },
+
+        setResumeTemplateId: (state, action: PayloadAction<string>) => {
+            state.resumeTemplateId = action.payload;
         },
 
         // Reset
         resetPortfolio: () => initialState,
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(enhanceSectionAI.pending, (state, action) => {
+                state.enhancingSections[action.meta.arg.id] = true;
+            })
+            .addCase(enhanceSectionAI.fulfilled, (state, action) => {
+                state.enhancingSections[action.payload.id] = false;
+                const section = state.sections.find(s => s.id === action.payload.id);
+                if (section) {
+                    section.customData = {
+                        ...section.customData,
+                        enhancedContent: action.payload.enhancedContent,
+                        useAI: true
+                    };
+
+                    // Specific mapping for about/bio if needed
+                    if (section.type === 'about' || section.type === 'hero') {
+                        state.userData.bio = action.payload.enhancedContent;
+                    }
+                }
+            })
+            .addCase(enhanceSectionAI.rejected, (state, action) => {
+                state.enhancingSections[action.meta.arg.id] = false;
+            })
+            .addCase(syncLinkedInProfile.fulfilled, (state, action) => {
+                const profile = action.payload;
+                if (profile) {
+                    if (profile.headline) state.userData.title = profile.headline;
+                    if (profile.summary) state.userData.bio = profile.summary;
+                    // Note: Name is usually already set, but we could update it if needed
+                    // state.userData.name = profile.name;
+                }
+            });
     },
 });
 
@@ -167,12 +279,17 @@ export const {
     removeSection,
     toggleSectionVisibility,
     reorderSections,
+    moveSection,
+    insertSection,
     updateSectionVariant,
     updateSectionCustomData,
     updateTheme,
     updateUserData,
+    changeWebsitePageComponentContent,
     togglePreviewMode,
     setActiveSection,
+    setEditorMode,
+    setResumeTemplateId,
     initializeDefaultSections,
     resetPortfolio,
 } = portfolioSlice.actions;
