@@ -26,6 +26,11 @@ export interface PortfolioTemplate {
   preview?: string;
   isPopular?: boolean;
 
+  // Template engine discriminator
+  // 'section'  → AI-composed, uses sections[] array (future drag-and-drop builder)
+  // 'external' → Standalone Next.js app, fetches its own data via previewUrl
+  templateEngine?: 'section' | 'external';
+
   // New fields for file-based templates
   thumbnailUrl?: string;
   previewUrl?: string;

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion } from "framer-motion";
 import {
     Monitor,
     Smartphone,
@@ -42,6 +41,7 @@ import { SettingsPanel } from './editor/panels/SettingsPanel';
 import { ResumeTemplatesPanel } from './editor/panels/ResumeTemplatesPanel';
 import { ResumePreview } from './ResumePreview';
 import { SectionVariantsPanel } from './editor/panels/SectionVariantsPanel';
+import { ThemePanel } from './editor/panels/ThemePanel';
 
 export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     template,
@@ -54,6 +54,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     const dispatch = usePortfolioDispatch();
     const [activeTab, setActiveTab] = useState<'settings' | 'pages' | 'styles'>('pages');
     const [deviceView, setDeviceView] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+    const iframeRef = React.useRef<HTMLIFrameElement>(null);
     const currentTheme = usePortfolioSelector(state => state.portfolio.theme);
     const editorMode = usePortfolioSelector(state => state.portfolio.editorMode);
     const sections = usePortfolioSelector(state => state.portfolio.sections);
@@ -89,6 +90,18 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
             setActiveTab('styles');
         }
     }, [activeSection]);
+
+    // Effect to refresh iframe when systematic content changes (AI enhancement)
+    useEffect(() => {
+        if (template.templateEngine === 'external' && iframeRef.current) {
+            const currentUrl = iframeRef.current.src;
+            // Only reload if the URL contains the username (so we don't reload blank/default states)
+            if (currentUrl.includes('username=')) {
+                console.log("🔄 Systematic content changed, refreshing preview iframe...");
+                iframeRef.current.src = currentUrl;
+            }
+        }
+    }, [storeUserData.professionalHeadline, storeUserData.professionalBio, template.templateEngine]);
 
     return (
         <div className="flex h-full w-full bg-[#FAFAFA] overflow-hidden font-sans text-gray-900">
@@ -144,8 +157,16 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
                     {editorMode === 'portfolio' ? (
                         <>
-                            {activeTab === 'pages' && <PagesPanel />}
-                            {activeTab === 'styles' && <SectionVariantsPanel />}
+                            {activeTab === 'pages' && (
+                                template.templateEngine === 'external'
+                                    ? <ThemePanel templateId={template.id} iframeRef={iframeRef} />
+                                    : <PagesPanel />
+                            )}
+                            {activeTab === 'styles' && (
+                                template.templateEngine === 'external'
+                                    ? <ThemePanel templateId={template.id} iframeRef={iframeRef} />
+                                    : <SectionVariantsPanel />
+                            )}
                             {activeTab === 'settings' && <SettingsPanel />}
                         </>
                     ) : (
@@ -234,23 +255,39 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 <div className={`flex-1 overflow-hidden relative flex ${deviceView === 'desktop' ? '' : 'items-center justify-center p-8'}`}>
                     <div
                         className={`
-                bg-white transition-all duration-300 ease-in-out relative
+                bg-white transition-all duration-300 ease-in-out relative transform-gpu overflow-hidden
                 ${deviceView === 'desktop' ? 'w-full h-full' : 'shadow-2xl border border-gray-200'}
-                ${deviceView === 'tablet' ? 'w-[768px] h-[90%] rounded-xl overflow-hidden' : ''}
-                ${deviceView === 'mobile' ? 'w-[375px] h-[90%] rounded-2xl overflow-hidden' : ''}
+                ${deviceView === 'tablet' ? 'w-[768px] h-[90%] rounded-xl' : ''}
+                ${deviceView === 'mobile' ? 'w-[375px] h-[90%] rounded-2xl' : ''}
                 ${currentTheme.mode === 'dark' ? 'dark' : ''}
              `}
                     >
                         {/* This is where rendering happens */}
-                        <div className="w-full h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar pt-16">
+                        <div className="w-full h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar">
                             <div className="min-h-full">
                                 {editorMode === 'portfolio' ? (
-                                    <PortfolioTemplateInner
-                                        userData={storeUserData}
-                                        projects={projects}
-                                    />
+                                    template.templateEngine === 'external' && template.previewUrl ? (
+                                        // External (file-based) template — show live iframe
+                                        <iframe
+                                            ref={iframeRef}
+                                            src={`${template.previewUrl}?username=${userData?.username || userData?.id || ''}`}
+                                            className="w-full border-0"
+                                            style={{ height: '100vh', minHeight: '600px' }}
+                                            title={`${template.name} live preview`}
+                                        />
+                                    ) : (
+                                        // Section-based internal template
+                                        <div className="pt-16">
+                                            <PortfolioTemplateInner
+                                                userData={storeUserData}
+                                                projects={projects}
+                                            />
+                                        </div>
+                                    )
                                 ) : (
-                                    <ResumePreview userData={userData} projects={projects} />
+                                    <div className="pt-16">
+                                        <ResumePreview userData={userData} projects={projects} />
+                                    </div>
                                 )}
                             </div>
                         </div>

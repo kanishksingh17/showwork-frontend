@@ -120,6 +120,7 @@ function App() {
           <Route path="/demo-portfolio" element={<PortfolioBuilder isDemo={true} />} />
           <Route path="/demo-content" element={<ContentManagement isDemo={true} />} />
           <Route path="/demo-analytics" element={<Analytics isDemo={true} />} />
+          <Route path="/demo/template-03" element={<PortfolioDemo />} />
 
 
           {/* Protected routes */}

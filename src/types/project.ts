@@ -99,6 +99,9 @@ export interface Project {
   id: string;
   name: string;
   description: string;
+  descriptionCanonical?: string;
+  descriptionShort?: string;
+  resumeBullet?: string;
   longDescription?: string;
   category: string;
   status: "draft" | "in-progress" | "completed" | "archived" | "pending_review";

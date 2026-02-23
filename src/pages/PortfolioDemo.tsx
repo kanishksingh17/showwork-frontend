@@ -2,12 +2,6 @@ import React, { useEffect } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import { portfolioStore } from '@/store/portfolio';
 import { updateUserData } from '@/store/portfolio/portfolioSlice';
-import { PortfolioTemplateInner } from '@/components/portfolio/templates/PortfolioTemplate';
-
-/**
- * Static demo data — content only, layout is never touched.
- * To show a different person's demo, change values here ONLY.
- */
 const DEMO_USER = {
     name: 'Soumyajit Behera',
     title: 'Full Stack Developer, React Developer, Open Source Contributor',
@@ -28,26 +22,6 @@ const DEMO_USER = {
     resumeUrl: 'https://raw.githubusercontent.com/soumyajit4419/Portfolio/master/src/Assets/Soumyajit_Behera-BIT_MESRA.pdf',
 };
 
-const DEMO_PROJECTS = [
-    {
-        id: 'chatbot',
-        title: 'AI Chatbot',
-        name: 'AI Chatbot',
-        description: 'A smart chatbot interface powered by GPT, built with React and Node.js.',
-        technologies: ['React', 'Node.js', 'Python'],
-        githubUrl: 'https://github.com/soumyajit4419',
-    },
-    {
-        id: 'portfolio',
-        title: 'Developer Portfolio',
-        name: 'Developer Portfolio',
-        description: 'A pixel-perfect, animated developer portfolio built with React and Bootstrap.',
-        technologies: ['React', 'JavaScript', 'CSS'],
-        githubUrl: 'https://github.com/soumyajit4419/Portfolio',
-        liveUrl: 'https://soumyajit.vercel.app',
-    },
-];
-
 /**
  * Inner — syncs demo data to Redux (so any child using usePortfolioSelector also gets it)
  * AND passes it directly as props so PortfolioTemplateInner renders immediately.
@@ -62,9 +36,10 @@ const PortfolioDemoInner: React.FC = () => {
     }, [dispatch]);
 
     return (
-        <PortfolioTemplateInner
-            userData={DEMO_USER}
-            projects={DEMO_PROJECTS}
+        <iframe
+            src={`http://localhost:3003`}
+            className="w-full h-screen border-0"
+            title="Portfolio Demo - Raj Singh"
         />
     );
 };

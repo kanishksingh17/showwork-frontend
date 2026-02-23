@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { usePortfolioDispatch, usePortfolioSelector } from '@/store/portfolio/hooks';
 import { updateUserData } from '@/store/portfolio/portfolioSlice';
-import { Preloader } from '../atoms/Preloader/Preloader';
+import { Preloader } from './Preloader';
 
 export interface PortfolioTemplateProps {
     userData: any;
@@ -54,6 +54,8 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
                         // Provide both `socials` and `socialLinks` keys for compatibility
                         socials: backendUser.socials || {},
                         socialLinks: backendUser.socials || {},
+                        experience: json.data.experience || [],
+                        education: json.data.education || [],
                     };
 
                     setUserData(enriched);

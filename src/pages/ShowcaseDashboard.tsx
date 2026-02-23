@@ -48,6 +48,9 @@ interface Project {
   id: string;
   name: string;
   description: string;
+  descriptionCanonical?: string;
+  descriptionShort?: string;
+  resumeBullet?: string;
   status: "draft" | "pending" | "published" | "in-progress" | "saved" | "pending_review";
   lastUpdated: string;
   category: string;
@@ -196,7 +199,10 @@ const ShowcaseDashboard = ({
             visibility: p.visibility || "public",
             tags: p.tags || [],
             technologies: technologies,
-            showcase: p.showcase // Ensure showcase state is captured
+            showcase: p.showcase,
+            descriptionCanonical: p.descriptionCanonical || p.description,
+            descriptionShort: p.descriptionShort || p.description,
+            resumeBullet: p.resumeBullet
           };
         });
         setProjects(mapped);
@@ -215,6 +221,7 @@ const ShowcaseDashboard = ({
     }
 
     setIsLoadingData(true);
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
     try {
       console.log("🚀 Initializing showcase data...");
 
@@ -238,13 +245,27 @@ const ShowcaseDashboard = ({
       }
 
       // Automatically trigger a silent category fix on every initialization for debugging
-      fetch(`${apiBaseUrl}/api/projects/fix-categories`, {
-        method: 'POST',
-        credentials: 'include'
-      }).then(() => {
-        // Refresh project list after fix to show new categories
-        setTimeout(fetchPrimaryProjects, 1000);
-      }).catch(err => console.error("Auto category fix failed:", err));
+      // fetch(`${apiBaseUrl}/api/projects/fix-categories`, {
+      //   method: 'POST',
+      //   credentials: 'include'
+      // }).catch(err => console.error("Auto category fix failed:", err));
+
+      // Trigger systematic content enhancement for projects missing variants
+      // fetch(`${apiBaseUrl}/api/projects/systematic-fix`, {
+      //   method: 'POST',
+      //   credentials: 'include'
+      // }).then(res => {
+      //   if (res.ok) {
+      //     // Success - projects are being enhanced in background
+      //     setTimeout(fetchPrimaryProjects, 2000);
+      //   }
+      // }).catch(err => console.error("Systematic project fix failed:", err));
+
+      // Trigger systematic profile enhancement
+      // fetch(`${apiBaseUrl}/api/user/systematic-fix`, {
+      //   method: 'POST',
+      //   credentials: 'include'
+      // }).catch(err => console.error("Systematic user fix failed:", err));
 
     } catch (error) {
       console.error("❌ Error initializing showcase:", error);
@@ -731,6 +752,15 @@ const ShowcaseDashboard = ({
             className="border-[#6366F1] text-[#6366F1] bg-[#6366F1]/10 whitespace-nowrap flex-shrink-0"
           >
             Saved
+          </Badge>
+        );
+      case "completed":
+        return (
+          <Badge
+            variant="outline"
+            className="border-[#10B981] text-[#10B981] bg-[#10B981]/10 whitespace-nowrap flex-shrink-0"
+          >
+            Completed
           </Badge>
         );
       default:
@@ -1271,7 +1301,73 @@ const ShowcaseDashboard = ({
 
 
 
-                {/* Published Projects */}
+                {/* Empty State */}
+                {!isLoadingData && projects.length === 0 && (
+                  <Card className="border-dashed border-2 p-12 mb-8 bg-white dark:bg-slate-800/50">
+                    <CardContent className="flex flex-col items-center text-center">
+                      <div className="w-16 h-16 bg-blue-50 dark:bg-blue-900/20 rounded-full flex items-center justify-center mb-6">
+                        <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        Get started with your showcase
+                      </h3>
+                      <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-8">
+                        Your professional portfolio is currently empty. Connect your GitHub account to import projects automatically or add your best work manually.
+                      </p>
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Button
+                          onClick={() => {
+                            if (isDemo) {
+                              setIsLoginModalOpen(true);
+                              return;
+                            }
+                            // Trigger GitHub connect - navigate to integrations or directly to auth
+                            window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/github/connect`;
+                          }}
+                          className="bg-gray-900 hover:bg-black text-white px-8 h-11"
+                        >
+                          <Github className="w-4 h-4 mr-2" />
+                          Connect GitHub
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            if (isDemo) {
+                              setIsLoginModalOpen(true);
+                              return;
+                            }
+                            navigate("/showcase/add");
+                          }}
+                          className="px-8 h-11"
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Add Project Manually
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Filtered Empty State */}
+                {!isLoadingData && projects.length > 0 && filteredAndSortedProjects.length === 0 && (
+                  <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <Search className="w-12 h-12 text-gray-300 mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900">No results found</h3>
+                    <p className="text-gray-500">Try adjusting your filters or search query.</p>
+                    <Button
+                      variant="link"
+                      onClick={() => {
+                        setSearchQuery("");
+                        setStatusFilter("all");
+                        setCategoryFilter("all");
+                        setVisibilityFilter("all");
+                      }}
+                      className="mt-2 text-blue-600"
+                    >
+                      Clear all filters
+                    </Button>
+                  </div>
+                )}
                 {filteredAndSortedProjects.filter(p => p.status === 'published').length > 0 && (
                   <div>
                     <div className="flex items-center justify-between mb-4">
@@ -1831,181 +1927,18 @@ const ShowcaseDashboard = ({
                     )}
                   </div>
                 )}
-
-                {/* Available on GitHub Section */}
-                {!isLoadingData && isGitHubConnected && (isFetchingGithub || githubRepos.length > 0) && (
-                  <div className="mt-8 mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center shadow-sm">
-                          <Github className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                          <h2 className="text-gray-900 text-xl font-bold flex items-center gap-2">
-                            From GitHub
-                            {isFetchingGithub && <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />}
-                          </h2>
-                          <p className="text-sm text-gray-500">Repositories ready to be showcased</p>
-                        </div>
-                      </div>
-                      {!isFetchingGithub && (
-                        <Badge variant="outline" className="bg-blue-50 text-blue-600 border-blue-100 font-medium">
-                          {githubRepos.length} Available
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {isFetchingGithub ? (
-                        [1, 2, 3].map((i) => (
-                          <Card key={i} className="animate-pulse border-dashed">
-                            <CardContent className="p-4 h-40 flex flex-col justify-center items-center">
-                              <div className="h-4 bg-gray-100 rounded w-3/4 mb-4"></div>
-                              <div className="h-3 bg-gray-50 rounded w-1/2"></div>
-                            </CardContent>
-                          </Card>
-                        ))
-                      ) : (
-                        githubRepos.slice(0, 6).map((repo) => (
-                          <Card key={repo.id} className="group hover:border-blue-300 transition-all border-dashed hover:shadow-sm">
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-start mb-3">
-                                <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors uppercase tracking-tight">{repo.name}</h3>
-                                {repo.category !== "Uncategorized" && (
-                                  <Badge variant="secondary" className="text-[10px] uppercase tracking-wider bg-gray-100 text-gray-600">
-                                    {repo.category}
-                                  </Badge>
-                                )}
-                              </div>
-                              <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[40px]">
-                                {repo.description}
-                              </p>
-                              <Button
-                                onClick={() => handleImportAndEdit(repo)}
-                                variant="outline"
-                                className="w-full text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-100 hover:border-blue-200 font-medium"
-                              >
-                                <Plus className="w-4 h-4 mr-2" />
-                                Import & Showcase
-                              </Button>
-                            </CardContent>
-                          </Card>
-                        ))
-                      )}
-                    </div>
-
-                    {!isFetchingGithub && githubRepos.length > 6 && (
-                      <div className="mt-6 text-center">
-                        <Button variant="ghost" className="text-sm text-gray-500 hover:text-gray-900 font-medium">
-                          View all repositories
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Empty State */}
-                {!isLoadingData && filteredAndSortedProjects.length === 0 && (!isGitHubConnected || (!isFetchingGithub && githubRepos.length === 0)) && (
-                  <Card className="border-dashed border-2">
-                    <CardContent className="p-12 flex flex-col items-center text-center">
-                      {searchQuery ||
-                        statusFilter !== "all" ||
-                        categoryFilter !== "all" ||
-                        visibilityFilter !== "all" ? (
-                        <>
-                          <Search className="w-12 h-12 text-gray-300 mb-4" />
-                          <h3 className="text-lg font-medium text-gray-900 mb-2">
-                            No projects found
-                          </h3>
-                          <p className="text-gray-500 mb-6">
-                            We couldn't find any projects matching your filters. Try
-                            adjusting your search keywords or filters.
-                          </p>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setSearchQuery("");
-                              setStatusFilter("all");
-                              setCategoryFilter("all");
-                              setVisibilityFilter("all");
-                            }}
-                          >
-                            Clear All Filters
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-6">
-                            <Github className="w-8 h-8 text-[#24292e]" />
-                          </div>
-
-                          <h3 className="text-xl font-bold text-gray-900 mb-2">
-                            Build your portfolio in seconds
-                          </h3>
-
-                          <p className="text-gray-600 max-w-lg mb-8 leading-relaxed">
-                            {isGitHubConnected ?
-                              "Import repositories from your connected GitHub account to showcase them in your portfolio." :
-                              "Connect your GitHub to automatically import your repositories. We'll fetch the raw data including project names, descriptions, and tech stacks so you don't have to type them manually."
-                            }
-                          </p>
-
-                          <div className="flex flex-col sm:flex-row items-center gap-4 w-full justify-center">
-                            <Button
-                              onClick={async () => {
-                                if (isDemo) {
-                                  setIsLoginModalOpen(true);
-                                  return;
-                                }
-                                if (isGitHubConnected) {
-                                  navigate("/showcase/add?mode=github");
-                                } else {
-                                  window.open("https://github.com/login/oauth/authorize", "_blank");
-                                }
-                              }}
-                              className="bg-[#24292e] hover:bg-[#2f363d] text-white h-11 px-8 rounded-md font-medium shadow-sm hover:shadow-md transition-all duration-200"
-                            >
-                              <Github className="w-4 h-4 mr-2" />
-                              {isGitHubConnected ? "Import from GitHub" : "Connect GitHub"}
-                            </Button>
-
-                            <div className="text-sm text-gray-400 font-medium px-2">
-                              OR
-                            </div>
-
-                            <Button
-                              onClick={() => {
-                                if (isDemo) {
-                                  setIsLoginModalOpen(true);
-                                  return;
-                                }
-                                navigate("/showcase/add");
-                              }}
-                              variant="outline"
-                              className="h-11 px-8"
-                            >
-                              <Plus className="w-4 h-4 mr-2" />
-                              Add Manually
-                            </Button>
-                          </div>
-                        </>
-                      )}
-                    </CardContent>
-                  </Card>
-                )}
               </div>
             </>
-          )
-          }
-        </div >
-        <LoginModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-          onLoginSuccess={handleLoginSuccess}
-        />
-      </main >
-    </UnifiedLayout >
+          )}
+        </div>
+      </main>
+
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLoginSuccess={handleLoginSuccess}
+      />
+    </UnifiedLayout>
   );
 };
 

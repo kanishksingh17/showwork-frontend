@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Github, Linkedin, ExternalLink, Cpu, Globe } from 'lucide-react';
+import { Mail, Github, Linkedin, ExternalLink } from 'lucide-react';
 
 interface ResumeModernProps {
     userData: any;
@@ -89,15 +89,52 @@ export const ResumeModern: React.FC<ResumeModernProps> = ({ userData, projects }
                                         ))}
                                     </div>
                                 </div>
-                                <p className="text-[13px] text-slate-600 mb-3">{project.description}</p>
+                                <p className="text-[13px] text-slate-600 mb-3">{project.resumeBullet || project.description}</p>
                             </div>
                         ))}
                     </div>
                 </section>
 
+                {/* Experience Section */}
+                {userData.experience && userData.experience.length > 0 && (
+                    <section className="mb-12">
+                        <h3 className="text-lg font-bold text-slate-900 mb-6 border-l-4 border-indigo-600 pl-4">Experience</h3>
+                        <div className="space-y-6">
+                            {userData.experience.map((exp: any, i: number) => (
+                                <div key={i}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h4 className="text-base font-bold text-slate-900">{exp.title}</h4>
+                                        <span className="text-xs font-mono text-slate-400">{exp.startDate} - {exp.endDate}</span>
+                                    </div>
+                                    <div className="text-sm font-semibold text-indigo-600 mb-2">{exp.companyName}</div>
+                                    <p className="text-[13px] text-slate-600 leading-relaxed">{exp.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {/* Education Section */}
+                {userData.education && userData.education.length > 0 && (
+                    <section className="mb-12">
+                        <h3 className="text-lg font-bold text-slate-900 mb-6 border-l-4 border-indigo-600 pl-4">Education</h3>
+                        <div className="space-y-6">
+                            {userData.education.map((edu: any, i: number) => (
+                                <div key={i}>
+                                    <div className="flex justify-between items-baseline mb-1">
+                                        <h4 className="text-base font-bold text-slate-900">{edu.degreeName}</h4>
+                                    </div>
+                                    <div className="text-sm font-semibold text-indigo-600 mb-2">{edu.schoolName}</div>
+                                    <p className="text-[13px] text-slate-600 leading-relaxed">{edu.description}</p>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* Other Info/Note */}
-                <section className="mt-auto pt-12 border-t border-slate-100 italic text-[11px] text-slate-400">
-                    * Additional experience and education details can be retrieved from my full portfolio.
+                <section className="mt-auto pt-8 border-t border-slate-100 italic text-[10px] text-slate-400">
+                    * This is a curated version of my profile. View my full portfolio for more details.
                 </section>
             </main>
         </div>

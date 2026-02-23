@@ -3,211 +3,97 @@ import { Button } from "../ui/button";
 import { LoginModal } from "@/components/auth/LoginModal";
 import type {
   PortfolioTemplate,
-  JobRole,
 } from "../../types/portfolio";
 
 interface PortfolioSelectorProps {
   userData: any;
   projects: any[];
   onTemplateSelect: (template: PortfolioTemplate) => void;
-  onJobRoleDetected: (jobRole: JobRole) => void;
   isDemo?: boolean;
 }
 
-const MOCK_TEMPLATES: PortfolioTemplate[] = [
+const INTEGRATED_TEMPLATES: PortfolioTemplate[] = [
   {
-    id: "modern-dev",
-    name: "Modern Developer",
-    description: "Clean, professional template perfect for software developers",
-    jobRoles: ["Software Developer", "Full Stack Developer", "Frontend Developer"],
-    industries: ["Technology", "Software"],
-    layout: "modern",
-    sections: [
-      { id: "hero", type: "hero", title: "Hero Section", content: "", isRequired: true, order: 1, isVisible: true },
-      { id: "about", type: "about", title: "About Me", content: "", isRequired: true, order: 2, isVisible: true },
-      { id: "projects", type: "projects", title: "Projects", content: "", isRequired: true, order: 3, isVisible: true },
-      { id: "skills", type: "skills", title: "Skills", content: "", isRequired: true, order: 4, isVisible: true },
-      { id: "contact", type: "contact", title: "Contact", content: "", isRequired: true, order: 5, isVisible: true },
-    ],
-    preview: "/templates/modern-dev-preview.jpg",
-    isPopular: true,
+    id: "professional-exec",
+    name: "Professional Portfolio",
+    description: "Sophisticated template for professionals and developers",
+    previewUrl: "http://localhost:3001",
+    layout: "professional",
+    templateEngine: "external",  // Standalone Next.js app
   },
   {
     id: "creative-designer",
-    name: "Creative Designer",
-    description: "Bold, creative template for designers and artists",
-    jobRoles: ["UI/UX Designer", "Graphic Designer", "Creative Director"],
-    industries: ["Design", "Creative", "Marketing"],
+    name: "Creative Developer",
+    description: "Dynamic template with tech icon cloud and modern animations",
+    previewUrl: "http://localhost:3002",
     layout: "creative",
-    sections: [
-      { id: "hero", type: "hero", title: "Hero Section", content: "", isRequired: true, order: 1, isVisible: true },
-      { id: "portfolio", type: "projects", title: "Portfolio", content: "", isRequired: true, order: 2, isVisible: true },
-      { id: "about", type: "about", title: "About", content: "", isRequired: true, order: 3, isVisible: true },
-      { id: "skills", type: "skills", title: "Skills", content: "", isRequired: true, order: 4, isVisible: true },
-      { id: "testimonials", type: "testimonials", title: "Testimonials", content: "", isRequired: false, order: 5, isVisible: true },
-    ],
-    preview: "/templates/creative-designer-preview.jpg",
     isPopular: true,
-  },
-  {
-    id: "professional-exec",
-    name: "Executive Professional",
-    description: "Sophisticated template for executives and senior professionals",
-    jobRoles: ["CEO", "CTO", "VP Engineering", "Senior Manager"],
-    industries: ["Technology", "Finance", "Consulting", "Healthcare"],
-    layout: "professional",
-    sections: [
-      { id: "hero", type: "hero", title: "Executive Summary", content: "", isRequired: true, order: 1, isVisible: true },
-      { id: "experience", type: "experience", title: "Experience", content: "", isRequired: true, order: 2, isVisible: true },
-      { id: "achievements", type: "projects", title: "Key Achievements", content: "", isRequired: true, order: 3, isVisible: true },
-      { id: "education", type: "education", title: "Education", content: "", isRequired: true, order: 4, isVisible: true },
-      { id: "contact", type: "contact", title: "Contact", content: "", isRequired: true, order: 5, isVisible: true },
-    ],
-    preview: "/templates/professional-exec-preview.jpg",
-    isPopular: false,
+    templateEngine: "external",  // Standalone Next.js app
   },
   {
     id: "recommended-fullstack",
     name: "Full-Stack Developer",
     description: "High-fidelity mock for showcasing your absolute best work",
-    jobRoles: ["Full Stack Developer", "Software Engineer", "MERN Developer"],
-    industries: ["Technology", "Software", "Web Development"],
+    previewUrl: "http://localhost:3003",
     layout: "modern",
-    sections: [
-      { id: "hero", type: "about", title: "Hero", content: "", isRequired: true, order: 1, variant: "HeroMain", isVisible: true },
-      { id: "skills", type: "skills", title: "Skills", content: "", isRequired: true, order: 2, variant: "SkillsMain", isVisible: true },
-      { id: "projects", type: "projects", title: "Projects", content: "", isRequired: true, order: 3, variant: "ProjectsMain", isVisible: true },
-      { id: "resume", type: "resume", title: "Resume", content: "", isRequired: true, order: 4, variant: "ResumeMain", isVisible: true },
-      { id: "contact", type: "contact", title: "Contact", content: "", isRequired: true, order: 5, variant: "ContactMain", isVisible: true },
-      { id: "footer", type: "footer", title: "Footer", content: "", isRequired: true, order: 6, variant: "FooterMain", isVisible: true },
-    ],
-    theme: {
-      primary: "#cd5ff8",
-      secondary: "#623686",
-      font: "Inter",
-      mode: "dark"
-    },
-    preview: "/templates/recommended-fullstack.jpg",
-    previewUrl: "/portfolio/demo/",
     isPopular: true,
+    templateEngine: "external",  // Standalone Next.js app — no sections array
   },
   {
     id: "api-engineer",
     name: "API-First Portfolio",
     description: "Showcase RESTful and GraphQL APIs",
-    jobRoles: ["Backend Developer", "API Engineer", "Microservices Engineer"],
-    industries: ["Technology", "Backend", "Services"],
+    previewUrl: "http://localhost:3001",
     layout: "modern",
-    sections: [
-      { id: "hero", type: "hero", title: "Hero", content: "", isRequired: true, order: 1, isVisible: true },
-      { id: "about", type: "about", title: "About", content: "", isRequired: true, order: 2, isVisible: true },
-      { id: "projects", type: "projects", title: "Projects", content: "", isRequired: true, order: 3, isVisible: true },
-      { id: "contact", type: "contact", title: "Contact", content: "", isRequired: true, order: 4, isVisible: true },
-    ],
-    preview: "/templates/backend.png",
-    isPopular: false
-  },
+    templateEngine: "section",   // Uses internal PortfolioTemplateInner
+  }
 ];
 
+
 const ImageScrollPreview: React.FC<{ src: string }> = ({ src }) => {
-  return (
-    <div className="w-full h-full overflow-hidden bg-slate-900 relative rounded-t-xl group-hover/card:rounded-t-xl">
-      <div
-        className="w-full transition-transform ease-linear"
-        style={{
-          // Use a simulated height or aspect ratio.
-          // For a real implementation, the image should be a long screenshot.
-          // Here we assume the image is long and we translate it up.
-          // We'll use a class to trigger the scroll on hover.
-          transitionDuration: '5000ms'
-        }}
-      >
-        <img
-          src={src}
-          alt="Template Preview"
-          className="w-full h-auto object-cover object-top transition-transform ease-linear transform translate-y-0 hover:-translate-y-[calc(100%-250px)]" // Adjust 250px to match container height
-          style={{ minHeight: '100%', transitionDuration: '4000ms' }}
-        />
-      </div>
-    </div>
-  );
-};
-// Note: The hover effect is better handled on the parent or using a state if we want strict "hover card -> scroll image" behavior.
-// The previous implementation used context of the card hover.
-// Let's refine this to accept an `isHovering` prop or handle it internally.
-
-const ScrollableThumbnail: React.FC<{ src: string }> = ({ src }) => {
-  // We'll reuse the name but change implementation to CSS image scroll
-  // This requires the parent to pass "isHovering" or we handle strictly CSS
-
-  // To ensure it scrolls to the VERY bottom, we use translateY.
-  // The container is fixed height (e.g. 240px from parent).
-  // The image is tall.
-  // transform: translateY(-100%) moves it completely out.
-  // We want translateY(containerHeight - imageHeight).
+  const [hovered, setHovered] = React.useState(false);
 
   return (
-    <div className="w-full h-full overflow-hidden bg-slate-900 relative rounded-t-xl">
+    <div
+      className="w-full overflow-hidden bg-white relative rounded-t-xl"
+      style={{ height: '240px' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
       <img
         src={src}
-        alt="preview"
-        className="w-full object-cover object-top transition-all ease-in-out"
+        alt="Template Preview"
         style={{
-          transformOrigin: 'top',
-          transitionDuration: '3000ms'
+          width: '100%',
+          height: 'auto',
+          display: 'block',
+          transition: 'transform 6000ms linear',
+          transform: hovered ? 'translateY(calc(-100% + 240px))' : 'translateY(0)',
+          willChange: 'transform',
+          imageRendering: 'auto',
+        }}
+        onError={(e) => {
+          (e.target as HTMLImageElement).src = 'https://via.placeholder.com/400x800?text=Template+Preview';
         }}
       />
-      {/*
-               We need to use a CSS trick because we don't know the exact height in JS easily without refs.
-               Tailwind 'group-hover' from the parent card can work if we add 'group' to the parent.
-               The parent already has 'group'.
-            */}
-      <style>{`
-                .group:hover .scroll-image {
-                    transform: translateY(calc(-100% + 240px)); /* 240px is approx height of container */
-                }
-            `}</style>
-      <div className="absolute inset-0 pointer-events-none">
-        <img
-          src={src}
-          className="w-full h-auto scroll-image transition-transform ease-linear"
-          style={{ willChange: 'transform', transitionDuration: '5000ms' }}
-        />
-      </div>
-      {/* To avoid double rendering of img, we just use one. */}
+      {/* Fade out at bottom */}
+      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-white/60 to-transparent pointer-events-none" />
     </div>
   );
 };
 
-// simpler version
-const CSSScrollableThumbnail: React.FC<{ src: string }> = ({ src }) => {
-  return (
-    <div className="w-full h-full overflow-hidden bg-slate-900 relative rounded-t-xl">
-      <div
-        className="w-full h-full bg-top transition-all ease-in-out group-hover:bg-bottom"
-        style={{
-          backgroundImage: `url(${src})`,
-          backgroundSize: '100% auto',
-          backgroundRepeat: 'no-repeat',
-          transitionDuration: '5000ms' // Slower scroll for better visibility
-        }}
-      />
-    </div>
-  );
-};
 
 export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
   userData,
   projects,
   onTemplateSelect,
-  onJobRoleDetected,
   isDemo = false,
 }) => {
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [templates, setTemplates] = useState<PortfolioTemplate[]>(MOCK_TEMPLATES);
+  const [templates, setTemplates] = useState<PortfolioTemplate[]>(INTEGRATED_TEMPLATES);
 
   useEffect(() => {
-    setTemplates(MOCK_TEMPLATES);
+    setTemplates(INTEGRATED_TEMPLATES);
   }, [userData, projects]);
 
   const domains = [
@@ -268,16 +154,18 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
       roles: domainRoles.web,
       description: 'Perfect for showcasing both frontend and backend skills',
       isRecommended: true,
-      preview: <CSSScrollableThumbnail src="/templates/fullstack.png" />,
+      preview: (
+        <ImageScrollPreview src="/templates/fullstack-preview.png" />
+      ),
       tech: 'MERN • Blockchain • GraphQL',
-      bgClass: 'bg-[#1b1a2e]',
-      isDark: true,
+      bgClass: 'bg-white',
+      isDark: false,
     },
 
     // WEB DOMAIN
     {
-      id: 'ui-first',
-      title: 'UI-First Portfolio',
+      id: 'modern-dev',
+      title: 'Modern Developer',
       domain: 'web',
       roles: domainRoles.web,
       description: 'Showcase your design skills with interactive components',
@@ -295,8 +183,8 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
       bgClass: 'bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/10 dark:to-blue-900/10',
     },
     {
-      id: 'component-library',
-      title: 'Component Library',
+      id: 'creative-designer',
+      title: 'Creative Developer',
       domain: 'web',
       roles: domainRoles.web,
       description: 'Display your reusable component collection',
@@ -317,8 +205,8 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
       bgClass: 'bg-white dark:bg-slate-900',
     },
     {
-      id: 'performance-focused',
-      title: 'Performance-Focused',
+      id: 'professional-exec',
+      title: 'Professional Portfolio',
       domain: 'web',
       roles: domainRoles.web,
       description: 'Highlight optimization and speed metrics',
@@ -346,9 +234,22 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
       domain: 'backend',
       roles: domainRoles.backend,
       description: 'Showcase RESTful and GraphQL APIs',
-      preview: <CSSScrollableThumbnail src="/templates/backend.png" />,
+      preview: (
+        <div className="h-full w-full bg-slate-50 border-t border-slate-200 p-4 font-mono text-xs text-blue-600 flex flex-col">
+          <div className="flex items-center gap-2 mb-2 border-b border-slate-200 pb-2">
+            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+            <div className="text-slate-500 font-sans font-medium">API Gateway</div>
+          </div>
+          <div className="space-y-1 flex-grow">
+            <div><span className="text-purple-600">GET</span> <span className="text-slate-700">/api/v1/users</span></div>
+            <div><span className="text-green-600">POST</span> <span className="text-slate-700">/api/v1/auth</span></div>
+            <div><span className="text-blue-600">PUT</span> <span className="text-slate-700">/api/v1/profile</span></div>
+            <div className="text-slate-400 mt-2">// Response: 200 OK</div>
+          </div>
+        </div>
+      ),
       tech: 'Node.js • Express',
-      bgClass: 'bg-slate-100 dark:bg-slate-800/40',
+      bgClass: 'bg-white',
     },
     {
       id: 'microservices',
@@ -727,7 +628,9 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
           <div
             key={card.id}
             className="group relative flex flex-col cursor-pointer"
-            onClick={() => onTemplateSelect(templates.find(t => t.id === card.id) || templates[0])}
+            onClick={() => {
+              onTemplateSelect(templates.find(t => t.id === card.id) || templates[0]);
+            }}
           >
             <div className="mb-3">
               <div className="flex items-center justify-center gap-2 mb-1">
@@ -763,8 +666,7 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
                     if (isDemo) {
                       setShowLoginModal(true);
                     } else {
-                      const template = templates.find(t => t.id === card.id) || templates[0];
-                      if (template) onTemplateSelect(template);
+                      onTemplateSelect(templates.find(t => t.id === card.id) || templates[0]);
                     }
                   }}
                   className={`${!isDemo && (card as any).isRecommended ? 'bg-green-500 hover:bg-green-600' : 'bg-blue-500 hover:bg-blue-600'} text-white flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-semibold shadow-lg`}

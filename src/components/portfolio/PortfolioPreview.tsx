@@ -73,11 +73,14 @@ export const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({
     }
 
     return (
-      <div className="bg-white min-h-screen overflow-y-auto" style={getDeviceStyles()}>
-        <PortfolioTemplateInner
-          userData={(portfolio as any).userData}
-          projects={projects}
-        />
+      <div className="bg-white w-full h-full relative transform-gpu rounded-md overflow-hidden" style={getDeviceStyles()}>
+        <div className="w-full h-full overflow-y-auto custom-scrollbar">
+          <iframe
+            src={`http://localhost:3001?username=${(portfolio as any).userData?.username || 'kanishk'}`}
+            className="w-full h-full border-0"
+            title="Portfolio Preview"
+          />
+        </div>
       </div>
     );
   };

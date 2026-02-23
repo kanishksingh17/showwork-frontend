@@ -26,7 +26,7 @@ import { BsGithub } from 'react-icons/bs';
 import { Provider } from 'react-redux';
 import { portfolioStore } from '@/store/portfolio';
 import { usePortfolioSelector } from '@/store/portfolio/hooks';
-import { withPortfolioTemplate, type PortfolioTemplateProps } from '../hoc/withPortfolioTemplate';
+import { withPortfolioTemplate, type PortfolioTemplateProps } from './withPortfolioTemplate';
 import { getTechIcon } from '@/utils/getTechIcon';
 
 // ─── Navigation items ─────────────────────────────────────────────────────────
@@ -321,21 +321,87 @@ const ProjectsSection: React.FC<{ projects: any[] }> = ({ projects }) => {
 // ─── Resume ───────────────────────────────────────────────────────────────────
 const ResumeSection: React.FC<{ userData: any }> = ({ userData }) => {
     const resumeUrl = (userData as any).resumeUrl || null;
+    const experience = userData.experience || [];
+    const education = userData.education || [];
+
+    const formatDate = (dateStr: string) => {
+        if (!dateStr) return '';
+        try {
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        } catch (e) {
+            return dateStr;
+        }
+    };
+
     return (
         <section id="resume" className="py-24" style={{ background: 'linear-gradient(to bottom left,rgb(5,8,40),rgb(1,4,39))' }}>
-            <div className="max-w-7xl mx-auto px-6 text-center">
-                <h1 className="text-4xl font-bold text-white mb-3 uppercase">
-                    My <strong style={{ color: '#7500fa' }}>Resume</strong>
-                </h1>
-                <p className="text-gray-400 mb-10">My professional and educational background.</p>
-                {resumeUrl
-                    ? <a href={resumeUrl} target="_blank" rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-white hover:opacity-90"
-                        style={{ background: '#7500fa' }}>
-                        <CgFileDocument /> View Resume
-                    </a>
-                    : <p className="text-gray-500 text-sm">Add a resume URL through the portfolio editor.</p>
-                }
+            <div className="max-w-7xl mx-auto px-6">
+                <div className="text-center mb-16">
+                    <h1 className="text-4xl font-bold text-white mb-3 uppercase">
+                        My <strong style={{ color: '#7500fa' }}>Resume</strong>
+                    </h1>
+                    <p className="text-gray-400 mb-8">My professional and educational background.</p>
+                    {resumeUrl ? (
+                        <a href={resumeUrl} target="_blank" rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-8 py-3 rounded-full font-semibold text-white hover:opacity-90 transition-all justify-center"
+                            style={{ background: '#7500fa' }}>
+                            <CgFileDocument /> View Full Resume
+                        </a>
+                    ) : (
+                        <p className="text-gray-500 text-sm">Add a resume URL through the portfolio editor.</p>
+                    )}
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-12 text-white">
+                    {/* Experience Column */}
+                    <div>
+                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-purple-900/50 pb-4">
+                            <span className="p-2 rounded-lg bg-purple-900/30 text-purple-400"><CgFileDocument className="w-5 h-5" /></span>
+                            Experience
+                        </h2>
+                        {experience.length > 0 ? (
+                            <div className="space-y-8">
+                                {experience.map((exp: any, i: number) => (
+                                    <div key={i} className="relative pl-6 border-l-2 border-purple-800/50">
+                                        <div className="absolute w-3 h-3 bg-purple-500 rounded-full -left-[7px] top-1.5 ring-4 ring-indigo-950"></div>
+                                        <h3 className="text-xl font-bold text-white">{exp.title}</h3>
+                                        <div className="text-purple-400 font-medium mb-2">{exp.companyName}</div>
+                                        <div className="text-sm text-gray-500 mb-3 uppercase tracking-wider font-mono">
+                                            {formatDate(exp.startDate)} - {exp.endDate ? formatDate(exp.endDate) : 'Present'}
+                                        </div>
+                                        <p className="text-gray-400 text-sm leading-relaxed">{exp.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 italic">No experience added yet.</p>
+                        )}
+                    </div>
+
+                    {/* Education Column */}
+                    <div>
+                        <h2 className="text-2xl font-bold mb-8 flex items-center gap-3 border-b border-purple-900/50 pb-4">
+                            <span className="p-2 rounded-lg bg-purple-900/30 text-purple-400"><CgFileDocument className="w-5 h-5" /></span>
+                            Education
+                        </h2>
+                        {education.length > 0 ? (
+                            <div className="space-y-8">
+                                {education.map((edu: any, i: number) => (
+                                    <div key={i} className="relative pl-6 border-l-2 border-purple-800/50">
+                                        <div className="absolute w-3 h-3 bg-purple-500 rounded-full -left-[7px] top-1.5 ring-4 ring-indigo-950"></div>
+                                        <h3 className="text-xl font-bold text-white">{edu.degreeName} {edu.fieldOfStudy && `in ${edu.fieldOfStudy}`}</h3>
+                                        <div className="text-purple-400 font-medium mb-2">{edu.schoolName}</div>
+                                        <p className="text-gray-400 text-sm leading-relaxed">{edu.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <p className="text-gray-500 italic">No education added yet.</p>
+                        )}
+                    </div>
+                </div>
             </div>
         </section>
     );
@@ -401,6 +467,8 @@ export const PortfolioTemplateInner: React.FC<PortfolioTemplateProps> = ({ userD
         avatar: storeUserData.profileImage || userData.profileImage || userData.avatar,
         title: storeUserData.title || userData.title,
         socials: (userData as any).socials || storeUserData.socialLinks || {},
+        experience: storeUserData.experience || userData.experience || [],
+        education: storeUserData.education || userData.education || [],
     };
 
     return (

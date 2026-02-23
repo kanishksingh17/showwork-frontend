@@ -24,6 +24,16 @@ export const syncLinkedInProfile = createAsyncThunk(
     }
 );
 
+export const enhanceProfileAI = createAsyncThunk(
+    'portfolio/enhanceProfile',
+    async () => {
+        await apiJson('/api/user/systematic-fix', { method: 'POST' });
+        // After fix, we need to fetch the updated user info
+        const userRes = await apiJson('/api/auth/me', { method: 'GET' });
+        return userRes.user;
+    }
+);
+
 import type { PortfolioSection } from '@/types/portfolio';
 
 // Section configuration for portfolio templates (extends the base type)
@@ -53,9 +63,13 @@ export interface PortfolioState {
         name: string;
         title: string;
         bio: string;
+        professionalHeadline?: string;
+        professionalBio?: string;
         profileImage: string;
         resumeUrl?: string; // URL to resume PDF
         socialLinks: Record<string, string>;
+        experience?: any[];
+        education?: any[];
     };
 
     // Preview mode
@@ -84,9 +98,13 @@ const initialState: PortfolioState = {
         name: '',
         title: '',
         bio: '',
+        professionalHeadline: '',
+        professionalBio: '',
         profileImage: '',
         resumeUrl: '',
         socialLinks: {},
+        experience: [],
+        education: [],
     },
     isPreviewMode: false,
     activeSection: null,
@@ -266,6 +284,16 @@ const portfolioSlice = createSlice({
                     if (profile.summary) state.userData.bio = profile.summary;
                     // Note: Name is usually already set, but we could update it if needed
                     // state.userData.name = profile.name;
+                }
+            })
+            .addCase(enhanceProfileAI.fulfilled, (state, action) => {
+                const user = action.payload;
+                if (user) {
+                    if (user.professional_headline) state.userData.professionalHeadline = user.professional_headline;
+                    if (user.professional_bio) state.userData.professionalBio = user.professional_bio;
+                    // Update fallback title/bio if they were empty
+                    if (!state.userData.title) state.userData.title = user.professional_headline;
+                    if (!state.userData.bio) state.userData.bio = user.professional_bio;
                 }
             });
     },
