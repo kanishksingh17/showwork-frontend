@@ -1,0 +1,180 @@
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS — CLOUD ARCHITECT SYSTEM (PRINCIPAL)
+   
+   Visual Philosophy: Precision. Structure. Authority.
+   A principal consulting to boards.
+═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+    /* Color system */
+    --t06-ink: #0a0a0a;
+    --t06-ink-2: #1c1c1c;
+    --t06-ink-3: #3a3a3a;
+    --t06-mid: #6b6b6b;
+    --t06-line: #d8d8d8;
+    --t06-line-light: #ebebeb;
+    --t06-paper: #f7f6f4;
+    --t06-white: #ffffff;
+    --t06-accent: #1a3a5c;
+    --t06-accent-light: rgba(26, 58, 92, 0.08);
+    --t06-accent-mid: rgba(26, 58, 92, 0.35);
+
+    /* Typography */
+    --t06-f-serif: 'Playfair Display', Georgia, serif;
+    --t06-f-sans: 'DM Sans', sans-serif;
+    --t06-f-mono: 'DM Mono', monospace;
+
+    /* Easing */
+    --t06-ease-arch: cubic-bezier(0.4, 0, 0.2, 1);
+    --t06-ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.template-06 {
+    background: var(--t06-white);
+    color: var(--t06-ink);
+    font-family: var(--t06-f-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+/* Custom Cursor */
+#t06-cursor-dot {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 6px;
+    background: var(--t06-accent);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+    transition: width 300ms var(--t06-ease-arch), height 300ms var(--t06-ease-arch), background 300ms;
+}
+
+#t06-cursor-ring {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--t06-accent-mid);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%, -50%);
+    transition: width 500ms var(--t06-ease-arch), height 500ms var(--t06-ease-arch), border-color 300ms;
+}
+
+/* Architectural Grid Backdrop */
+.t06-grid-backdrop {
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(var(--t06-line-light) 1px, transparent 1px),
+        linear-gradient(90deg, var(--t06-line-light) 1px, transparent 1px);
+    background-size: calc(100% / 12) 80px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Reveal Animations */
+.r-fade {
+    opacity: 0;
+    transition: opacity 800ms var(--t06-ease-arch);
+}
+
+.r-up {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 700ms var(--t06-ease-arch), transform 700ms var(--t06-ease-arch);
+}
+
+.r-left {
+    opacity: 0;
+    transform: translateX(-16px);
+    transition: opacity 600ms var(--t06-ease-arch), transform 600ms var(--t06-ease-arch);
+}
+
+.r-right {
+    opacity: 0;
+    transform: translateX(16px);
+    transition: opacity 600ms var(--t06-ease-arch), transform 600ms var(--t06-ease-arch);
+}
+
+.is-visible .r-fade,
+.is-visible .r-up,
+.is-visible .r-left,
+.is-visible .r-right {
+    opacity: 1;
+    transform: none;
+}
+
+/* Specific Component Styles */
+.t06-metric-num {
+    font-family: var(--t06-f-serif);
+    font-size: clamp(42px, 5vw, 64px);
+    line-height: 1;
+}
+
+.t06-meta-label {
+    font-family: var(--t06-f-mono);
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--t06-mid);
+}
+
+.t06-rule {
+    width: 100%;
+    height: 1px;
+    background: var(--t06-line);
+    transform-origin: left;
+    transform: scaleX(0);
+    transition: transform 1200ms var(--t06-ease-arch);
+}
+
+.is-visible .t06-rule {
+    transform: scaleX(1);
+}
+
+/* SVG Arch Styles */
+.t06-arch-node {
+    fill: var(--t06-white);
+    stroke: var(--t06-line);
+    stroke-width: 1;
+    transition: all 400ms;
+}
+
+.t06-arch-node:hover {
+    stroke: var(--t06-accent);
+    fill: var(--t06-accent-light);
+}
+
+.t06-edge-active {
+    stroke: var(--t06-accent);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    animation: t06DashFlow 2s linear infinite;
+}
+
+@keyframes t06DashFlow {
+    to {
+        stroke-dashoffset: -16;
+    }
+}
+
+.t06-edge-pulse {
+    stroke: var(--t06-accent);
+    stroke-width: 2;
+    stroke-dasharray: 8 100;
+    animation: t06PulseFlow 2.4s linear infinite;
+}
+
+@keyframes t06PulseFlow {
+    to {
+        stroke-dashoffset: -108;
+    }
+}

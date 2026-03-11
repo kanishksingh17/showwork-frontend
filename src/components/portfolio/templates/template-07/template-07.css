@@ -1,0 +1,202 @@
+/* 
+  Template 07 - Infrastructure Architect
+  Deep purple/void theme, 3D stack animations, SVG pipeline visuals
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700;800&family=DM+Serif+Display:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    --t07-bg-void: #050507;
+    --t07-bg-card: rgba(18, 6, 30, 0.82);
+    --t07-bg-card-solid: #0e0418;
+    --t07-purple-deep: #3b0d6e;
+    --t07-purple-mid: #7c2fd4;
+    --t07-purple-bright: #a855f7;
+    --t07-purple-glow: #c084fc;
+    --t07-purple-edge: #e9d5ff;
+    --t07-blue-ambient: #1d4ed8;
+    --t07-amber-floor: #d97706;
+    --t07-text-primary: #ffffff;
+    --t07-text-secondary: #cbd5e1;
+    --t07-text-muted: rgba(255, 255, 255, 0.4);
+    --t07-border-subtle: rgba(255, 255, 255, 0.07);
+    --t07-border-glow: rgba(168, 85, 247, 0.3);
+    --t07-mono: 'JetBrains Mono', monospace;
+    --t07-sans: 'DM Sans', sans-serif;
+    --t07-serif: 'DM Serif Display', serif;
+}
+
+.template-07 {
+    font-family: var(--t07-sans);
+    background: var(--t07-bg-void);
+    color: var(--t07-text-primary);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Environment canvas */
+.template-07 #env-canvas {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Nav */
+.template-07 nav {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    height: 64px;
+    background: rgba(5, 5, 7, 0.4);
+    backdrop-filter: blur(8px);
+}
+
+.template-07 .nav-logo {
+    font-family: var(--t07-mono);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--t07-text-secondary);
+    letter-spacing: 0.05em;
+}
+
+.template-07 .nav-logo span {
+    color: var(--t07-purple-bright);
+}
+
+.template-07 .nav-links {
+    display: flex;
+    gap: 32px;
+    list-style: none;
+}
+
+.template-07 .nav-links a {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.5);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.2s;
+}
+
+.template-07 .nav-links a:hover,
+.template-07 .nav-links a.active {
+    color: #fff;
+}
+
+.template-07 .nav-cta {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 7px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.template-07 .nav-cta:hover {
+    border-color: var(--t07-purple-bright);
+    background: rgba(168, 85, 247, 0.1);
+}
+
+/* Card */
+.template-07 .card {
+    background: var(--t07-bg-card);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid var(--t07-border-subtle);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+}
+
+.template-07 .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 0%, rgba(124, 47, 212, 0.12) 0%, transparent 60%);
+    pointer-events: none;
+}
+
+/* Sections */
+.template-07 section {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 48px;
+}
+
+/* Custom classes from the snippet */
+.template-07 .hero-h1 {
+    font-size: clamp(40px, 5vw, 58px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+}
+
+.template-07 .hero-subtitle-serif {
+    font-family: var(--t07-serif);
+    font-style: italic;
+    font-size: clamp(20px, 2.5vw, 28px);
+    color: var(--t07-purple-edge);
+    margin-bottom: 20px;
+    display: block;
+}
+
+.template-07 .tag {
+    display: inline-block;
+    font-family: var(--t07-mono);
+    font-size: 11px;
+    color: var(--t07-purple-bright);
+    background: rgba(168, 85, 247, 0.1);
+    border: 1px solid rgba(168, 85, 247, 0.25);
+    border-radius: 4px;
+    padding: 4px 10px;
+    margin: 3px;
+}
+
+/* Pipeline Animations */
+@keyframes flowAnim {
+    0% {
+        width: 0%;
+        opacity: 1;
+    }
+
+    70% {
+        width: 100%;
+        opacity: 1;
+    }
+
+    100% {
+        width: 100%;
+        opacity: 0;
+    }
+}
+
+.template-07 .pipeline-flow {
+    animation: flowAnim 2.5s ease-in-out infinite;
+}
+
+/* Reveal Animation */
+.template-07 .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.template-07 .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+}

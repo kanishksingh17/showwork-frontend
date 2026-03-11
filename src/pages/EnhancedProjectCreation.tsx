@@ -433,8 +433,8 @@ export default function EnhancedProjectCreation() {
                         >
                           <div
                             className={`max-w-[80%] p-2 rounded-lg ${message.type === "ai"
-                                ? "bg-[#24345A]/60 border border-[#3B82F6]/20"
-                                : "bg-[#3B82F6] border border-[#3B82F6]/30"
+                              ? "bg-[#24345A]/60 border border-[#3B82F6]/20"
+                              : "bg-[#3B82F6] border border-[#3B82F6]/30"
                               }`}
                           >
                             <p className="text-xs text-[#E4E9F7]">
@@ -560,12 +560,12 @@ export default function EnhancedProjectCreation() {
                         {projectData.technologies.length > 0 ? (
                           projectData.technologies
                             .slice(0, 3)
-                            .map((tech, index) => (
+                            .map((tech: any, index) => (
                               <div
                                 key={index}
                                 className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
                               >
-                                <span className="text-sm">{tech}</span>
+                                <span className="text-sm">{tech.name || tech}</span>
                                 <Edit3 className="w-4 h-4 text-gray-400" />
                               </div>
                             ))
@@ -692,8 +692,8 @@ export default function EnhancedProjectCreation() {
                   <CardContent className="p-4 bg-white">
                     <div
                       className={`w-full bg-white rounded-lg overflow-hidden border border-gray-200 ${previewMode === "mobile"
-                          ? "aspect-[9/16] max-w-xs mx-auto"
-                          : "aspect-[16/9]"
+                        ? "aspect-[9/16] max-w-xs mx-auto"
+                        : "aspect-[16/9]"
                         }`}
                     >
                       <div className="p-4">
@@ -709,12 +709,12 @@ export default function EnhancedProjectCreation() {
                             )}
                             {projectData.technologies.length > 0 && (
                               <div className="flex flex-wrap gap-1">
-                                {projectData.technologies.map((tech, index) => (
+                                {projectData.technologies.map((tech: any, index) => (
                                   <span
                                     key={index}
                                     className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                                   >
-                                    {tech}
+                                    {tech.name || tech}
                                   </span>
                                 ))}
                               </div>

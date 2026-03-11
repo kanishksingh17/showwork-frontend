@@ -82,9 +82,9 @@ export const ResumeModern: React.FC<ResumeModernProps> = ({ userData, projects }
                                         <ExternalLink className="w-3 h-3 text-slate-300 opacity-0 transition-opacity" />
                                     </h4>
                                     <div className="flex gap-2">
-                                        {project.technologies?.slice(0, 3).map((tech: string, idx: number) => (
+                                        {project.technologies?.slice(0, 3).map((tech: any, idx: number) => (
                                             <span key={idx} className="text-[9px] font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded uppercase">
-                                                {tech}
+                                                {tech.name || tech}
                                             </span>
                                         ))}
                                     </div>

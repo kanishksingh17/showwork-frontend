@@ -1704,9 +1704,9 @@ const ShowcaseDashboard = ({
                                         <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded whitespace-nowrap">
                                           {project.category}
                                         </span>
-                                        {project.technologies?.slice(0, 3).map((tech) => (
-                                          <span key={tech} className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">
-                                            {tech}
+                                        {project.technologies?.slice(0, 3).map((tech: any) => (
+                                          <span key={tech.id || tech.name || tech} className="text-xs text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 whitespace-nowrap">
+                                            {tech.name || tech}
                                           </span>
                                         ))}
                                       </div>

@@ -10,10 +10,19 @@ export function CustomCursor() {
   const x = useSpring(cursorX, springConfig);
   const y = useSpring(cursorY, springConfig);
 
+  const [isHidden, setIsHidden] = useState(false);
+
   useEffect(() => {
     const moveCursor = (e: MouseEvent) => {
       cursorX.set(e.clientX - 16);
       cursorY.set(e.clientY - 16);
+
+      const target = e.target as HTMLElement;
+      if (target && (target.closest('.template-07') || target.closest('[data-isolate-cursor]'))) {
+        setIsHidden(true);
+      } else {
+        setIsHidden(false);
+      }
     };
 
     const handleMouseEnter = (e: MouseEvent) => {
@@ -53,9 +62,9 @@ export function CustomCursor() {
 
   return (
     <motion.div
-      className={`fixed top-0 left-0 rounded-full bg-blue-500/60 mix-blend-lighten pointer-events-none z-[9999] ${
-        isHovering ? "w-10 h-10" : "w-8 h-8"
-      }`}
+      className={`fixed top-0 left-0 rounded-full bg-blue-500/60 mix-blend-lighten pointer-events-none z-[9999] transition-opacity duration-300 ${isHidden ? "opacity-0" : "opacity-100"
+        } ${isHovering ? "w-10 h-10" : "w-8 h-8"
+        }`}
       style={{
         translateX: x,
         translateY: y,

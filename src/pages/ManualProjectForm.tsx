@@ -363,13 +363,13 @@ export default function ManualProjectForm() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {projectData.technologies.map((tech) => (
+                      {projectData.technologies.map((tech: any) => (
                         <Badge
-                          key={tech}
+                          key={tech.id || tech.name || tech}
                           variant="secondary"
                           className="flex items-center gap-1"
                         >
-                          {tech}
+                          {tech.name || tech}
                           <X
                             className="w-3 h-3 cursor-pointer hover:text-red-500"
                             onClick={() => handleRemoveTech(tech)}
@@ -398,13 +398,13 @@ export default function ManualProjectForm() {
                       </Button>
                     </div>
                     <div className="flex flex-wrap gap-2">
-                      {projectData.tags.map((tag) => (
+                      {projectData.tags.map((tag: any) => (
                         <Badge
-                          key={tag}
+                          key={tag.id || tag.name || tag}
                           variant="outline"
                           className="flex items-center gap-1"
                         >
-                          {tag}
+                          {tag.name || tag}
                           <X
                             className="w-3 h-3 cursor-pointer hover:text-red-500"
                             onClick={() => handleRemoveTag(tag)}
@@ -569,9 +569,9 @@ export default function ManualProjectForm() {
                           )}
                           {projectData.technologies.length > 0 && (
                             <div className="flex flex-wrap gap-1">
-                              {projectData.technologies.map((tech, index) => (
+                              {projectData.technologies.map((tech: any, index) => (
                                 <Badge key={index} variant="secondary" className="text-xs">
-                                  {tech}
+                                  {tech.name || tech}
                                 </Badge>
                               ))}
                             </div>

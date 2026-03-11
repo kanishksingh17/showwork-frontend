@@ -1,0 +1,68 @@
+:root {
+    --blockchain-primary: #F7931A;
+    --blockchain-secondary: #1A1B23;
+    --blockchain-bg-light: #F8F9FA;
+    --blockchain-bg-dark: #0D0E12;
+    --blockchain-gold: #FFD700;
+    --blockchain-card-dark: #16171D;
+}
+
+.template-12-wrapper {
+    font-family: 'Inter', sans-serif;
+}
+
+.template-12-wrapper .font-display {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.bitcoin-glow {
+    filter: drop-shadow(0 0 40px rgba(247, 147, 26, 0.3));
+}
+
+
+.scrolling-text-container {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.scrolling-text {
+    display: inline-block;
+    animation: scroll 20s linear infinite;
+}
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+.animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+    0%,
+    100% {
+        opacity: 0.5;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(1.5);
+    }
+}
+
+.animate-ping-slow {
+    animation: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.mask-image-gradient {
+    -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+    mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}

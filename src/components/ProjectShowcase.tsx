@@ -29,7 +29,7 @@ const ProjectShowcase: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const isEdit = Boolean(id);
-  
+
   const [project, setProject] = useState<Project>({
     id: '',
     title: '',
@@ -81,7 +81,7 @@ const ProjectShowcase: React.FC = () => {
       // TODO: Replace with actual API call
       // const response = await fetch(`/api/projects/${projectId}`);
       // const data = await response.json();
-      
+
       // Mock data for now
       const mockProject: Project = {
         id: projectId,
@@ -96,7 +96,7 @@ const ProjectShowcase: React.FC = () => {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
-      
+
       setProject(mockProject);
     } catch (error) {
       console.error('Error loading project:', error);
@@ -119,15 +119,15 @@ const ProjectShowcase: React.FC = () => {
       //   headers: { 'Content-Type': 'application/json' },
       //   body: JSON.stringify(project)
       // });
-      
+
       // Mock success
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       toast({
         title: 'Success',
         description: `Project ${isEdit ? 'updated' : 'created'} successfully!`
       });
-      
+
       navigate('/showcase');
     } catch (error) {
       console.error('Error saving project:', error);
@@ -143,18 +143,18 @@ const ProjectShowcase: React.FC = () => {
 
   const handleDelete = async () => {
     if (!isEdit || !id) return;
-    
+
     if (!confirm('Are you sure you want to delete this project?')) return;
-    
+
     try {
       // TODO: Replace with actual API call
       // await fetch(`/api/projects/${id}`, { method: 'DELETE' });
-      
+
       toast({
         title: 'Success',
         description: 'Project deleted successfully!'
       });
-      
+
       navigate('/showcase');
     } catch (error) {
       console.error('Error deleting project:', error);
@@ -226,7 +226,7 @@ const ProjectShowcase: React.FC = () => {
             </p>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           {isEdit && (
             <Button
@@ -284,7 +284,7 @@ const ProjectShowcase: React.FC = () => {
                   required
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description *</Label>
                 <Textarea
@@ -296,7 +296,7 @@ const ProjectShowcase: React.FC = () => {
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">Category *</Label>
@@ -316,12 +316,12 @@ const ProjectShowcase: React.FC = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="status">Status</Label>
                   <Select
                     value={project.status}
-                    onValueChange={(value: 'draft' | 'published' | 'archived') => 
+                    onValueChange={(value: 'draft' | 'published' | 'archived') =>
                       setProject(prev => ({ ...prev, status: value }))
                     }
                   >
@@ -362,11 +362,11 @@ const ProjectShowcase: React.FC = () => {
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
-                {project.technologies.map(tech => (
-                  <Badge key={tech} variant="secondary" className="flex items-center gap-1">
-                    {tech}
+                {project.technologies.map((tech: any) => (
+                  <Badge key={tech.id || tech.name || tech} variant="secondary" className="flex items-center gap-1">
+                    {tech.name || tech}
                     <button
                       onClick={() => removeTechnology(tech)}
                       className="ml-1 hover:text-red-500"
@@ -376,9 +376,9 @@ const ProjectShowcase: React.FC = () => {
                   </Badge>
                 ))}
               </div>
-              
+
               <Separator />
-              
+
               <div>
                 <Label className="text-sm font-medium mb-2 block">Popular Technologies</Label>
                 <div className="flex flex-wrap gap-2">
@@ -421,7 +421,7 @@ const ProjectShowcase: React.FC = () => {
                   type="url"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="liveUrl">Live Demo</Label>
                 <Input
@@ -432,7 +432,7 @@ const ProjectShowcase: React.FC = () => {
                   type="url"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="imageUrl">Project Image URL</Label>
                 <Input
@@ -470,21 +470,21 @@ const ProjectShowcase: React.FC = () => {
                     />
                   </div>
                 )}
-                
+
                 <div>
                   <h3 className="font-semibold text-lg">{project.title || 'Project Title'}</h3>
                   <p className="text-sm text-muted-foreground">{project.category || 'Category'}</p>
                 </div>
-                
+
                 <p className="text-sm text-muted-foreground">
                   {project.description || 'Project description will appear here...'}
                 </p>
-                
+
                 {project.technologies.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {project.technologies.slice(0, 5).map(tech => (
-                      <Badge key={tech} variant="outline" className="text-xs">
-                        {tech}
+                    {project.technologies.slice(0, 5).map((tech: any) => (
+                      <Badge key={tech.id || tech.name || tech} variant="outline" className="text-xs">
+                        {tech.name || tech}
                       </Badge>
                     ))}
                     {project.technologies.length > 5 && (
@@ -494,7 +494,7 @@ const ProjectShowcase: React.FC = () => {
                     )}
                   </div>
                 )}
-                
+
                 <div className="flex gap-2 pt-2">
                   {project.githubUrl && (
                     <Button variant="outline" size="sm" className="text-xs">

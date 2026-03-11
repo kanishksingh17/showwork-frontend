@@ -1018,7 +1018,7 @@ const ProjectDetail = () => {
                       variant="outline"
                       className="text-xs hover:bg-gray-50"
                     >
-                      {tag}
+                      {(tag as any).name || tag}
                     </Badge>
                   ))}
                 </div>

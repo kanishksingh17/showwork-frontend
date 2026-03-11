@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+.template-08 {
+    --t08-primary: #000000;
+    --t08-accent: #FF3B00;
+    --t08-surface: #FFFFFF;
+    --t08-base-bg: #FFFFFF;
+    --t08-muted: #666666;
+    --t08-soft-gray: #F8F8F8;
+
+    font-family: 'Inter', sans-serif;
+}
+
+.template-08 .monolith-text {
+    letter-spacing: -0.06em;
+    line-height: 0.8;
+}
+
+.template-08 .hero-line {
+    height: 1px;
+    background: linear-gradient(90deg, #FF3B00 0%, transparent 100%);
+}
+
+.template-08 .value-card:hover .arrow-icon {
+    transform: translateX(4px);
+}
+
+.template-08 .grid-accent {
+    background-image: radial-gradient(circle, #000 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.05;
+}
+
+.template-08 .font-mono {
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.template-08 .bg-soft-gray {
+    background-color: var(--t08-soft-gray);
+}
+
+.template-08 .text-accent {
+    color: var(--t08-accent);
+}
+
+.template-08 .bg-accent {
+    background-color: var(--t08-accent);
+}
+
+.template-08 .text-muted {
+    color: var(--t08-muted);
+}
+
+.template-08 h1,
+.template-08 h2,
+.template-08 h3,
+.template-08 h4,
+.template-08 h5 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 12s linear infinite;
+}
+
+@keyframes pulse-slow {
+
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 0.8;
+    }
+}
+
+.animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+}
+
+.shadow-soft {
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}

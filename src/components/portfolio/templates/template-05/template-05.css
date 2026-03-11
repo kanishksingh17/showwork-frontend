@@ -1,0 +1,143 @@
+/* 
+  Template 05 - Architect.io (Microservices Architect)
+  Teal accents, Technical Blueprint, Schematic Grids
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+    /* Color system */
+    --t05-ink: #0d1b19;
+    --t05-ink-2: #1c2e2c;
+    --t05-ink-3: #3a4a48;
+    --t05-mid: #4c9a8d;
+    --t05-line: #e7f3f1;
+    --t05-line-light: #f0f7f6;
+    --t05-paper: #f6f8f8;
+    --t05-white: #ffffff;
+    --t05-accent: #11d4b4;
+    --t05-accent-light: rgba(17, 212, 180, 0.08);
+    --t05-accent-mid: rgba(17, 212, 180, 0.35);
+
+    /* Typography */
+    --t05-f-sans: 'Inter', sans-serif;
+    --t05-f-mono: 'JetBrains Mono', monospace;
+}
+
+.template-05 {
+    background-color: var(--t05-paper);
+    color: var(--t05-ink);
+    font-family: var(--t05-f-sans);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+.schematic-grid {
+    background-image: radial-gradient(var(--t05-ink) 0.5px, transparent 0.5px);
+    background-size: 12px 12px;
+}
+
+.template-05 .font-display {
+    font-weight: 800;
+    tracking: tight;
+}
+
+.template-05 .font-mono {
+    font-family: 'Fira Code', monospace;
+}
+
+/* Isometric Container Utility */
+.isometric-container {
+    perspective: 2000px;
+}
+
+.isometric-view {
+    transform: rotateX(55deg) rotateZ(-35deg);
+    transform-style: preserve-3d;
+}
+
+/* LEGO Block Base */
+.block-group {
+    position: relative;
+    transform-style: preserve-3d;
+}
+
+.block-isometric {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    transform-style: preserve-3d;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+}
+
+.face-top {
+    transform: translateZ(20px);
+    background: inherit;
+    filter: brightness(1.15);
+    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+.face-front {
+    transform: rotateX(-90deg) translateZ(20px);
+    background: inherit;
+    filter: brightness(0.75);
+}
+
+.face-right {
+    transform: rotateY(90deg) translateZ(20px);
+    background: inherit;
+    filter: brightness(0.9);
+}
+
+/* Base Plate Styles */
+.base-plate {
+    position: relative;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transform-style: preserve-3d;
+}
+
+/* Animations */
+@keyframes asyncy-float {
+
+    0%,
+    100% {
+        transform: translateZ(30px);
+    }
+
+    50% {
+        transform: translateZ(50px);
+    }
+}
+
+.animate-asyncy-float {
+    animation: asyncy-float 6s ease-in-out infinite;
+}
+
+@keyframes draw-line {
+    from {
+        stroke-dashoffset: 100;
+    }
+
+    to {
+        stroke-dashoffset: 0;
+    }
+}
+
+.animate-draw {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: draw-line 2s forwards;
+}
+
+/* Section visibility */
+.template-05 section {
+    opacity: 1;
+}

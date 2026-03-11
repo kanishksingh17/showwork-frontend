@@ -255,7 +255,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 <div className={`flex-1 overflow-hidden relative flex ${deviceView === 'desktop' ? '' : 'items-center justify-center p-8'}`}>
                     <div
                         className={`
-                bg-white transition-all duration-300 ease-in-out relative transform-gpu overflow-hidden
+                transition-all duration-300 ease-in-out relative transform-gpu overflow-hidden
                 ${deviceView === 'desktop' ? 'w-full h-full' : 'shadow-2xl border border-gray-200'}
                 ${deviceView === 'tablet' ? 'w-[768px] h-[90%] rounded-xl' : ''}
                 ${deviceView === 'mobile' ? 'w-[375px] h-[90%] rounded-2xl' : ''}
@@ -263,33 +263,31 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
              `}
                     >
                         {/* This is where rendering happens */}
-                        <div className="w-full h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar">
-                            <div className="min-h-full">
-                                {editorMode === 'portfolio' ? (
-                                    template.templateEngine === 'external' && template.previewUrl ? (
-                                        // External (file-based) template — show live iframe
-                                        <iframe
-                                            ref={iframeRef}
-                                            src={`${template.previewUrl}?username=${userData?.username || userData?.id || ''}`}
-                                            className="w-full border-0"
-                                            style={{ height: '100vh', minHeight: '600px' }}
-                                            title={`${template.name} live preview`}
-                                        />
-                                    ) : (
-                                        // Section-based internal template
-                                        <div className="pt-16">
-                                            <PortfolioTemplateInner
-                                                userData={storeUserData}
-                                                projects={projects}
-                                            />
-                                        </div>
-                                    )
+                        <div className="flex-1 overflow-y-auto custom-scrollbar h-full">
+                            {editorMode === 'portfolio' ? (
+                                template.templateEngine === 'external' && template.previewUrl ? (
+                                    // External (file-based) template — show live iframe
+                                    <iframe
+                                        ref={iframeRef}
+                                        src={`${template.previewUrl}?username=${userData?.username || userData?.id || ''}`}
+                                        className="w-full border-0"
+                                        style={{ height: '100vh', minHeight: '600px' }}
+                                        title={`${template.name} live preview`}
+                                    />
                                 ) : (
-                                    <div className="pt-16">
-                                        <ResumePreview userData={userData} projects={projects} />
+                                    // Section-based internal template
+                                    <div className="min-h-full">
+                                        <PortfolioTemplateInner
+                                            userData={storeUserData}
+                                            projects={projects}
+                                        />
                                     </div>
-                                )}
-                            </div>
+                                )
+                            ) : (
+                                <div className="pt-16">
+                                    <ResumePreview userData={userData} projects={projects} />
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import type { ComponentType } from 'react';
 import { usePortfolioDispatch, usePortfolioSelector } from '@/store/portfolio/hooks';
 import { updateUserData } from '@/store/portfolio/portfolioSlice';
-import { Preloader } from './Preloader';
+// preloader removed as per user request
 
 export interface PortfolioTemplateProps {
     userData: any;
@@ -28,7 +28,6 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
         const dispatch = usePortfolioDispatch();
         const storeUserData = usePortfolioSelector(state => state.portfolio.userData);
 
-        const [loading, setLoading] = useState(true);
         const [userData, setUserData] = useState<any>(storeUserData || {});
         const [projects, setProjects] = useState<any[]>([]);
 
@@ -41,25 +40,48 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
                     if (cancelled || !json?.data?.user) return;
 
                     const backendUser = json.data.user;
-                    const backendProjects = json.data.projects || [];
-
                     // Build enriched user data object
+                    const getString = (val: any, fallback = '') => {
+                        if (!val) return fallback;
+                        if (typeof val === 'object') return val.name || val.title || val.description || val.label || fallback;
+                        return String(val);
+                    };
+
                     const enriched = {
-                        name: backendUser.name || '',
-                        title: backendUser.title || (backendUser.techStack?.[0] ? `${backendUser.techStack[0]} Developer` : 'Software Developer'),
-                        bio: backendUser.bio || '',
+                        name: getString(backendUser.name),
+                        title: getString(backendUser.title) || (backendUser.techStack?.[0] ? `${getString(backendUser.techStack[0])} Developer` : 'Software Developer'),
+                        bio: getString(backendUser.bio),
                         profileImage: backendUser.avatar || '',
                         avatar: backendUser.avatar || '',
-                        techStack: backendUser.techStack || [],
+                        techStack: (backendUser.techStack || []).map((t: any) => getString(t)),
                         // Provide both `socials` and `socialLinks` keys for compatibility
                         socials: backendUser.socials || {},
                         socialLinks: backendUser.socials || {},
-                        experience: json.data.experience || [],
-                        education: json.data.education || [],
+                        experience: (json.data.experience || []).map((exp: any) => ({
+                            ...exp,
+                            company: getString(exp.company),
+                            role: getString(exp.role || exp.position),
+                            description: getString(exp.description || exp.summary)
+                        })),
+                        education: (json.data.education || []).map((edu: any) => ({
+                            ...edu,
+                            school: getString(edu.school || edu.institution),
+                            degree: getString(edu.degree),
+                            description: getString(edu.description)
+                        })),
+                        email: getString(backendUser.email)
                     };
 
+                    const sanitizedProjects = (json.data.projects || []).map((p: any) => ({
+                        ...p,
+                        title: getString(p.title || p.name),
+                        description: getString(p.description || p.summary),
+                        category: getString(p.category || p.cat),
+                        tech: (p.tech || p.technologies || []).map((t: any) => getString(t))
+                    }));
+
                     setUserData(enriched);
-                    setProjects(backendProjects);
+                    setProjects(sanitizedProjects);
 
                     // Sync to Redux store so all organisms can read from it
                     dispatch(updateUserData(enriched as any));
@@ -76,9 +98,6 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
             return () => { cancelled = true; };
         }, [dispatch]);
 
-        const handlePreloaderComplete = () => {
-            setLoading(false);
-        };
 
         // Merge any passed props with the fetched data
         const templateProps = {
@@ -88,10 +107,7 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
         } as T;
 
         return (
-            <>
-                {loading && <Preloader onComplete={handlePreloaderComplete} delay={1500} />}
-                <WrappedTemplate {...templateProps} />
-            </>
+            <WrappedTemplate {...templateProps} />
         );
     };
 

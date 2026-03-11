@@ -202,7 +202,12 @@ function App() {
               <PortfolioManagement />
             </ProtectedRoute>
           } />
-          <Route path="/portfolio/demo/*" element={
+          <Route path="/portfolio/demo/:templateId" element={
+            <ProtectedRoute>
+              <PortfolioDemo />
+            </ProtectedRoute>
+          } />
+          <Route path="/portfolio/demo" element={
             <ProtectedRoute>
               <PortfolioDemo />
             </ProtectedRoute>

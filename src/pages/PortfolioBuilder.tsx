@@ -18,7 +18,7 @@ import { PortfolioTemplateInner } from "../components/portfolio/templates/Portfo
 import { ModernPortfolioEditor } from "../components/portfolio/ModernPortfolioEditor";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { usePortfolioDispatch } from "@/store/portfolio/hooks";
-import { setSections, updateUserData, changeWebsitePageComponentContent } from "@/store/portfolio/portfolioSlice";
+import { selectTemplate, setSections, updateUserData, changeWebsitePageComponentContent } from "@/store/portfolio/portfolioSlice";
 
 type BuilderStep = "landing" | "template-preview" | "preparation" | "customizer" | "preview";
 
@@ -228,7 +228,11 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       case "landing":
         return <PortfolioSelector userData={userData} projects={fetchedProjects.length > 0 ? fetchedProjects : projects} onTemplateSelect={(t) => {
           if (isDemo) setShowLoginModal(true);
-          else { setSelectedTemplate(t); setCurrentStep("template-preview"); }
+          else {
+            setSelectedTemplate(t);
+            dispatch(selectTemplate(t.id)); // Sync to Redux
+            setCurrentStep("template-preview");
+          }
         }} isDemo={isDemo} />;
 
       case "template-preview":
@@ -264,8 +268,8 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                 </div>
 
                 <div className="flex-1 flex flex-col min-h-0 bg-white dark:bg-gray-800">
-                  <div className="flex-1 relative group">
-                    {selectedTemplate.previewUrl ? (
+                  <div className="flex-1 relative group flex flex-col overflow-hidden">
+                    {selectedTemplate.templateEngine === 'external' && selectedTemplate.previewUrl ? (
                       <iframe
                         src={
                           selectedTemplate.id === 'recommended-fullstack'
@@ -276,7 +280,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                         title="Template Preview"
                       />
                     ) : (
-                      <div className="h-full overflow-y-auto bg-white dark:bg-gray-900 custom-scrollbar">
+                      <div className="flex-1 overflow-y-auto custom-scrollbar">
                         <PortfolioTemplateInner userData={userData} projects={fetchedProjects.length > 0 ? fetchedProjects : projects} />
                       </div>
                     )}
@@ -359,7 +363,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
             <Button variant="outline" size="sm" onClick={handleStartOver}>Start Over</Button>
           </div>
         )}
-        <div className={`flex-1 flex flex-col min-h-0 ${currentStep === "template-preview" ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"}`}>
+        <div className={`flex-1 flex flex-col min-h-0 ${(currentStep === "template-preview" || currentStep === "customizer") ? "overflow-hidden" : "overflow-y-auto overflow-x-hidden"}`}>
           {isGenerating ? (
             <div className="flex flex-col items-center justify-center h-full gap-8 p-6">
               <div className="relative"><div className="absolute -inset-4 bg-blue-500/20 blur-2xl animate-pulse rounded-full" /><div className="relative w-24 h-24 bg-white dark:bg-gray-800 rounded-2xl shadow-xl flex items-center justify-center border"><Sparkles className="w-10 h-10 text-blue-600 animate-pulse" /></div></div>

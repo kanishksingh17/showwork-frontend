@@ -100,7 +100,7 @@ export const ResumeMinimal: React.FC<ResumeMinimalProps> = ({ userData, projects
                             <div className="flex justify-between items-baseline mb-1">
                                 <h4 className="font-bold text-base">{project.name}</h4>
                                 <span className="text-xs text-gray-400 italic">
-                                    {project.technologies?.join(', ')}
+                                    {project.technologies?.map((t: any) => typeof t === 'string' ? t : t.name).join(', ')}
                                 </span>
                             </div>
                             <p className="text-sm text-gray-700">{project.resumeBullet || project.description}</p>

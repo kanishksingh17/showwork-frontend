@@ -55,30 +55,29 @@ export const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({
   const getDeviceStyles = () => {
     switch (deviceView) {
       case "mobile":
-        return { width: "375px", height: "667px" };
+        return { width: "375px", minHeight: "667px" };
       case "tablet":
-        return { width: "768px", height: "1024px" };
+        return { width: "768px", minHeight: "1024px" };
       default:
-        return { width: "100%", height: "100vh" };
+        return { width: "100%", minHeight: "100vh" };
     }
   };
 
   const renderPortfolioContent = () => {
     if (!portfolio || !portfolio.sections) {
       return (
-        <div className="bg-white min-h-screen flex items-center justify-center" style={getDeviceStyles()}>
+        <div className="flex items-center justify-center" style={getDeviceStyles()}>
           <p className="text-gray-500">No portfolio content available</p>
         </div>
       );
     }
 
     return (
-      <div className="bg-white w-full h-full relative transform-gpu rounded-md overflow-hidden" style={getDeviceStyles()}>
-        <div className="w-full h-full overflow-y-auto custom-scrollbar">
-          <iframe
-            src={`http://localhost:3001?username=${(portfolio as any).userData?.username || 'kanishk'}`}
-            className="w-full h-full border-0"
-            title="Portfolio Preview"
+      <div className="w-full min-h-full relative transform-gpu" style={getDeviceStyles()}>
+        <div className="w-full h-full p-0">
+          <PortfolioTemplateInner
+            userData={(portfolio as any).userData || {}}
+            projects={projects}
           />
         </div>
       </div>

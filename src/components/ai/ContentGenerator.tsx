@@ -389,7 +389,7 @@ export default function ContentGenerator({
                 key={index}
                 className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm flex items-center gap-1"
               >
-                {skill}
+                {(skill as any).name || skill}
                 <button
                   onClick={() => removeSkill(skill)}
                   className="text-blue-600 hover:text-blue-800"
@@ -466,7 +466,7 @@ export default function ContentGenerator({
                 key={index}
                 className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm flex items-center gap-1"
               >
-                {tech}
+                {(tech as any).name || tech}
                 <button
                   onClick={() => removeTechFromProject(tech)}
                   className="text-green-600 hover:text-green-800"
@@ -493,7 +493,7 @@ export default function ContentGenerator({
                           key={techIndex}
                           className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs"
                         >
-                          {tech}
+                          {(tech as any).name || tech}
                         </span>
                       ))}
                     </div>

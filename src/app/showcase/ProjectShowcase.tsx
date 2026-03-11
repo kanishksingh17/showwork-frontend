@@ -424,13 +424,13 @@ const ProjectShowcase: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {project.technologies.map((tech) => (
+                {project.technologies.map((tech: any) => (
                   <Badge
-                    key={tech}
+                    key={tech.id || tech.name || tech}
                     variant="secondary"
                     className="flex items-center gap-1"
                   >
-                    {tech}
+                    {tech.name || tech}
                     <button
                       onClick={() => removeTechnology(tech)}
                       className="ml-1 hover:text-red-500"
@@ -565,9 +565,9 @@ const ProjectShowcase: React.FC = () => {
 
                 {project.technologies.length > 0 && (
                   <div className="flex flex-wrap gap-1">
-                    {project.technologies.slice(0, 5).map((tech) => (
-                      <Badge key={tech} variant="outline" className="text-xs">
-                        {tech}
+                    {project.technologies.slice(0, 5).map((tech: any) => (
+                      <Badge key={tech.id || tech.name || tech} variant="outline" className="text-xs">
+                        {tech.name || tech}
                       </Badge>
                     ))}
                     {project.technologies.length > 5 && (
