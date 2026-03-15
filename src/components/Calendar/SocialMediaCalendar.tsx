@@ -61,7 +61,19 @@ export function SocialMediaCalendar() {
         "/api/calendar/events?start=2024-01-01&end=2024-12-31",
       );
       const data = await response.json();
-      setEvents(data);
+      if (Array.isArray(data)) {
+        setEvents(data);
+        return;
+      }
+      if (Array.isArray(data?.events)) {
+        setEvents(data.events);
+        return;
+      }
+      if (Array.isArray(data?.data?.events)) {
+        setEvents(data.data.events);
+        return;
+      }
+      setEvents([]);
     } catch (error) {
       console.error("Error fetching events:", error);
     }
@@ -71,7 +83,7 @@ export function SocialMediaCalendar() {
     try {
       const response = await fetch("/api/projects");
       const data = await response.json();
-      setProjects(data.projects || []);
+      setProjects(data?.projects || data?.data?.projects || []);
     } catch (error) {
       console.error("Error fetching projects:", error);
     }
@@ -281,7 +293,6 @@ export function SocialMediaCalendar() {
     </div>
   );
 }
-
 
 
 
