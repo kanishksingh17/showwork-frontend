@@ -174,10 +174,11 @@ const ShowcaseDashboard = ({
   const fetchPrimaryProjects = async () => {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const res = await fetch(`${apiBaseUrl}/api/portfolio/projects`, { credentials: 'include' });
+      const res = await fetch(`${apiBaseUrl}/api/projects`, { credentials: 'include' });
       if (res.ok) {
         const result = await res.json();
-        const mapped = (result.data?.projects || []).map((p: any) => {
+        const rawProjects = result.projects || result.data?.projects || [];
+        const mapped = rawProjects.map((p: any) => {
           const technologies = (p.technologies || [])
             .map((t: any) => {
               if (typeof t === 'string') return t;
@@ -338,7 +339,8 @@ const ShowcaseDashboard = ({
       console.log("📂 Background sync: Fetching GitHub repositories...");
       const res = await fetch("/api/integrations/github/repos");
       if (!res.ok) throw new Error("Failed to fetch repos");
-      const repos = await res.json();
+      const result = await res.json();
+      const repos = Array.isArray(result) ? result : (result.repos || []);
 
       const importedUrls = new Set((existingProjects || projects).map(p => p.githubUrl?.toLowerCase()));
 
@@ -362,12 +364,9 @@ const ShowcaseDashboard = ({
 
       setGithubRepos(mappedRepos);
 
-      // If new repos were synced to DB in background, refresh the main projects list
-      // after a short delay to allow backend to finish
-      if (mappedRepos.length > 0) {
-        setTimeout(() => {
-          fetchPrimaryProjects();
-        }, 2000);
+      // Backend now auto-syncs repos into projects. Refresh the main list immediately.
+      if ((result.syncedCount || 0) > 0 || mappedRepos.length > 0) {
+        await fetchPrimaryProjects();
       }
     } catch (error) {
       console.error("Error fetching GitHub repos:", error);
@@ -393,7 +392,7 @@ const ShowcaseDashboard = ({
         category: project.category
       };
 
-      const response = await fetch(`${apiBaseUrl}/api/portfolio/projects`, {
+      const response = await fetch(`${apiBaseUrl}/api/projects`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -597,7 +596,7 @@ const ShowcaseDashboard = ({
 
       // Delete each project via API
       const deletePromises = selectedProjects.map(async (projectId) => {
-        const response = await fetch(`${apiBaseUrl}/api/portfolio/projects/${projectId}`, {
+        const response = await fetch(`${apiBaseUrl}/api/projects/${projectId}`, {
           method: 'DELETE',
           credentials: 'include',
           headers: {
