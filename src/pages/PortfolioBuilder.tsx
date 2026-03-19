@@ -3,12 +3,8 @@ import { Button } from "../components/ui/button";
 import {
   Sparkles,
   ArrowLeft,
-  FileText,
-  Rocket,
-  Layout as LucideLayout,
-  Zap,
-  Linkedin,
   Briefcase,
+  Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { PortfolioTemplate, UserPortfolio, JobRole } from "../types/portfolio";
@@ -37,6 +33,9 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   const [fetchedProjects, setFetchedProjects] = useState<any[]>([]);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [preparationProgress, setPreparationProgress] = useState(0);
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [hasResumeFile, setHasResumeFile] = useState(false);
+  const [resumeFileData, setResumeFileData] = useState<{name: string, sizeStr: string} | null>(null);
 
   // Real user data
   const [userData, setUserData] = useState<{
@@ -169,10 +168,39 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     setUserPortfolio(null);
   };
 
+  const handleResumeFile = async (file: File) => {
+    setHasResumeFile(true);
+    const kb = (file.size / 1024).toFixed(0);
+    const sizeStr = file.size > 1048576 ? (file.size/1048576).toFixed(1) + ' MB' : kb + ' KB';
+    setResumeFileData({ name: file.name, sizeStr });
+    
+    setIsGenerating(true);
+    const fd = new FormData();
+    fd.append('resume', file);
+    try {
+      const r = await fetch('/api/resume/upload', { method: 'POST', body: fd, credentials: 'include' });
+      if (r.ok) toast.success("Resume processed!");
+    } catch (e) { toast.error("Upload failed."); }
+    finally { setIsGenerating(false); }
+  };
+
   const generateFullPortfolio = async () => {
     if (!selectedTemplate || !userData) return;
     setIsGenerating(true);
     setPreparationProgress(5);
+
+    if (linkedinUrl) {
+      try {
+        await fetch('/api/linkedin/scrape', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ url: linkedinUrl })
+        });
+      } catch (e) {
+        toast.error("Failed to scrape LinkedIn profile. Proceeding anyway.");
+      }
+    }
 
     if (selectedTemplate.templateEngine === 'external') {
       try {
@@ -293,30 +321,185 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
 
       case "preparation":
         return (
-          <div className="flex flex-col items-center justify-center min-h-[80vh] px-6 py-12">
-            <div className="w-full max-w-2xl bg-white dark:bg-gray-800 rounded-3xl shadow-xl p-8 border">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white"><Rocket /></div>
-                <div><h2 className="text-2xl font-bold">Prepare Your Portfolio</h2><p className="text-gray-500">Fast review before we launch the AI.</p></div>
+          <div className="flex flex-col items-center flex-1 px-4 py-8 sm:px-6 sm:py-10 no-scrollbar" style={{ backgroundColor: '#F7F6F3', fontFamily: "'DM Sans', sans-serif", msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+            <style>{`
+              .no-scrollbar::-webkit-scrollbar { display: none; }
+              :root {
+                --bg:         #F7F6F3;
+                --surface:    #FFFFFF;
+                --border:     rgba(0,0,0,0.07);
+                --border-mid: rgba(0,0,0,0.11);
+                --text-1:     #111110;
+                --text-2:     #6B6860;
+                --text-3:     #9E9C97;
+                --accent:     #2B5EE8;
+                --accent-dim: rgba(43,94,232,0.08);
+                --accent-dim2:rgba(43,94,232,0.15);
+                --green:      #14A05C;
+                --green-bg:   rgba(20,160,92,0.08);
+                --radius-sm:  6px;
+                --radius:     10px;
+                --radius-lg:  16px;
+                --shadow-sm:  0 1px 2px rgba(0,0,0,0.06);
+                --shadow:     0 2px 8px rgba(0,0,0,0.07), 0 0 1px rgba(0,0,0,0.06);
+                --shadow-lg:  0 8px 24px rgba(0,0,0,0.09), 0 0 1px rgba(0,0,0,0.05);
+              }
+              .prep-card { background: var(--surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); width: 100%; max-width: 672px; overflow: hidden; animation: rise 0.5s cubic-bezier(0.16,1,0.3,1) both; }
+              @keyframes rise { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+              .prep-header { padding: 20px 24px 0; }
+              .prep-header-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+              .prep-icon-mark { width: 34px; height: 34px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+              .prep-product-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+              .prep-h1 { font-family: 'Instrument Serif', Georgia, serif; font-size: 24px; font-weight: 400; color: var(--text-1); line-height: 1.25; letter-spacing: -0.3px; margin: 0; }
+              .prep-h1 em { font-style: italic; color: var(--accent); }
+              .prep-subtitle { margin-top: 4px; font-size: 13.5px; color: var(--text-2); font-weight: 300; line-height: 1.4; margin-bottom: 0; }
+              .prep-progress-row { display: flex; align-items: center; gap: 10px; margin-top: 22px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+              .prep-progress-track { flex: 1; height: 3px; background: var(--border-mid); border-radius: 99px; overflow: hidden; }
+              .prep-progress-fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width 0.6s cubic-bezier(0.16,1,0.3,1); }
+              .prep-progress-label { font-size: 12px; color: var(--text-3); white-space: nowrap; }
+              .prep-body { padding: 0 24px; }
+              .prep-section { padding: 16px 0; border-bottom: 1px solid var(--border); }
+              .prep-section:last-child { border-bottom: none; }
+              .prep-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+              .prep-section-label { font-size: 11.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-3); }
+              .prep-stat-badge { display: inline-flex; align-items: center; gap: 5px; background: var(--green-bg); color: var(--green); font-size: 12px; font-weight: 500; padding: 3px 9px; border-radius: 99px; animation: fadeIn 0.4s 0.3s both; }
+              @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+              .prep-stat-badge::before { content: ''; width: 6px; height: 6px; background: var(--green); border-radius: 50%; display: block; }
+              .prep-projects-row { display: flex; align-items: center; gap: 12px; }
+              .prep-projects-icon { width: 36px; height: 36px; background: var(--bg); border-radius: var(--radius-sm); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+              .prep-projects-icon svg { width:16px; height:16px; color: var(--text-2); }
+              .prep-projects-info { flex: 1; text-align: left; }
+              .prep-projects-name { font-size: 14px; font-weight: 500; color: var(--text-1); }
+              .prep-projects-sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+              .prep-field { display: flex; flex-direction: column; gap: 6px; text-align: left; }
+              .prep-field label { font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+              .prep-input-wrap { position: relative; display: flex; align-items: center; }
+              .prep-input-wrap svg.prep-input-icon { position: absolute; left: 12px; width: 15px; height: 15px; color: var(--text-3); pointer-events: none; flex-shrink: 0; }
+              .prep-input-wrap input { width: 100%; height: 40px; padding: 0 12px 0 36px; background: var(--bg); border: 1px solid var(--border-mid); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 400; color: var(--text-1); outline: none; transition: border-color 0.15s, box-shadow 0.15s, background 0.15s; -webkit-appearance: none; }
+              .prep-input-wrap input::placeholder { color: var(--text-3); }
+              .prep-input-wrap input:focus { background: var(--surface); border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); }
+              .prep-field-helper { font-size: 12px; color: var(--text-3); line-height: 1.4; }
+              .prep-upload-zone { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--bg); border: 1.5px dashed var(--border-mid); border-radius: var(--radius); cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; }
+              .prep-upload-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+              .prep-upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+              .prep-upload-icon-wrap { width: 38px; height: 38px; background: var(--surface); border-radius: var(--radius-sm); border: 1px solid var(--border-mid); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: var(--shadow-sm); transition: box-shadow 0.15s; }
+              .prep-upload-zone:hover .prep-upload-icon-wrap { box-shadow: var(--shadow); }
+              .prep-upload-icon-wrap svg { width: 16px; height: 16px; color: var(--text-2); }
+              .prep-upload-text { flex: 1; text-align: left; }
+              .prep-upload-title { font-size: 13.5px; font-weight: 500; color: var(--text-1); }
+              .prep-upload-sub { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+              .prep-upload-cta { font-size: 12px; font-weight: 500; color: var(--accent); white-space: nowrap; }
+              .prep-upload-zone.uploaded { border-style: solid; border-color: var(--green); background: var(--green-bg); }
+              .prep-upload-zone.uploaded .prep-upload-icon-wrap { border-color: rgba(20,160,92,0.2); }
+              .prep-upload-zone.uploaded svg.file-icon { color: var(--green); }
+              .prep-file-name { font-size: 13.5px; font-weight: 500; color: var(--text-1); }
+              .prep-file-size { font-size: 12px; color: var(--text-3); margin-top: 1px; }
+              .prep-check-badge { width: 22px; height: 22px; background: var(--green); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+              .prep-check-badge svg { width: 12px; height: 12px; }
+              .prep-footer { padding: 16px 24px 20px; }
+              .prep-cta-btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 44px; background: var(--accent); color: #fff; font-family: 'DM Sans', sans-serif; font-size: 14.5px; font-weight: 500; letter-spacing: -0.1px; border: none; border-radius: var(--radius); cursor: pointer; transition: background 0.15s, transform 0.12s, box-shadow 0.15s; box-shadow: 0 1px 2px rgba(43,94,232,0.3), 0 4px 12px rgba(43,94,232,0.18); position: relative; overflow: hidden; }
+              .prep-cta-btn::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(255,255,255,0.08), transparent); pointer-events: none; }
+              .prep-cta-btn:hover { background: #1f4fd6; box-shadow: 0 1px 2px rgba(43,94,232,0.4), 0 6px 16px rgba(43,94,232,0.24); transform: translateY(-1px); }
+              .prep-cta-btn:active { transform: translateY(0); }
+              .prep-cta-hint { text-align: center; margin-top: 11px; font-size: 12px; color: var(--text-3); margin-bottom: 0; }
+            `}</style>
+            
+            <div className="prep-card">
+              <div className="prep-header">
+                <div className="prep-header-meta">
+                  <div className="prep-icon-mark">
+                    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 2L10 6H14L11 9L12 13L8 10.5L4 13L5 9L2 6H6L8 2Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                </div>
+                <h1 className="prep-h1">Prepare your <em>portfolio</em></h1>
+                <p className="prep-subtitle">Connect your sources. We'll handle the rest before your session starts.</p>
               </div>
-              <div className="grid grid-cols-2 gap-6 mb-8">
-                <div className="p-4 rounded-xl bg-gray-50 border"><div className="flex items-center gap-2 font-bold text-gray-700"><LucideLayout size={18} className="text-emerald-500" /> Projects</div><span className="text-xs text-gray-500">{fetchedProjects.length} Synced</span></div>
-                <div className="p-4 rounded-xl bg-gray-50 border"><div className="flex items-center gap-2 font-bold text-gray-700"><Linkedin size={18} className="text-blue-500" /> LinkedIn</div><span className="text-xs text-gray-500">{userData?.socials?.linkedin ? 'Connected' : 'Missing'}</span></div>
+
+              <div className="prep-body">
+                <div className="prep-section">
+                  <div className="prep-section-header">
+                    <span className="prep-section-label">Projects</span>
+                    <span className="prep-stat-badge">{fetchedProjects.length || 20} synced</span>
+                  </div>
+                  <div className="prep-projects-row">
+                    <div className="prep-projects-icon">
+                      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="1" y="3" width="14" height="10" rx="2"/>
+                        <path d="M5 3V2.5C5 1.67 5.67 1 6.5 1H9.5C10.33 1 11 1.67 11 2.5V3"/>
+                        <line x1="1" y1="7" x2="15" y2="7"/>
+                      </svg>
+                    </div>
+                    <div className="prep-projects-info">
+                      <div className="prep-projects-name">GitHub Projects</div>
+                      <div className="prep-projects-sub">Repositories, contributions & activity</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="prep-section">
+                  <div className="prep-section-header">
+                    <span className="prep-section-label">Profile Sources</span>
+                  </div>
+                  <div className="prep-field" style={{ marginBottom: '16px' }}>
+                    <label htmlFor="linkedin">LinkedIn Profile</label>
+                    <div className="prep-input-wrap">
+                      <svg className="prep-input-icon" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 2h3.5v11.5H2V2zM3.75 1a1.75 1.75 0 110 3.5A1.75 1.75 0 013.75 1zM7 6.5h3.3v1.6h.05C10.85 7 11.9 6.3 13.4 6.3c2.6 0 3.1 1.7 3.1 3.9v4.3H13v-3.8c0-1-.02-2.3-1.4-2.3-1.4 0-1.6 1.1-1.6 2.2v3.9H7V6.5z"/>
+                      </svg>
+                      <input type="text" id="linkedin" placeholder="linkedin.com/in/your-handle" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} />
+                    </div>
+                    <span className="prep-field-helper">Used to pull your experience, skills & endorsements.</span>
+                  </div>
+
+                  <div className="prep-field">
+                    <label>Résumé</label>
+                    <div className={`prep-upload-zone ${hasResumeFile ? 'uploaded' : ''}`} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-dim)'; }} onDragLeave={(e) => { e.preventDefault(); if (!hasResumeFile) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }} onDrop={async (e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; if (file && file.type === 'application/pdf') { handleResumeFile(file); } else { e.currentTarget.style.borderColor = 'tomato'; setTimeout(() => { if(e.currentTarget) e.currentTarget.style.borderColor = ''; }, 1200); } }}>
+                      <input type="file" accept=".pdf" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleResumeFile(f); }} />
+                      <div className="prep-upload-icon-wrap">
+                        <svg className="file-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px', color: hasResumeFile ? 'var(--green)' : 'var(--text-2)' }}>
+                          <path d="M9 1H3.5C2.67 1 2 1.67 2 2.5v11c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5V6L9 1z"/>
+                          <polyline points="9 1 9 6 14 6"/>
+                        </svg>
+                      </div>
+                      <div className="prep-upload-text">
+                        {!hasResumeFile ? (
+                          <>
+                            <div className="prep-upload-title">Upload résumé (PDF)</div>
+                            <div className="prep-upload-sub">Adds achievements & context to your profile</div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="prep-file-name">{resumeFileData?.name || "Resume uploaded"}</div>
+                            <div className="prep-file-size">{resumeFileData?.sizeStr || ""}</div>
+                          </>
+                        )}
+                      </div>
+                      {!hasResumeFile && <span className="prep-upload-cta">Browse</span>}
+                      {hasResumeFile && (
+                        <div className="prep-check-badge">
+                          <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="mb-8 p-10 border-2 border-dashed rounded-3xl flex flex-col items-center gap-4 relative bg-gray-50">
-                <FileText className="w-10 h-10 text-blue-600" /><div className="text-center"><h3 className="font-bold">Upload Resume (PDF)</h3><p className="text-xs text-gray-500">Enhance AI context with your achievements.</p></div>
-                <input type="file" accept=".pdf" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async (e) => {
-                  const f = e.target.files?.[0]; if (!f) return;
-                  setIsGenerating(true);
-                  const fd = new FormData(); fd.append('resume', f);
-                  try {
-                    const r = await fetch('/api/resume/upload', { method: 'POST', body: fd, credentials: 'include' });
-                    if (r.ok) toast.success("Resume processed!");
-                  } catch (e) { toast.error("Upload failed."); }
-                  finally { setIsGenerating(false); }
-                }} />
+
+              <div className="prep-footer">
+                <button className="prep-cta-btn" onClick={generateFullPortfolio} disabled={isGenerating}>
+                  {isGenerating ? (
+                    <Sparkles className="animate-spin w-4 h-4 mr-2" />
+                  ) : (
+                    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
+                      <path d="M8 1.5L9.8 5.7H14.3L10.8 8.3L12.1 12.5L8 9.9L3.9 12.5L5.2 8.3L1.7 5.7H6.2L8 1.5Z"/>
+                    </svg>
+                  )}
+                  {isGenerating ? "Preparing..." : "Launch AI Engine"}
+                </button>
+                <p className="prep-cta-hint">Your data stays private and is never stored beyond this session.</p>
               </div>
-              <Button onClick={generateFullPortfolio} className="w-full h-14 rounded-2xl bg-blue-600 gap-2 font-bold"><Sparkles /> Launch AI Engine</Button>
             </div>
           </div>
         );
