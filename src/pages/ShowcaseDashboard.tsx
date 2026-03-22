@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   ArrowDown,
@@ -152,9 +152,10 @@ const ShowcaseDashboard = ({
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [githubRepos, setGithubRepos] = useState<Project[]>([]);
+  const fetchGitHubReposRef = useRef<(existingProjects?: Project[]) => Promise<void>>(async () => {});
 
   // Parallelize status check and project loading for faster initialization
-  const fetchStatus = async () => {
+  const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/integrations/status");
       if (res.ok) {
@@ -169,9 +170,9 @@ const ShowcaseDashboard = ({
       console.error("Status check failed:", err);
     }
     return false;
-  };
+  }, []);
 
-  const fetchPrimaryProjects = async () => {
+  const fetchPrimaryProjects = useCallback(async () => {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
       const res = await fetch(`${apiBaseUrl}/api/projects`, { credentials: 'include' });
@@ -213,9 +214,9 @@ const ShowcaseDashboard = ({
       console.error("Projects fetch failed:", err);
     }
     return [];
-  };
+  }, []);
 
-  const initializeShowcase = async () => {
+  const initializeShowcase = useCallback(async () => {
     if (isDemo) {
       setIsLoadingData(false);
       return;
@@ -242,7 +243,7 @@ const ShowcaseDashboard = ({
 
       if (isConnected && (!lastSync || now - parseInt(lastSync) > oneHour)) {
         sessionStorage.setItem('last_github_sync', now.toString());
-        fetchGitHubRepos(apiProjects);
+        fetchGitHubReposRef.current(apiProjects);
       }
 
       // Automatically trigger a silent category fix on every initialization for debugging
@@ -272,7 +273,7 @@ const ShowcaseDashboard = ({
       console.error("❌ Error initializing showcase:", error);
       setIsLoadingData(false);
     }
-  };
+  }, [isDemo, fetchStatus, fetchPrimaryProjects]);
 
 
   const [isEnhancing, setIsEnhancing] = useState<string | null>(null);
@@ -332,7 +333,7 @@ const ShowcaseDashboard = ({
     }
   };
 
-  const fetchGitHubRepos = async (existingProjects?: Project[]) => {
+  const fetchGitHubRepos = useCallback(async (existingProjects?: Project[]) => {
     if (isFetchingGithub) return;
     setIsFetchingGithub(true);
     try {
@@ -373,7 +374,11 @@ const ShowcaseDashboard = ({
     } finally {
       setIsFetchingGithub(false);
     }
-  };
+  }, [fetchPrimaryProjects, isFetchingGithub, projects]);
+
+  useEffect(() => {
+    fetchGitHubReposRef.current = fetchGitHubRepos;
+  }, [fetchGitHubRepos]);
 
 
 
@@ -436,7 +441,7 @@ const ShowcaseDashboard = ({
   // Load projects from API on component mount
   useEffect(() => {
     initializeShowcase();
-  }, [isDemo]);
+  }, [isDemo, initializeShowcase]);
 
   // Real-time updates simulation
   useEffect(() => {

@@ -148,7 +148,7 @@ const SkillQuizSystem: React.FC = () => {
         clearTimeout(timer);
       };
     }
-  }, [quizState.showAnswer, quizState.phase]);
+  }, [quizState.showAnswer, quizState.phase, quizState.questions.length]);
 
   // Debug useEffect to track state changes
   useEffect(() => {
@@ -158,7 +158,12 @@ const SkillQuizSystem: React.FC = () => {
       currentQuestion: quizState.currentQuestionIndex + 1,
       totalQuestions: quizState.questions.length,
     });
-  }, [quizState.showAnswer, quizState.phase, quizState.currentQuestionIndex]);
+  }, [
+    quizState.showAnswer,
+    quizState.phase,
+    quizState.currentQuestionIndex,
+    quizState.questions.length,
+  ]);
 
   // Answer Selection
   const selectAnswer = (answerIndex: number) => {

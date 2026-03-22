@@ -38,9 +38,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea"; // Assuming Textarea component exists, if not use native or Input
 import { cn } from "@/lib/utils";
-import axios from "axios";
-
-const API_BASE = (import.meta.env.VITE_API_BASE_URL || "http://localhost:5000") + "/api";
+import api from "@/lib/api";
 
 // Mock Data for Activities (Notifications)
 const MOCK_NOTIFICATIONS = [
@@ -245,7 +243,7 @@ export function UserProfileView({ user, onBack, mode = "public" }: UserProfileVi
     const fetchActivities = async () => {
         setLoading(true);
         try {
-            const resp = await axios.get(`${API_BASE}/activities`, { withCredentials: true });
+            const resp = await api.get("/activities");
             if (resp.data.success) {
                 const fetchedNotes = resp.data.data || [];
                 setActivities(fetchedNotes);
@@ -253,7 +251,7 @@ export function UserProfileView({ user, onBack, mode = "public" }: UserProfileVi
                 // Mark as read if there are unread notifications
                 const unreadIds = fetchedNotes.filter((n: any) => !n.isRead).map((n: any) => n.id);
                 if (unreadIds.length > 0) {
-                    await axios.patch(`${API_BASE}/activities/read`, { ids: unreadIds }, { withCredentials: true });
+                    await api.patch("/activities/read", { ids: unreadIds });
                 }
             }
         } catch (err) {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -92,9 +92,13 @@ export default function ManualProjectForm() {
     status: "draft",
   };
 
-  const [formData, setFormData] = useState<ProjectFormData>(initialData);
+  const initialDataRef = useRef(initialData);
+
+  const [formData, setFormData] = useState<ProjectFormData>(
+    initialDataRef.current,
+  );
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
-  const [mediaUrl, setMediaUrl] = useState(initialData.mediaUrl || "");
+  const [mediaUrl, setMediaUrl] = useState(initialDataRef.current.mediaUrl || "");
 
   // Load project for editing
   useEffect(() => {
@@ -137,7 +141,7 @@ export default function ManualProjectForm() {
       };
       fetchProject();
     }
-  }, [isEdit, effectiveId, location.state]);
+  }, [isEdit, id, effectiveId, location.state]);
 
   const [newFeature, setNewFeature] = useState("");
   const [newTeamMember, setNewTeamMember] = useState("");
@@ -155,6 +159,7 @@ export default function ManualProjectForm() {
   >([]);
   const [completedSections, setCompletedSections] = useState<number[]>([]);
   const [backendProjectId, setBackendProjectId] = useState<string | null>(effectiveId || null);
+  const saveToBackendRef = useRef<(isPublishing?: boolean) => Promise<string | null>>(async () => null);
 
   // Command palette commands
   const commands = [
@@ -271,7 +276,14 @@ export default function ManualProjectForm() {
     }
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [isPaletteOpen, formData, mediaFiles, mediaUrl]);
+  }, [
+    isPaletteOpen,
+    formData,
+    mediaFiles,
+    mediaUrl,
+    saveDraft,
+    simulateUpload,
+  ]);
 
   // Load draft on mount with enhanced restoration
   useEffect(() => {
@@ -279,7 +291,7 @@ export default function ManualProjectForm() {
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
-        setFormData(draft.formData || formData);
+        setFormData(draft.formData || initialDataRef.current);
         setMediaFiles(draft.mediaFiles || []);
         setMediaUrl(draft.mediaUrl || "");
         setCurrentSection(draft.currentSection || 0);
@@ -301,7 +313,7 @@ export default function ManualProjectForm() {
   }, []);
 
   // Manual save function for immediate persistence
-  const saveDraft = () => {
+  const saveDraft = useCallback(() => {
     const draftData = {
       formData,
       mediaFiles,
@@ -315,9 +327,15 @@ export default function ManualProjectForm() {
     // Also save to Supabase backend (debounced)
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      saveToBackend();
+      saveToBackendRef.current();
     }, 1000);
-  };
+  }, [
+    completedSections,
+    currentSection,
+    formData,
+    mediaFiles,
+    mediaUrl,
+  ]);
 
   // Show save notification
   const showSaveNotification = () => {
@@ -336,13 +354,13 @@ export default function ManualProjectForm() {
   };
 
   // Simulate upload (for keyboard shortcut)
-  const simulateUpload = () => {
+  const simulateUpload = useCallback(() => {
     const url = prompt("Paste an image or demo URL (simulated upload)");
     if (url) {
       setMediaUrl(url);
       saveDraft();
     }
-  };
+  }, [saveDraft]);
 
   const handleInputChange = (
     field: keyof ProjectFormData,
@@ -423,7 +441,7 @@ export default function ManualProjectForm() {
   };
 
 
-  const saveToBackend = async (isPublishing = false) => {
+  async function saveToBackend(isPublishing = false) {
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
@@ -478,7 +496,9 @@ export default function ManualProjectForm() {
       console.error("❌ Failed to save project to backend:", error);
       return null;
     }
-  };
+  }
+
+  saveToBackendRef.current = saveToBackend;
 
   // Handle GitHub scraping data
   const handleGitHubDataScraped = (data: {

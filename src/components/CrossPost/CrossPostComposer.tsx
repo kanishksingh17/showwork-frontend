@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -464,7 +464,13 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
   const hasInitializedMedia = useRef(false);
 
   // Fetch project details (media, team members, features) when project is selected
-  const { data: projectDetails, isLoading: projectDetailsLoading } = useQuery({
+  const {
+    data: projectDetails,
+    isLoading: projectDetailsLoading,
+    isError: projectDetailsError,
+    error: projectDetailsQueryError,
+    refetch: refetchProjectDetails,
+  } = useQuery({
     queryKey: ['projectDetails', selectedProject?.id],
     queryFn: async () => {
       if (!selectedProject?.id) return null;
@@ -482,8 +488,7 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
       });
 
       if (!response.ok) {
-        console.warn('⚠️ Could not fetch project details');
-        return null;
+        throw new Error('Could not fetch project details');
       }
 
       const data = await response.json();
@@ -635,13 +640,21 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
   }, [refetchIntegrationStatus]);
 
   // Get connected platforms
-  const connectedPlatforms = integrationStatus?.statuses
-    ?.filter((s) => s.connected && !s.expired)
-    .map((s) => s.platform.toLowerCase()) || [];
+  const connectedPlatforms = useMemo(
+    () =>
+      integrationStatus?.statuses
+        ?.filter((s) => s.connected && !s.expired)
+        .map((s) => s.platform.toLowerCase()) || [],
+    [integrationStatus],
+  );
 
   // Check if selected platforms are connected
-  const unconnectedPlatforms = selectedPlatforms.filter(
-    (platform) => !connectedPlatforms.includes(platform.toLowerCase())
+  const unconnectedPlatforms = useMemo(
+    () =>
+      selectedPlatforms.filter(
+        (platform) => !connectedPlatforms.includes(platform.toLowerCase()),
+      ),
+    [selectedPlatforms, connectedPlatforms],
   );
 
   // Debug logging
@@ -1376,6 +1389,33 @@ export function CrossPostComposer({ isDemo = false }: { isDemo?: boolean }) {
                   </TextShimmerWave>
                   <p className="text-sm text-gray-600">Loading repository file tree and project details...</p>
                 </div>
+              </motion.div>
+            ) : projectDetailsError ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center min-h-[60vh] px-4"
+              >
+                <Card className="w-full max-w-xl border-red-200 bg-red-50/70">
+                  <CardContent className="p-6 sm:p-8 space-y-4 text-center">
+                    <div className="flex items-center justify-center gap-2 text-red-700">
+                      <XCircle className="w-5 h-5" />
+                      <h3 className="text-lg font-semibold">Unable to load project details</h3>
+                    </div>
+                    <p className="text-sm text-red-700">
+                      {projectDetailsQueryError instanceof Error
+                        ? projectDetailsQueryError.message
+                        : 'Something went wrong while loading project details.'}
+                    </p>
+                    <Button
+                      onClick={() => void refetchProjectDetails()}
+                      className="bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Retry
+                    </Button>
+                  </CardContent>
+                </Card>
               </motion.div>
             ) : (
               <>

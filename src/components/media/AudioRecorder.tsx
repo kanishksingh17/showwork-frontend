@@ -228,7 +228,7 @@ export default function AudioRecorder({
       setError(errorMessage);
       onError?.(errorMessage);
     }
-  }, [maxDuration, onError, recordingState.isRecording]);
+  }, [maxDuration, onError, recordingState.isRecording, stopRecording]);
 
   // Pause/Resume recording
   const togglePause = useCallback(() => {

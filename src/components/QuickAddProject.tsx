@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -73,25 +73,7 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
     category: initialData?.category || 'Web Development'
   });
 
-  // Auto-save functionality
-  useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      if (projectData.title || projectData.tagline || projectData.description) {
-        handleAutoSave();
-      }
-    }, 10000); // Auto-save every 10 seconds
-
-    return () => clearInterval(autoSaveInterval);
-  }, [projectData]);
-
-  // Auto-save on field blur
-  const handleFieldBlur = () => {
-    if (projectData.title || projectData.tagline || projectData.description) {
-      handleAutoSave();
-    }
-  };
-
-  const handleAutoSave = async () => {
+  const handleAutoSave = useCallback(async () => {
     setIsAutoSaving(true);
     try {
       // Simulate auto-save API call
@@ -128,6 +110,24 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
       console.error('Auto-save failed:', error);
     } finally {
       setIsAutoSaving(false);
+    }
+  }, [initialData?.id, previousProjectData, projectData]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (projectData.title || projectData.tagline || projectData.description) {
+        handleAutoSave();
+      }
+    }, 10000); // Auto-save every 10 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [projectData, handleAutoSave]);
+
+  // Auto-save on field blur
+  const handleFieldBlur = () => {
+    if (projectData.title || projectData.tagline || projectData.description) {
+      handleAutoSave();
     }
   };
 

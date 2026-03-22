@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ const TechnologyStack = ({ onBackToDashboard }: TechnologyStackProps) => {
     { id: "tools", name: "Tools", icon: Code },
   ];
 
-  const popularTechnologies: Technology[] = [
+  const popularTechnologies: Technology[] = useMemo(() => [
     {
       id: "1",
       name: "React",
@@ -156,11 +156,11 @@ const TechnologyStack = ({ onBackToDashboard }: TechnologyStackProps) => {
       projects: 1,
       isRecommended: false,
     },
-  ];
+  ], []);
 
   useEffect(() => {
     setTechnologies(popularTechnologies);
-  }, []);
+  }, [popularTechnologies]);
 
   const filteredTechnologies = technologies.filter((tech) => {
     const matchesSearch = tech.name

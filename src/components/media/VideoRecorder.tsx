@@ -209,7 +209,7 @@ export default function VideoRecorder({
       setError(errorMessage);
       onError?.(errorMessage);
     }
-  }, [maxDuration, onError]);
+  }, [maxDuration, onError, stopRecording]);
 
   // Pause/Resume recording
   const togglePause = useCallback(() => {

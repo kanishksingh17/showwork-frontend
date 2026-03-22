@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -29,13 +29,7 @@ export function RealTimeAnalytics({ portfolioId }: RealTimeAnalyticsProps) {
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
-  useEffect(() => {
-    loadAnalytics();
-    const interval = setInterval(loadAnalytics, 30000); // Update every 30 seconds
-    return () => clearInterval(interval);
-  }, [portfolioId]);
-
-  const loadAnalytics = async () => {
+  const loadAnalytics = useCallback(async () => {
     try {
       setLoading(true);
       const [realtimeData, socialMediaData] = await Promise.all([
@@ -51,7 +45,13 @@ export function RealTimeAnalytics({ portfolioId }: RealTimeAnalyticsProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [portfolioId]);
+
+  useEffect(() => {
+    loadAnalytics();
+    const interval = setInterval(loadAnalytics, 30000); // Update every 30 seconds
+    return () => clearInterval(interval);
+  }, [loadAnalytics]);
 
   if (loading && !analytics) {
     return (

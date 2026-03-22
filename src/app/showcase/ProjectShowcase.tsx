@@ -26,7 +26,6 @@ import {
   Eye,
   Trash2,
   Plus,
-  Upload,
   Link,
   Code,
   Palette,

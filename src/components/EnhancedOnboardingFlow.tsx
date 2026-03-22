@@ -415,7 +415,7 @@ export default function EnhancedOnboardingFlow({
       }
       setCountdownTimer(null);
     };
-  }, [currentTechStackIndex, currentTechStackQuestionIndex]);
+  }, [currentTechStackIndex, currentTechStackQuestionIndex, autoAdvanceTimer]);
 
   // Clean up timers on unmount
   useEffect(() => {
@@ -424,7 +424,7 @@ export default function EnhancedOnboardingFlow({
         clearTimeout(autoAdvanceTimer);
       }
     };
-  }, []);
+  }, [autoAdvanceTimer]);
 
   const [profileState, setProfileState] = useState<ProfileSetupState>({
     currentStep: 0,
@@ -721,6 +721,7 @@ export default function EnhancedOnboardingFlow({
     currentStep,
     profileState.totalSteps,
     selectedTechStacks,
+    selectedPlatforms,
     profileState.userProfile.techStack?.manualTechStacks,
     profileState.userProfile.basicInfo,
   ]);

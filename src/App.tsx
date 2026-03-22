@@ -1,33 +1,34 @@
-import React, { useState, useEffect } from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "sonner";
-import Dashboard from "./pages/Dashboard";
-import ShowcaseDashboard from "./pages/ShowcaseDashboard";
-import ManualProjectForm from "./app/showcase/ManualProjectForm";
-import QuickAdd from "./pages/QuickAdd";
-import ContentManagement from "./pages/ContentManagement";
+import { Loader2 } from "lucide-react";
 import ErrorBoundary from "./components/preview/ErrorBoundary";
-import Analytics from "./pages/Analytics";
-import Community from "./pages/Community";
-import PortfolioBuilder from "./pages/PortfolioBuilder";
-import PortfolioManagement from "./pages/PortfolioManagement";
-import PortfolioDemo from "./pages/PortfolioDemo";
-import ApplicationTracker from "./pages/ApplicationTracker";
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ShowcaseDashboard = lazy(() => import("./pages/ShowcaseDashboard"));
+const ManualProjectForm = lazy(() => import("./app/showcase/ManualProjectForm"));
+const QuickAdd = lazy(() => import("./pages/QuickAdd"));
+const ContentManagement = lazy(() => import("./pages/ContentManagement"));
+const Analytics = lazy(() => import("./pages/Analytics"));
+const Community = lazy(() => import("./pages/Community"));
+const PortfolioBuilder = lazy(() => import("./pages/PortfolioBuilder"));
+const PortfolioManagement = lazy(() => import("./pages/PortfolioManagement"));
+const PortfolioDemo = lazy(() => import("./pages/PortfolioDemo"));
+const ApplicationTracker = lazy(() => import("./pages/ApplicationTracker"));
 
 // ... existing code ...
 
-
-import Integrations from "./pages/Integrations";
-import Settings from "./pages/Settings";
-import Profile from "./pages/Profile";
-import PublicProfile from "./pages/PublicProfile";
-import ShowWorkLanding from "./components/ShowWorkLanding";
-import Login from "./pages/Login";
-import DeveloperSetupPage from "./pages/DeveloperSetupPage";
-import ProjectDetail from "./app/showcase/ProjectDetail";
+const Integrations = lazy(() => import("./pages/Integrations"));
+const Settings = lazy(() => import("./pages/Settings"));
+const Profile = lazy(() => import("./pages/Profile"));
+const PublicProfile = lazy(() => import("./pages/PublicProfile"));
+const ShowWorkLanding = lazy(() => import("./components/ShowWorkLanding"));
+const Login = lazy(() => import("./pages/Login"));
+const DeveloperSetupPage = lazy(() => import("./pages/DeveloperSetupPage"));
+const ProjectDetail = lazy(() => import("./app/showcase/ProjectDetail"));
 import { CustomCursor } from "./components/ui/custom-cursor";
+import { useAuth } from "./contexts/useAuth";
 
 // Create QueryClient instance with smart defaults
 const queryClient = new QueryClient({
@@ -43,6 +44,8 @@ const queryClient = new QueryClient({
 
 // Authentication wrapper component
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoading, isAuthenticated } = useAuth();
+
   // Check for auth bypass flag (development only)
   const AUTH_BYPASS = import.meta.env.VITE_AUTH_BYPASS === "true";
 
@@ -51,56 +54,15 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <>{children}</>;
   }
 
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        // First, check localStorage (for local auth)
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-
-        if (token && user) {
-          setIsAuthenticated(true);
-          return;
-        }
-
-        // If no localStorage, check for session-based authentication (OAuth)
-        try {
-          const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-          const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
-            method: 'GET',
-            credentials: 'include', // Important: send cookies
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.user) {
-              // Session exists, store user info in localStorage for consistency
-              localStorage.setItem('authToken', 'session_token');
-              localStorage.setItem('user', JSON.stringify(data.user));
-              setIsAuthenticated(true);
-              return;
-            }
-          }
-        } catch (sessionError) {
-          console.log('Session check failed (user not logged in via OAuth):', sessionError);
-        }
-
-        // No authentication found
-        setIsAuthenticated(false);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  if (isAuthenticated === null) {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Loader2 className="w-4 h-4 animate-spin" />
+          <span>Loading...</span>
+        </div>
+      </div>
+    );
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
@@ -111,6 +73,7 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <CustomCursor />
       <Router>
+        <Suspense fallback={<div className="p-6 text-center text-sm text-gray-500">Loading...</div>}>
         <Routes>
           {/* Public routes */}
           <Route path="/" element={<ShowWorkLanding />} />
@@ -241,6 +204,7 @@ function App() {
           } />
 
         </Routes>
+        </Suspense>
       </Router>
       <Toaster position="top-right" richColors />
       {import.meta.env.MODE === "development" && (

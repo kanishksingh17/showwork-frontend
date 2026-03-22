@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
@@ -51,11 +51,7 @@ export function GoalTracking({ portfolioId }: GoalTrackingProps) {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadGoalTracking();
-  }, [portfolioId]);
-
-  const loadGoalTracking = async () => {
+  const loadGoalTracking = useCallback(async () => {
     try {
       setLoading(true);
       const data = await portfolioTrackingService.getGoalTracking(portfolioId);
@@ -67,7 +63,11 @@ export function GoalTracking({ portfolioId }: GoalTrackingProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [portfolioId]);
+
+  useEffect(() => {
+    loadGoalTracking();
+  }, [loadGoalTracking]);
 
   const getGoalIcon = (type: string) => {
     switch (type) {

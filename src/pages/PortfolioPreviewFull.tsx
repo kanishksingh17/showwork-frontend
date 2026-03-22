@@ -2,12 +2,15 @@ import React, { useEffect } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import { portfolioStore } from '@/store/portfolio';
 import { initializeDefaultSections } from '@/store/portfolio/portfolioSlice';
+import { useAuth } from '@/contexts/useAuth';
 // Removed dead organism and navigation icon imports
 
 
 
 const PortfolioContent: React.FC = () => {
     const dispatch = useDispatch();
+    const { user } = useAuth();
+    const previewUsername = user?.username || user?.id || '';
 
     useEffect(() => {
         dispatch(initializeDefaultSections());
@@ -16,7 +19,7 @@ const PortfolioContent: React.FC = () => {
 
     return (
         <iframe
-            src={`http://localhost:3001?username=kanishk`} // Using kanishk for demo for now to test the backend integration.
+            src={`http://localhost:3001?username=${encodeURIComponent(previewUsername)}`}
             className="w-full h-screen border-0"
             title="Portfolio Demo Full"
         />

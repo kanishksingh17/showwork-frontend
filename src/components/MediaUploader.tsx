@@ -40,7 +40,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [isCompressing, setIsCompressing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const compressImage = async (
+  const compressImage = useCallback(async (
     file: File,
     quality: number = 0.8,
   ): Promise<File> => {
@@ -88,9 +88,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
       img.src = URL.createObjectURL(file);
     });
-  };
+  }, []);
 
-  const processFile = async (file: File): Promise<UploadingMediaFile> => {
+  const processFile = useCallback(async (file: File): Promise<UploadingMediaFile> => {
     const id = `media_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const preview = URL.createObjectURL(file);
 
@@ -125,7 +125,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     };
 
     return mediaFile;
-  };
+  }, [compressImage]);
 
   const handleFiles = useCallback(
     async (newFiles: FileList | File[]) => {
@@ -179,7 +179,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       setFiles(updatedFiles);
       onFilesChange(updatedFiles);
     },
-    [files, maxFiles, maxSize, acceptedTypes, onFilesChange],
+    [files, maxFiles, maxSize, acceptedTypes, onFilesChange, processFile],
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {

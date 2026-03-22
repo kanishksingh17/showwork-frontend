@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -38,7 +38,6 @@ import {
   Copy,
   Loader2,
   Play,
-  X as XIcon,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
@@ -49,6 +48,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Project } from "@/types/project";
 import { AdvancedVisualizations } from "@/components/dashboard/AdvancedVisualizations";
+import { useAuth } from "@/contexts/useAuth";
 
 interface TeamMember {
   id: string;
@@ -88,6 +88,7 @@ interface Comment {
 const ProjectDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [project, setProject] = useState<Project | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
@@ -108,8 +109,8 @@ const ProjectDetail = () => {
   const [newComment, setNewComment] = useState("");
   const [currentUser, setCurrentUser] = useState<{ name: string; email?: string; avatar?: string } | null>(null);
   const [isLoadingTeam, setIsLoadingTeam] = useState(false);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [, setComments] = useState<Comment[]>([]);
+  const [, setIsLoadingComments] = useState(false);
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(0);
   const [expandedSections, setExpandedSections] = useState<
@@ -128,6 +129,15 @@ const ProjectDetail = () => {
     { id: "team", label: "Team", icon: Users },
     { id: "activity", label: "Activity", icon: Activity },
   ];
+
+  useEffect(() => {
+    if (!user) return;
+    setCurrentUser({
+      name: (user.name as string) || "User",
+      email: user.email as string | undefined,
+      avatar: (user.avatar || user.image) as string | undefined,
+    });
+  }, [user]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -292,7 +302,7 @@ const ProjectDetail = () => {
     }
   };
 
-  const handleShare = () => {
+  const handleShare = useCallback(() => {
     if (navigator.share && project) {
       navigator.share({
         title: project.name,
@@ -303,9 +313,9 @@ const ProjectDetail = () => {
       navigator.clipboard.writeText(window.location.href);
       // You could show a toast notification here
     }
-  };
+  }, [project]);
 
-  const handleSaveChanges = () => {
+  const handleSaveChanges = useCallback(() => {
     if (project && editData) {
       const updatedProject = { ...project, ...editData };
       setProject(updatedProject);
@@ -326,7 +336,7 @@ const ProjectDetail = () => {
       setIsEditing(false);
       setEditData({});
     }
-  };
+  }, [editData, project]);
 
   const handleAddComment = async () => {
     if (!newComment.trim() || !id) return;
@@ -448,7 +458,7 @@ const ProjectDetail = () => {
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [isEditing]);
+  }, [handleSaveChanges, handleShare, isEditing]);
 
   // Media Viewer Keyboard Support
   useEffect(() => {
@@ -528,42 +538,6 @@ const ProjectDetail = () => {
         return <Eye className="w-4 h-4 text-yellow-600" />;
       default:
         return <Globe className="w-4 h-4" />;
-    }
-  };
-
-  // Fetch current user
-  const fetchCurrentUser = async () => {
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
-        credentials: 'include',
-      });
-      if (response.ok) {
-        const data = await response.json();
-        if (data.success && data.user) {
-          setCurrentUser({
-            name: data.user.name || 'User',
-            email: data.user.email,
-            avatar: data.user.avatar || data.user.image, // Google profile picture
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching current user:', error);
-      // Fallback to localStorage
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          const user = JSON.parse(storedUser);
-          setCurrentUser({
-            name: user.name || 'User',
-            email: user.email,
-            avatar: user.avatar || user.image,
-          });
-        } catch (e) {
-          console.error('Error parsing stored user:', e);
-        }
-      }
     }
   };
 
@@ -673,58 +647,56 @@ const ProjectDetail = () => {
     }
   };
 
-  const fetchProjectData = async () => {
-    if (!id) return;
+  useEffect(() => {
+    const loadProjectData = async () => {
+      if (!id) return;
 
-    try {
-      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiBaseUrl}/api/projects/${id}`, {
-        credentials: 'include',
-      });
+      try {
+        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
+        const response = await fetch(`${apiBaseUrl}/api/projects/${id}`, {
+          credentials: 'include',
+        });
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data?.project) {
-          const fetchedProject = result.data.project;
-          console.log("✅ Project fetched from backend:", fetchedProject);
-          setProject(fetchedProject);
-          setEditData(fetchedProject);
-          setLikes(fetchedProject.likes || 0);
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data?.project) {
+            const fetchedProject = result.data.project;
+            console.log("✅ Project fetched from backend:", fetchedProject);
+            setProject(fetchedProject);
+            setEditData(fetchedProject);
+            setLikes(fetchedProject.likes || 0);
 
-          // Fetch related data
-          fetchCurrentUser();
-          fetchProjectMedia(id);
-          fetchTeamMembers(id);
-          fetchComments(id);
+            // Fetch related data
+            fetchProjectMedia(id);
+            fetchTeamMembers(id);
+            fetchComments(id);
+            setActivities([]);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error fetching project from backend:", error);
+      }
+
+      // Fallback to localStorage if backend fails or doesn't find the project
+      const storedProjects = localStorage.getItem("showcase-projects");
+      if (storedProjects) {
+        const projects = JSON.parse(storedProjects);
+        const foundProject = projects.find((p: any) => p.id === id || p._id === id);
+        if (foundProject) {
+          console.log("📦 Project loaded from localStorage (fallback)");
+          setProject(foundProject);
+          setEditData(foundProject);
+          setLikes(foundProject.likes || 0);
+          fetchProjectMedia(foundProject.id);
+          fetchTeamMembers(foundProject.id);
+          fetchComments(foundProject.id);
           setActivities([]);
-          return;
         }
       }
-    } catch (error) {
-      console.error("❌ Error fetching project from backend:", error);
-    }
+    };
 
-    // Fallback to localStorage if backend fails or doesn't find the project
-    const storedProjects = localStorage.getItem("showcase-projects");
-    if (storedProjects) {
-      const projects = JSON.parse(storedProjects);
-      const foundProject = projects.find((p: any) => p.id === id || p._id === id);
-      if (foundProject) {
-        console.log("📦 Project loaded from localStorage (fallback)");
-        setProject(foundProject);
-        setEditData(foundProject);
-        setLikes(foundProject.likes || 0);
-        fetchCurrentUser();
-        fetchProjectMedia(foundProject.id);
-        fetchTeamMembers(foundProject.id);
-        fetchComments(foundProject.id);
-        setActivities([]);
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchProjectData();
+    loadProjectData();
   }, [id]);
 
   if (!project) {
@@ -1326,7 +1298,6 @@ const ProjectDetail = () => {
                 {(() => {
                   const groupedTechs = (project.technologies || []).reduce(
                     (acc, tech) => {
-                      const techName = typeof tech === 'string' ? tech : tech.name;
                       const category = (typeof tech === 'string' ? 'Other' : tech.category) || "Other";
 
                       if (!acc[category]) acc[category] = [];
