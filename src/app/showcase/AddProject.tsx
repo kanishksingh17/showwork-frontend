@@ -13,25 +13,12 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-  Clock,
-  Code,
-  Image,
-  Upload,
   Plus,
   X,
-  Star,
-  Eye,
-  Play,
-  Mic,
-  FileText,
-  Search,
-  Lightbulb,
-  TrendingUp,
   Save,
   Github,
   ExternalLink,
   Tag,
-  Calendar,
   Target,
   Activity,
 } from "lucide-react";
@@ -40,7 +27,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import type { Technology, MediaFile, CodeQualityMetrics } from "@/types/project";
 import { CreateProjectRequestSchema } from "@/lib/validation/projectSchema";
@@ -50,20 +36,22 @@ import CodeQualityWidget from "@/components/project/CodeQualityWidget";
 import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useCodeQuality } from "@/hooks/useCodeQuality";
 
+const defaultFormData = {
+  name: "",
+  description: "",
+  longDescription: "",
+  category: "Web Development",
+  status: "draft" as "draft" | "in-progress" | "completed" | "archived",
+  visibility: "private" as "public" | "private" | "unlisted",
+  githubUrl: "",
+  liveUrl: "",
+  tags: [] as string[],
+};
+
 export default function AddProject() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    longDescription: "",
-    category: "Web Development",
-    status: "draft" as "draft" | "in-progress" | "completed" | "archived",
-    visibility: "private" as "public" | "private" | "unlisted",
-    githubUrl: "",
-    liveUrl: "",
-    tags: [] as string[],
-  });
+  const [formData, setFormData] = useState(() => ({ ...defaultFormData }));
   const [selectedTechnologies, setSelectedTechnologies] = useState<
     Technology[]
   >([]);
@@ -75,7 +63,7 @@ export default function AddProject() {
   const [tagInput, setTagInput] = useState("");
 
   // Custom hooks
-  const mediaUpload = useMediaUpload({
+  useMediaUpload({
     projectId: "temp-project-id",
     userId: "current-user-id",
     onFilesUploaded: setMediaFiles,
@@ -111,7 +99,7 @@ export default function AddProject() {
     if (savedDraft) {
       try {
         const draft = JSON.parse(savedDraft);
-        setFormData(draft.formData || formData);
+        setFormData(draft.formData || { ...defaultFormData });
         setSelectedTechnologies(draft.selectedTechnologies || []);
         setMediaFiles(draft.mediaFiles || []);
         setCodeQualityMetrics(draft.codeQualityMetrics || null);

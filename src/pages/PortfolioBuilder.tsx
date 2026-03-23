@@ -15,6 +15,7 @@ import { ModernPortfolioEditor } from "../components/portfolio/ModernPortfolioEd
 import { LoginModal } from "@/components/auth/LoginModal";
 import { usePortfolioDispatch } from "@/store/portfolio/hooks";
 import { selectTemplate, setSections, updateUserData, changeWebsitePageComponentContent } from "@/store/portfolio/portfolioSlice";
+import { useAuth } from "@/contexts/useAuth";
 
 type BuilderStep = "landing" | "template-preview" | "preparation" | "customizer" | "preview";
 
@@ -24,6 +25,8 @@ interface PortfolioBuilderProps {
 
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
   const dispatch = usePortfolioDispatch();
+  const { user } = useAuth();
+  const previewUsername = user?.username || user?.id || "";
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<PortfolioTemplate | null>(null);
   const [detectedJobRole, setDetectedJobRole] = useState<JobRole | null>(null);
@@ -108,19 +111,23 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
             return;
           }
         }
-        // Fallback
-        const authRes = await fetch("/api/auth/me", { credentials: "include" });
-        if (authRes.ok) {
-          const authData = await authRes.json();
-          if (authData.success && authData.user) {
-            const user = authData.user;
-            setUserData({ id: user._id || user.id || "current-user", name: user.name || "Developer", skills: [], socials: {} });
-          }
+        // Fallback to app-level auth context user
+        if (user) {
+          setUserData({
+            id: (user._id as string) || (user.id as string) || "current-user",
+            name: (user.name as string) || "Developer",
+            email: user.email as string | undefined,
+            bio: user.bio as string | undefined,
+            username: user.username as string | undefined,
+            techStack: (user.techStack as string[]) || [],
+            skills: [],
+            socials: {},
+          });
         }
       } catch (e) { }
     };
     loadData();
-  }, [isDemo]);
+  }, [isDemo, user]);
 
   // Fetch PROJECTS
   useEffect(() => {
@@ -302,7 +309,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                         src={
                           selectedTemplate.id === 'recommended-fullstack'
                             ? selectedTemplate.previewUrl
-                            : `${selectedTemplate.previewUrl}?username=raj-singh`
+                            : `${selectedTemplate.previewUrl}?username=${encodeURIComponent(previewUsername)}`
                         }
                         className="w-full h-full border-0"
                         title="Template Preview"

@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Upload,
   Github,
   Globe,
   Tag,
@@ -13,7 +11,6 @@ import {
   Eye,
   Zap,
   CheckCircle,
-  AlertCircle,
   Loader2,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +47,6 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
   initialData,
 }) => {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -76,25 +72,7 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
     category: initialData?.category || "Web Development",
   });
 
-  // Auto-save functionality
-  useEffect(() => {
-    const autoSaveInterval = setInterval(() => {
-      if (projectData.title || projectData.tagline || projectData.description) {
-        handleAutoSave();
-      }
-    }, 10000); // Auto-save every 10 seconds
-
-    return () => clearInterval(autoSaveInterval);
-  }, [projectData]);
-
-  // Auto-save on field blur
-  const handleFieldBlur = () => {
-    if (projectData.title || projectData.tagline || projectData.description) {
-      handleAutoSave();
-    }
-  };
-
-  const handleAutoSave = async () => {
+  const handleAutoSave = useCallback(async () => {
     setIsAutoSaving(true);
     try {
       // Simulate auto-save API call
@@ -139,28 +117,29 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
     } finally {
       setIsAutoSaving(false);
     }
+  }, [initialData?.id, previousProjectData, projectData]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const autoSaveInterval = setInterval(() => {
+      if (projectData.title || projectData.tagline || projectData.description) {
+        handleAutoSave();
+      }
+    }, 10000); // Auto-save every 10 seconds
+
+    return () => clearInterval(autoSaveInterval);
+  }, [projectData, handleAutoSave]);
+
+  // Auto-save on field blur
+  const handleFieldBlur = () => {
+    if (projectData.title || projectData.tagline || projectData.description) {
+      handleAutoSave();
+    }
   };
 
   const handleInputChange = (field: keyof ProjectData, value: string) => {
     setProjectData((prev) => ({ ...prev, [field]: value }));
     setValidationErrors((prev) => ({ ...prev, [field]: "" }));
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      // Client-side compression
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        setProjectData((prev) => ({
-          ...prev,
-          media: file,
-          mediaPreview: result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
   };
 
   const handleGithubUrlChange = async (url: string) => {
@@ -263,15 +242,6 @@ const QuickAddProject: React.FC<QuickAddProjectProps> = ({
     setShowPublishWorkflow(false);
     setPreviousProjectData({ ...projectData });
     navigate(`/showcase/view/${project.id}`);
-  };
-
-  const addTechTag = (tag: string) => {
-    if (tag && !projectData.techTags.includes(tag)) {
-      setProjectData((prev) => ({
-        ...prev,
-        techTags: [...prev.techTags, tag],
-      }));
-    }
   };
 
   const removeTechTag = (tagToRemove: string) => {

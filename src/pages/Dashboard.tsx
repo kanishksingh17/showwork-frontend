@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import {
   Eye,
   Heart,
@@ -30,10 +31,12 @@ import { ProfileCard } from "../components/ProfileCard";
 import { MiniBarChart } from "../components/MiniBarChart";
 import { ShowWorkSearchBar } from "../components/ShowWorkSearchBar";
 import { SocialPostPreview } from "../components/SocialPostPreview";
+import { useAuth } from "@/contexts/useAuth";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
 
   interface ProjectItem {
     id: string;
@@ -68,7 +71,6 @@ export default function Dashboard() {
     socialMediaPosts: 0,
     socialMediaReach: 0,
   });
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [timeRange, setTimeRange] = useState<'day' | 'month' | 'year'>('day');
 
@@ -185,9 +187,6 @@ export default function Dashboard() {
 
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const [avatarError, setAvatarError] = useState(false);
-  const [projectsThisMonth, setProjectsThisMonth] = useState(0);
-  const [projectsLastMonth, setProjectsLastMonth] = useState(0);
-  const [projectsThisWeek, setProjectsThisWeek] = useState(0);
   const [connectedPlatforms, setConnectedPlatforms] = useState<string[]>([]);
   const [hoveredPost, setHoveredPost] = useState<{
     post: typeof recentPublishedPosts[0];
@@ -203,279 +202,126 @@ export default function Dashboard() {
     recompute: recomputeHealth,
   } = usePortfolioHealth();
 
-  // Fetch user profile on mount
-  useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-        console.log("🔍 Fetching user profile from:", `${apiBaseUrl}/api/auth/me`);
-
-        const response = await fetch(`${apiBaseUrl}/api/auth/me`, {
-          credentials: "include",
-        });
-
-        console.log("📡 Profile response status:", response.status);
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("✅ Profile data received:", {
-            success: data.success,
-            hasUser: !!data.user,
-            userName: data.user?.name,
-            userEmail: data.user?.email,
-            userAvatar: data.user?.avatar ? `exists: ${data.user.avatar.substring(0, 60)}...` : "missing",
-            userAvatarFull: data.user?.avatar, // Full URL for debugging
-            userAvatarIsBlob: data.user?.avatar ? data.user.avatar.startsWith('blob:') : false,
-            userUsername: data.user?.username,
-          });
-
-          if (data.success && data.user) {
-            const profileData = {
-              name: data.user.name,
-              email: data.user.email,
-              avatar: data.user.avatar,
-              username: data.user.username,
-              bio: data.user.bio,
-              techStack: data.user.techStack,
-              platformPreferences: data.user.platformPreferences,
-              createdAt: data.user.createdAt,
-              profileCompleted: data.user.profileCompleted,
-            };
-
-            console.log("💾 Setting user profile:", {
-              ...profileData,
-              avatar: profileData.avatar ? `${profileData.avatar.substring(0, 50)}...` : "null/undefined"
-            });
-            setUserProfile(profileData);
-            setAvatarError(false); // Reset avatar error when profile changes
-
-            // Store fresh data in localStorage (overwrite any stale data)
-            localStorage.setItem("user", JSON.stringify(data.user));
-            console.log("✅ User profile updated in state and localStorage");
-          } else {
-            console.warn("⚠️ No user data in response:", data);
-            // Try to use localStorage as fallback
-            tryLoadFromLocalStorage();
-          }
-        } else {
-          console.warn("⚠️ Profile fetch failed with status:", response.status);
-          // Try to use localStorage as fallback
-          tryLoadFromLocalStorage();
-        }
-      } catch (error) {
-        console.error("❌ Error fetching user profile:", error);
-        // Try to use localStorage as fallback
-        tryLoadFromLocalStorage();
+  const resolvedUserProfile = user
+    ? {
+        name: user.name as string | undefined,
+        email: user.email as string | undefined,
+        avatar: (user.avatar || user.image) as string | undefined,
+        username: user.username as string | undefined,
+        bio: user.bio as string | undefined,
+        techStack: user.techStack as string[] | undefined,
+        platformPreferences: user.platformPreferences as string[] | undefined,
+        createdAt: user.createdAt as string | undefined,
+        profileCompleted: user.profileCompleted as boolean | undefined,
       }
-    };
+    : userProfile;
 
-    // Helper function to load profile from localStorage as fallback
-    const tryLoadFromLocalStorage = () => {
-      try {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const userData = JSON.parse(storedUser);
-          console.log("📦 Loading profile from localStorage as fallback");
-          const profileData = {
-            name: userData.name,
-            email: userData.email,
-            avatar: userData.avatar,
-            username: userData.username,
-            bio: userData.bio,
-            techStack: userData.techStack,
-            platformPreferences: userData.platformPreferences,
-            createdAt: userData.createdAt,
-            profileCompleted: userData.profileCompleted,
-          };
-          setUserProfile(profileData);
-          console.log("✅ Profile loaded from localStorage");
-        } else {
-          console.warn("⚠️ No profile data in localStorage either");
-          setUserProfile(null);
-        }
-      } catch (error) {
-        console.error("❌ Error loading from localStorage:", error);
-        setUserProfile(null);
-      }
-    };
+  const fetchDashboardProjects = useCallback(async () => {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
 
-    fetchUserProfile();
+    interface ProjectData {
+      id?: string;
+      _id?: string;
+      name?: string;
+      title?: string;
+      description?: string;
+      status?: string;
+      visibility?: string;
+      technologies?: string[];
+      githubUrl?: string;
+      liveUrl?: string;
+      imageUrl?: string;
+      image?: string;
+      createdAt?: Date | string;
+      updatedAt?: Date | string;
+    }
+
+    const response = await fetch(`${apiBaseUrl}/api/projects`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch dashboard projects');
+    }
+
+    const data = await response.json();
+    if (!data.success || !data.data?.projects) {
+      throw new Error('Invalid projects response from server');
+    }
+
+    const apiProjects: ProjectItem[] = data.data.projects.map((project: ProjectData) => ({
+      id: project.id || project._id?.toString() || '',
+      name: project.name || project.title || 'Untitled Project',
+      description: project.description || '',
+      status: project.status?.toLowerCase() || 'draft',
+      visibility: project.visibility?.toLowerCase() || 'private',
+      technologies: project.technologies || [],
+      githubUrl: project.githubUrl || '',
+      liveUrl: project.liveUrl || '',
+      imageUrl: project.imageUrl || project.image || '',
+      createdAt: project.createdAt || new Date(),
+      updatedAt: project.updatedAt || new Date(),
+    }));
+
+    const publishedProjects = apiProjects.filter(
+      (project) =>
+        project.status === "published" || !project.status || project.visibility === "public",
+    );
+
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+    const startOfThisWeek = new Date(now);
+    const dayOfWeek = now.getDay();
+    const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+    startOfThisWeek.setDate(diff);
+    startOfThisWeek.setHours(0, 0, 0, 0);
+
+    const thisMonthProjects = publishedProjects.filter((project) => {
+      const createdAt = new Date(project.createdAt || new Date());
+      return createdAt >= startOfThisMonth;
+    });
+
+    const lastMonthProjects = publishedProjects.filter((project) => {
+      const createdAt = new Date(project.createdAt || new Date());
+      return createdAt >= startOfLastMonth && createdAt < startOfThisMonth;
+    });
+
+    const thisWeekProjects = publishedProjects.filter((project) => {
+      const createdAt = new Date(project.createdAt || new Date());
+      return createdAt >= startOfThisWeek;
+    });
+
+    return {
+      recentProjects: publishedProjects.slice(0, 5),
+      publishedProjects: publishedProjects.length,
+      projectsThisMonth: thisMonthProjects.length,
+      projectsLastMonth: lastMonthProjects.length,
+      projectsThisWeek: thisWeekProjects.length,
+    };
   }, []);
 
-  // Re-fetch projects on dashboard mount and route changes
-  useEffect(() => {
-    const getProjects = async () => {
-      try {
-        setLoading(true);
+  const {
+    data: projectsData,
+    isLoading: projectsLoading,
+    isError: projectsError,
+    error: projectsQueryError,
+    refetch: refetchProjects,
+  } = useQuery({
+    queryKey: ["projects", location.pathname],
+    queryFn: fetchDashboardProjects,
+    staleTime: 300000,
+  });
 
-        // Get API base URL
-        const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-
-        console.log("📡 Dashboard fetching projects from API:", `${apiBaseUrl}/api/projects`);
-
-        // Fetch projects from backend API (same source as showcase)
-        const response = await fetch(`${apiBaseUrl}/api/projects`, {
-          method: 'GET',
-          credentials: 'include', // Include cookies for session-based auth
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          // If not authenticated or error, use empty array
-          console.log("⚠️  Projects API returned:", response.status, "- using empty projects");
-          setProjectsThisMonth(0);
-          setProjectsLastMonth(0);
-          setProjectsThisWeek(0);
-          setAnalytics((prev) => ({
-            ...prev,
-            recentProjects: [],
-            publishedProjects: 0,
-          }));
-          setLoading(false);
-          return;
-        }
-
-        const data = await response.json();
-
-        if (data.success && data.data?.projects) {
-          // Transform API projects to match dashboard format
-          interface ProjectData {
-            id?: string;
-            _id?: string;
-            name?: string;
-            title?: string;
-            description?: string;
-            status?: string;
-            visibility?: string;
-            technologies?: string[];
-            githubUrl?: string;
-            liveUrl?: string;
-            imageUrl?: string;
-            image?: string;
-            createdAt?: Date | string;
-            updatedAt?: Date | string;
-          }
-
-          interface TransformedProject {
-            id: string;
-            name: string;
-            description: string;
-            status: string;
-            visibility: string;
-            technologies: string[];
-            githubUrl: string;
-            liveUrl: string;
-            imageUrl: string;
-            createdAt: Date | string;
-            updatedAt: Date | string;
-          }
-
-          const apiProjects: TransformedProject[] = data.data.projects.map((project: ProjectData) => ({
-            id: project.id || project._id?.toString() || '',
-            name: project.name || project.title || 'Untitled Project',
-            description: project.description || '',
-            status: project.status?.toLowerCase() || 'draft',
-            visibility: project.visibility?.toLowerCase() || 'private',
-            technologies: project.technologies || [],
-            githubUrl: project.githubUrl || '',
-            liveUrl: project.liveUrl || '',
-            imageUrl: project.imageUrl || project.image || '',
-            createdAt: project.createdAt || new Date(),
-            updatedAt: project.updatedAt || new Date(),
-          }));
-
-          // Filter published projects (status === 'published' or no status means published)
-          const publishedProjects = apiProjects.filter(
-            (project: TransformedProject) =>
-              project.status === "published" ||
-              !project.status ||
-              project.visibility === "public"
-          );
-
-          // Calculate projects created this month, last month, and this week
-          const now = new Date();
-          const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-          const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-          const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
-
-          // Calculate start of this week (Monday)
-          const startOfThisWeek = new Date(now);
-          const dayOfWeek = now.getDay();
-          const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Adjust to Monday
-          startOfThisWeek.setDate(diff);
-          startOfThisWeek.setHours(0, 0, 0, 0);
-
-          const thisMonthProjects = publishedProjects.filter((project) => {
-            const createdAt = new Date(project.createdAt);
-            return createdAt >= startOfThisMonth;
-          });
-
-          const lastMonthProjects = publishedProjects.filter((project) => {
-            const createdAt = new Date(project.createdAt);
-            return createdAt >= startOfLastMonth && createdAt < startOfThisMonth;
-          });
-
-          const thisWeekProjects = publishedProjects.filter((project) => {
-            const createdAt = new Date(project.createdAt);
-            return createdAt >= startOfThisWeek;
-          });
-
-          console.log(
-            "✅ Dashboard loaded projects from API:",
-            apiProjects.length,
-            "total, ",
-            publishedProjects.length,
-            "published",
-            "| This month:",
-            thisMonthProjects.length,
-            "| Last month:",
-            lastMonthProjects.length,
-            "| This week:",
-            thisWeekProjects.length
-          );
-
-          setProjectsThisMonth(thisMonthProjects.length);
-          setProjectsLastMonth(lastMonthProjects.length);
-          setProjectsThisWeek(thisWeekProjects.length);
-
-          setAnalytics((prev) => ({
-            ...prev,
-            recentProjects: publishedProjects.slice(0, 5), // Show most recent 5
-            publishedProjects: publishedProjects.length,
-          }));
-        } else {
-          // No projects found
-          console.log("ℹ️  No projects found in database");
-          setProjectsThisMonth(0);
-          setProjectsLastMonth(0);
-          setProjectsThisWeek(0);
-          setAnalytics((prev) => ({
-            ...prev,
-            recentProjects: [],
-            publishedProjects: 0,
-          }));
-        }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("❌ Error fetching projects:", error);
-        // On error, show empty state
-        setProjectsThisMonth(0);
-        setProjectsLastMonth(0);
-        setProjectsThisWeek(0);
-        setAnalytics((prev) => ({
-          ...prev,
-          recentProjects: [],
-          publishedProjects: 0,
-        }));
-        setLoading(false);
-      }
-    };
-
-    getProjects();
-  }, [location.pathname]); // Triggers refetch every time route changes
+  const loading = projectsLoading;
+  const projectsThisMonth = projectsData?.projectsThisMonth ?? 0;
+  const dashboardPublishedProjects = projectsData?.publishedProjects ?? 0;
+  const dashboardRecentProjects = projectsData?.recentProjects ?? [];
 
   // Load analytics data (separate from projects)
   useEffect(() => {
@@ -722,6 +568,46 @@ export default function Dashboard() {
     fetchConnectedPlatforms();
   }, []);
 
+  if (projectsLoading) {
+    return (
+      <UnifiedLayout activePage="dashboard">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex items-center gap-3 text-gray-700">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm font-medium">Loading dashboard...</span>
+          </div>
+        </div>
+      </UnifiedLayout>
+    );
+  }
+
+  if (projectsError) {
+    return (
+      <UnifiedLayout activePage="dashboard">
+        <div className="flex items-center justify-center min-h-[60vh] px-6">
+          <Card className="w-full max-w-md border-red-200 bg-red-50/60">
+            <CardHeader>
+              <CardTitle className="text-red-700">Could not load dashboard data</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-red-700">
+                {projectsQueryError instanceof Error
+                  ? projectsQueryError.message
+                  : "Something went wrong while loading your projects."}
+              </p>
+              <Button
+                onClick={() => void refetchProjects()}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                Try Again
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </UnifiedLayout>
+    );
+  }
+
   return (
     <UnifiedLayout activePage="dashboard">
       <div className="flex flex-col w-full h-full overflow-y-auto bg-background overflow-x-visible">
@@ -748,10 +634,10 @@ export default function Dashboard() {
                 }}
                 className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-200 shadow-md hover:shadow-lg transition-all cursor-pointer relative flex items-center justify-center bg-white"
               >
-                {userProfile?.avatar && !avatarError && !userProfile.avatar.startsWith('blob:') ? (
+                {resolvedUserProfile?.avatar && !avatarError && !resolvedUserProfile.avatar.startsWith('blob:') ? (
                   <img
-                    src={userProfile.avatar}
-                    alt={userProfile.name || "User"}
+                    src={resolvedUserProfile.avatar}
+                    alt={resolvedUserProfile.name || "User"}
                     className="w-full h-full object-cover"
                     referrerPolicy="no-referrer"
                     loading="lazy"
@@ -762,7 +648,7 @@ export default function Dashboard() {
                   />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-blue-600 to-purple-600 flex items-center justify-center text-white text-lg font-semibold">
-                    {(userProfile?.name || userProfile?.email || "U").charAt(0).toUpperCase()}
+                    {(resolvedUserProfile?.name || resolvedUserProfile?.email || "U").charAt(0).toUpperCase()}
                   </div>
                 )}
               </button>
@@ -771,7 +657,7 @@ export default function Dashboard() {
               <ProfileCard
                 isOpen={showProfileDropdown}
                 onClose={() => setShowProfileDropdown(false)}
-                userProfile={userProfile || { name: "Guest User", email: "guest@example.com", bio: "Please log in" }}
+                userProfile={resolvedUserProfile || { name: "Guest User", email: "guest@example.com", bio: "Please log in" }}
                 onNavigateToProfile={() => navigate("/profile")}
                 onLogout={() => {
                   localStorage.removeItem("user");
@@ -1065,8 +951,8 @@ export default function Dashboard() {
               {[
                 {
                   title: "Active Projects",
-                  value: (analytics.publishedProjects || 0).toString(),
-                  change: `${analytics.publishedProjects || 0} active`,
+                  value: dashboardPublishedProjects.toString(),
+                  change: `${dashboardPublishedProjects} active`,
                   icon: <Box className="w-5 h-5 text-green-600" />,
                   iconBg: "bg-green-600",
                   progress: 70,
@@ -1075,8 +961,8 @@ export default function Dashboard() {
                 },
                 {
                   title: "Published Posts",
-                  value: (analytics.socialMediaPosts || analytics.publishedProjects || 0).toString(),
-                  change: (analytics.socialMediaPosts || analytics.publishedProjects) ? `+${analytics.socialMediaPosts || analytics.publishedProjects}` : "0",
+                  value: (analytics.socialMediaPosts || dashboardPublishedProjects || 0).toString(),
+                  change: (analytics.socialMediaPosts || dashboardPublishedProjects) ? `+${analytics.socialMediaPosts || dashboardPublishedProjects}` : "0",
                   icon: <Send className="w-5 h-5 text-purple-600" />,
                   iconBg: "bg-purple-500",
                   progress: 82,
@@ -1286,14 +1172,14 @@ export default function Dashboard() {
                   ) : (() => {
                     // Filter projects based on search query
                     const filteredProjects = searchQuery
-                      ? analytics.recentProjects.filter((project) => {
+                      ? dashboardRecentProjects.filter((project) => {
                         const query = searchQuery.toLowerCase();
                         const name = (project.name || project.title || '').toLowerCase();
                         const description = (project.description || '').toLowerCase();
                         const technologies = (project.technologies || []).join(' ').toLowerCase();
                         return name.includes(query) || description.includes(query) || technologies.includes(query);
                       })
-                      : analytics.recentProjects;
+                      : dashboardRecentProjects;
 
                     return filteredProjects.length > 0 ? (
                       <div className="space-y-3">
@@ -1370,10 +1256,10 @@ export default function Dashboard() {
                     loading={healthLoading}
                     error={healthError}
                     onRecompute={recomputeHealth}
-                    userName={userProfile?.name}
-                    userUsername={userProfile?.username}
-                    userAvatar={userProfile?.avatar}
-                    userBio={userProfile?.bio}
+                    userName={resolvedUserProfile?.name}
+                    userUsername={resolvedUserProfile?.username}
+                    userAvatar={resolvedUserProfile?.avatar}
+                    userBio={resolvedUserProfile?.bio}
                   />
                 </div>
               </div>
@@ -1413,17 +1299,17 @@ export default function Dashboard() {
                 <div className="flex flex-col h-full">
                   {/* Header with Avatar and Question */}
                   <div className="flex items-center gap-3 mb-5 flex-shrink-0">
-                    {userProfile?.avatar ? (
+                    {resolvedUserProfile?.avatar ? (
                       <img
-                        src={userProfile.avatar}
-                        alt={userProfile.name || "User"}
+                        src={resolvedUserProfile.avatar}
+                        alt={resolvedUserProfile.name || "User"}
                         className="w-10 h-10 rounded-full object-cover flex-shrink-0"
-                        title={`Published by ${userProfile.name || "User"} (ShowWork)`}
+                        title={`Published by ${resolvedUserProfile.name || "User"} (ShowWork)`}
                       />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center flex-shrink-0">
                         <span className="text-white font-semibold text-sm">
-                          {((userProfile?.name || "U")[0] || "U").toUpperCase()}
+                          {((resolvedUserProfile?.name || "U")[0] || "U").toUpperCase()}
                         </span>
                       </div>
                     )}

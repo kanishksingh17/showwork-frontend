@@ -3,7 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { motion, AnimatePresence } from 'framer-motion';
-import * as d3 from 'd3';
+import { max, extent } from 'd3-array';
+import { axisBottom, axisLeft } from 'd3-axis';
+import { scaleBand, scaleLinear, scaleTime, scaleOrdinal } from 'd3-scale';
+import { schemeCategory10 } from 'd3-scale-chromatic';
+import { arc, curveMonotoneX, line, pie } from 'd3-shape';
+import { select } from 'd3-selection';
 import { 
   BarChart3, 
   PieChart, 
@@ -28,7 +33,7 @@ const InteractiveBarChart: React.FC<{ data: any[] }> = ({ data }) => {
   useEffect(() => {
     if (!svgRef.current || !data.length) return;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
     const margin = { top: 20, right: 30, bottom: 40, left: 40 };
@@ -39,14 +44,14 @@ const InteractiveBarChart: React.FC<{ data: any[] }> = ({ data }) => {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const x = d3.scaleBand()
+    const x = scaleBand()
       .range([0, width])
       .padding(0.1)
       .domain(data.map(d => d.name));
 
-    const y = d3.scaleLinear()
+    const y = scaleLinear()
       .range([height, 0])
-      .domain([0, d3.max(data, d => d.value) || 0]);
+      .domain([0, max(data, d => d.value) || 0]);
 
     // Add bars with animation
     g.selectAll(".bar")
@@ -57,7 +62,7 @@ const InteractiveBarChart: React.FC<{ data: any[] }> = ({ data }) => {
       .attr("width", x.bandwidth())
       .attr("y", height)
       .attr("height", 0)
-      .attr("fill", (d, i) => d3.schemeCategory10[i % 10])
+      .attr("fill", (d, i) => schemeCategory10[i % 10])
       .transition()
       .duration(1000)
       .delay((d, i) => i * 100)
@@ -80,13 +85,13 @@ const InteractiveBarChart: React.FC<{ data: any[] }> = ({ data }) => {
     // Add axes
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x))
+      .call(axisBottom(x))
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end");
 
     g.append("g")
-      .call(d3.axisLeft(y));
+      .call(axisLeft(y));
 
   }, [data]);
 
@@ -104,7 +109,7 @@ const InteractiveLineChart: React.FC<{ data: any[] }> = ({ data }) => {
   useEffect(() => {
     if (!svgRef.current || !data.length) return;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
     const margin = { top: 20, right: 30, bottom: 40, left: 40 };
@@ -115,18 +120,18 @@ const InteractiveLineChart: React.FC<{ data: any[] }> = ({ data }) => {
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    const x = d3.scaleTime()
+    const x = scaleTime()
       .range([0, width])
-      .domain(d3.extent(data, d => new Date(d.date)) as [Date, Date]);
+      .domain(extent(data, d => new Date(d.date)) as [Date, Date]);
 
-    const y = d3.scaleLinear()
+    const y = scaleLinear()
       .range([height, 0])
-      .domain(d3.extent(data, d => d.value) as [number, number]);
+      .domain(extent(data, d => d.value) as [number, number]);
 
-    const line = d3.line<{ date: string; value: number }>()
+    const lineGenerator = line<{ date: string; value: number }>()
       .x(d => x(new Date(d.date)))
       .y(d => y(d.value))
-      .curve(d3.curveMonotoneX);
+      .curve(curveMonotoneX);
 
     // Add line with animation
     g.append("path")
@@ -134,7 +139,7 @@ const InteractiveLineChart: React.FC<{ data: any[] }> = ({ data }) => {
       .attr("fill", "none")
       .attr("stroke", "#3B82F6")
       .attr("stroke-width", 3)
-      .attr("d", line)
+      .attr("d", lineGenerator)
       .style("stroke-dasharray", "1000")
       .style("stroke-dashoffset", "1000")
       .transition()
@@ -158,10 +163,10 @@ const InteractiveLineChart: React.FC<{ data: any[] }> = ({ data }) => {
     // Add axes
     g.append("g")
       .attr("transform", `translate(0,${height})`)
-      .call(d3.axisBottom(x));
+      .call(axisBottom(x));
 
     g.append("g")
-      .call(d3.axisLeft(y));
+      .call(axisLeft(y));
 
   }, [data]);
 
@@ -179,7 +184,7 @@ const InteractivePieChart: React.FC<{ data: any[] }> = ({ data }) => {
   useEffect(() => {
     if (!svgRef.current || !data.length) return;
 
-    const svg = d3.select(svgRef.current);
+    const svg = select(svgRef.current);
     svg.selectAll("*").remove();
 
     const width = 300;
@@ -190,23 +195,23 @@ const InteractivePieChart: React.FC<{ data: any[] }> = ({ data }) => {
       .append("g")
       .attr("transform", `translate(${width / 2},${height / 2})`);
 
-    const color = d3.scaleOrdinal(d3.schemeCategory10);
+    const color = scaleOrdinal(schemeCategory10);
 
-    const pie = d3.pie<any>()
+    const pieGenerator = pie<any>()
       .value(d => d.value)
       .sort(null);
 
-    const arc = d3.arc<any>()
+    const arcGenerator = arc<any>()
       .innerRadius(0)
       .outerRadius(radius);
 
     const arcs = g.selectAll(".arc")
-      .data(pie(data))
+      .data(pieGenerator(data))
       .enter().append("g")
       .attr("class", "arc");
 
     arcs.append("path")
-      .attr("d", arc)
+      .attr("d", arcGenerator)
       .attr("fill", (d, i) => color(i.toString()))
       .style("opacity", 0)
       .transition()
@@ -215,7 +220,7 @@ const InteractivePieChart: React.FC<{ data: any[] }> = ({ data }) => {
       .style("opacity", 1);
 
     arcs.append("text")
-      .attr("transform", d => `translate(${arc.centroid(d)})`)
+      .attr("transform", d => `translate(${arcGenerator.centroid(d)})`)
       .attr("text-anchor", "middle")
       .attr("fill", "white")
       .attr("font-size", "12px")

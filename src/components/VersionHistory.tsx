@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -49,11 +49,7 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [showDiff, setShowDiff] = useState(false);
 
-  useEffect(() => {
-    loadVersionHistory();
-  }, [projectId]);
-
-  const loadVersionHistory = async () => {
+  const loadVersionHistory = useCallback(async () => {
     setIsLoading(true);
     try {
       // Load from localStorage
@@ -74,7 +70,11 @@ const VersionHistory: React.FC<VersionHistoryProps> = ({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
+
+  useEffect(() => {
+    loadVersionHistory();
+  }, [loadVersionHistory]);
 
   const generateVersionSnapshot = (
     project: any,

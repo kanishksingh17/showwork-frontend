@@ -6,6 +6,7 @@ import React, {
   useReducer,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
 } from "react";
 import { PreviewWebSocket, websocketManager } from "./websocket";
@@ -289,7 +290,10 @@ export const PreviewProvider: React.FC<PreviewProviderProps> = ({
       lastError: null,
     });
 
-  const finalConfig = { ...defaultConfig, ...config };
+  const finalConfig = useMemo(
+    () => ({ ...defaultConfig, ...config }),
+    [config],
+  );
   const wsRef = useRef<PreviewWebSocket | null>(null);
   const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const performanceMonitoringRef = useRef<NodeJS.Timeout | null>(null);

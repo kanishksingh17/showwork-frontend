@@ -142,10 +142,11 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
 
   const [publishedPosts, setPublishedPosts] = useState<PublishedPost[]>(isDemo ? [] : MOCK_POSTS);
   const [activeTab, setActiveTab] = useState("cross-post");
+  const mockPostsRef = React.useRef(MOCK_POSTS);
 
   const tabItems = createContentManagementTabs();
 
-  const fetchPublishedPosts = async () => {
+  const fetchPublishedPosts = React.useCallback(async () => {
     if (isDemo) {
       setPublishedPosts([]);
       return;
@@ -181,23 +182,25 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
             feedback: { positive: 0, negative: 0, neutral: 0 }
           }));
 
-          setPublishedPosts(transformedPosts.length > 0 ? transformedPosts : MOCK_POSTS);
+          setPublishedPosts(
+            transformedPosts.length > 0 ? transformedPosts : mockPostsRef.current,
+          );
           return;
         }
       }
       console.warn("Failed to fetch published posts, using mock data");
-      setPublishedPosts(MOCK_POSTS);
+      setPublishedPosts(mockPostsRef.current);
     } catch (error) {
       console.error("Error fetching published posts:", error);
-      setPublishedPosts(MOCK_POSTS);
+      setPublishedPosts(mockPostsRef.current);
     }
-  };
+  }, [isDemo]);
 
   React.useEffect(() => {
     if (activeTab === "published") {
       fetchPublishedPosts();
     }
-  }, []);
+  }, [activeTab, fetchPublishedPosts]);
 
   const headerContent = (
     <div className="flex items-center justify-between px-8 py-3 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
