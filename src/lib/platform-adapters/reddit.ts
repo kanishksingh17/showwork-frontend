@@ -1,9 +1,9 @@
-import {
+import type {
   PlatformAdapter,
   PublishPayload,
   PublishResult,
   MetricsResult,
-} from "./index";
+} from "./types";
 
 export class RedditAdapter implements PlatformAdapter {
   async publish(
