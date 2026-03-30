@@ -3,35 +3,14 @@ import { TwitterAdapter } from "./twitter";
 import { RedditAdapter } from "./reddit";
 import { FacebookAdapter } from "./facebook";
 import { InstagramAdapter } from "./instagram";
+import type { PlatformAdapter } from "./types";
 
-export interface PlatformAdapter {
-  publish(token: string, payload: PublishPayload): Promise<PublishResult>;
-  getMetrics(token: string, postId: string): Promise<MetricsResult>;
-}
-
-export interface PublishPayload {
-  message: string;
-  mediaUrls?: string[];
-  metadata?: Record<string, any>;
-}
-
-export interface PublishResult {
-  success: boolean;
-  postId?: string;
-  url?: string;
-  error?: string;
-  platformResponse?: any;
-}
-
-export interface MetricsResult {
-  views?: number;
-  likes?: number;
-  comments?: number;
-  shares?: number;
-  clicks?: number;
-  impressions?: number;
-  engagement?: number;
-}
+export type {
+  PlatformAdapter,
+  PublishPayload,
+  PublishResult,
+  MetricsResult,
+} from "./types";
 
 export const platformAdapters: Record<string, PlatformAdapter> = {
   linkedin: new LinkedInAdapter(),

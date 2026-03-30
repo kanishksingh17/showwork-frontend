@@ -1,14 +1,14 @@
-import {
+import type {
   PlatformAdapter,
   PublishPayload,
   PublishResult,
   MetricsResult,
-} from "./index";
+} from "./types";
 
 export class InstagramAdapter implements PlatformAdapter {
   async publish(
-    token: string,
-    payload: PublishPayload,
+    _token: string,
+    _payload: PublishPayload,
   ): Promise<PublishResult> {
     try {
       // Instagram Basic Display API doesn't support posting
@@ -80,7 +80,8 @@ export class InstagramAdapter implements PlatformAdapter {
       });
 
       // Calculate engagement rate
-      metrics.engagement = metrics.likes + metrics.comments + metrics.shares;
+      metrics.engagement =
+        (metrics.likes ?? 0) + (metrics.comments ?? 0) + (metrics.shares ?? 0);
 
       return metrics;
     } catch (error) {

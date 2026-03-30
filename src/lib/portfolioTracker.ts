@@ -14,8 +14,8 @@ interface TrackingConfig {
 
 interface TrackingEvent {
   type: string;
-  properties: Record<string, any>;
-  timestamp: Date;
+  properties: Record<string, unknown>;
+  timestamp?: Date;
 }
 
 class PortfolioTracker {
@@ -24,6 +24,8 @@ class PortfolioTracker {
   private sessionId: string;
   private crossDeviceId: string;
   private isOnline: boolean;
+  private cleanupFns: Array<() => void> = [];
+  private static readonly MAX_QUEUE_SIZE = 500;
 
   constructor(config: TrackingConfig) {
     this.config = config;
@@ -36,14 +38,20 @@ class PortfolioTracker {
 
   private initializeTracking() {
     // Set up online/offline detection
-    window.addEventListener("online", () => {
+    const onlineHandler = () => {
       this.isOnline = true;
       this.flushEventQueue();
-    });
+    };
+    window.addEventListener("online", onlineHandler);
+    this.cleanupFns.push(() => window.removeEventListener("online", onlineHandler));
 
-    window.addEventListener("offline", () => {
+    const offlineHandler = () => {
       this.isOnline = false;
-    });
+    };
+    window.addEventListener("offline", offlineHandler);
+    this.cleanupFns.push(() =>
+      window.removeEventListener("offline", offlineHandler)
+    );
 
     // Track page load
     this.trackPageLoad();
@@ -85,24 +93,22 @@ class PortfolioTracker {
   }
 
   private setupPerformanceTracking() {
-    // Track Core Web Vitals
-    if ("web-vitals" in window) {
-      // This would be implemented with the web-vitals library
-      this.trackWebVitals();
-    }
+    // Placeholder hook. Replace with web-vitals package integration when added.
+    this.trackWebVitals();
 
     // Track page load time
-    window.addEventListener("load", () => {
+    const loadHandler = () => {
       const loadTime = performance.now();
       this.trackEvent({
         type: "performance_metric",
         properties: {
           metric: "page_load_time",
           value: loadTime,
-          timestamp: new Date(),
         },
       });
-    });
+    };
+    window.addEventListener("load", loadHandler);
+    this.cleanupFns.push(() => window.removeEventListener("load", loadHandler));
 
     // Track resource loading times
     this.trackResourceTiming();
@@ -139,9 +145,9 @@ class PortfolioTracker {
 
   private trackCVDownloads() {
     // Track CV download buttons
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      if (target.matches("[data-cv-download]")) {
+    const clickHandler = (event: Event) => {
+      const target = this.getMatchingElement(event, "[data-cv-download]");
+      if (target) {
         const cvType = target.getAttribute("data-cv-type") || "default";
         const format = target.getAttribute("data-cv-format") || "pdf";
 
@@ -150,18 +156,20 @@ class PortfolioTracker {
           properties: {
             cvType,
             format,
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+
+    document.addEventListener("click", clickHandler);
+    this.cleanupFns.push(() => document.removeEventListener("click", clickHandler));
   }
 
   private trackProjectInteractions() {
     // Track project clicks
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      if (target.matches("[data-project-id]")) {
+    const projectClickHandler = (event: Event) => {
+      const target = this.getMatchingElement(event, "[data-project-id]");
+      if (target) {
         const projectId = target.getAttribute("data-project-id");
         const interactionType =
           target.getAttribute("data-interaction-type") || "click";
@@ -171,16 +179,19 @@ class PortfolioTracker {
           properties: {
             projectId,
             interactionType,
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+    document.addEventListener("click", projectClickHandler);
+    this.cleanupFns.push(() =>
+      document.removeEventListener("click", projectClickHandler)
+    );
 
     // Track demo clicks
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      if (target.matches("[data-demo-link]")) {
+    const demoClickHandler = (event: Event) => {
+      const target = this.getMatchingElement(event, "[data-demo-link]");
+      if (target) {
         const projectId = target.getAttribute("data-project-id");
 
         this.trackEvent({
@@ -188,16 +199,17 @@ class PortfolioTracker {
           properties: {
             projectId,
             demoUrl: target.getAttribute("href"),
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+    document.addEventListener("click", demoClickHandler);
+    this.cleanupFns.push(() => document.removeEventListener("click", demoClickHandler));
 
     // Track GitHub clicks
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      if (target.matches("[data-github-link]")) {
+    const githubClickHandler = (event: Event) => {
+      const target = this.getMatchingElement(event, "[data-github-link]");
+      if (target) {
         const projectId = target.getAttribute("data-project-id");
 
         this.trackEvent({
@@ -205,36 +217,45 @@ class PortfolioTracker {
           properties: {
             projectId,
             githubUrl: target.getAttribute("href"),
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+    document.addEventListener("click", githubClickHandler);
+    this.cleanupFns.push(() =>
+      document.removeEventListener("click", githubClickHandler)
+    );
   }
 
   private trackContactSubmissions() {
     // Track contact form submissions
-    document.addEventListener("submit", (event) => {
-      const form = event.target as HTMLFormElement;
-      if (form.matches("[data-contact-form]")) {
+    const submitHandler = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        return;
+      }
+
+      const form = target.closest("[data-contact-form]") as HTMLFormElement | null;
+      if (form) {
         const formType = form.getAttribute("data-form-type") || "contact";
 
         this.trackEvent({
           type: "contact_submission",
           properties: {
             formType,
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+    document.addEventListener("submit", submitHandler);
+    this.cleanupFns.push(() => document.removeEventListener("submit", submitHandler));
   }
 
   private trackSocialMediaClicks() {
     // Track social media clicks
-    document.addEventListener("click", (event) => {
-      const target = event.target as HTMLElement;
-      if (target.matches("[data-social-link]")) {
+    const clickHandler = (event: Event) => {
+      const target = this.getMatchingElement(event, "[data-social-link]");
+      if (target) {
         const platform = target.getAttribute("data-social-platform");
         const linkType = target.getAttribute("data-link-type") || "profile";
 
@@ -244,31 +265,40 @@ class PortfolioTracker {
             platform,
             linkType,
             url: target.getAttribute("href"),
-            timestamp: new Date(),
           },
         });
       }
-    });
+    };
+    document.addEventListener("click", clickHandler);
+    this.cleanupFns.push(() => document.removeEventListener("click", clickHandler));
   }
 
   private trackWebVitals() {
     // Implementation for Core Web Vitals tracking
     // This would typically use the web-vitals library
-    console.log("Web Vitals tracking initialized");
   }
 
   private trackResourceTiming() {
+    if (typeof PerformanceObserver === "undefined") {
+      return;
+    }
+
+    const supportedEntryTypes = PerformanceObserver.supportedEntryTypes || [];
+    if (!supportedEntryTypes.includes("resource")) {
+      return;
+    }
+
     // Track resource loading performance
     const observer = new PerformanceObserver((list) => {
       for (const entry of list.getEntries()) {
         if (entry.entryType === "resource") {
+          const resourceEntry = entry as PerformanceResourceTiming;
           this.trackEvent({
             type: "resource_timing",
             properties: {
-              name: entry.name,
-              duration: entry.duration,
-              size: (entry as any).transferSize || 0,
-              timestamp: new Date(),
+              name: resourceEntry.name,
+              duration: resourceEntry.duration,
+              size: resourceEntry.transferSize || 0,
             },
           });
         }
@@ -276,11 +306,15 @@ class PortfolioTracker {
     });
 
     observer.observe({ entryTypes: ["resource"] });
+    this.cleanupFns.push(() => observer.disconnect());
   }
 
   private trackEvent(event: TrackingEvent) {
-    const enrichedEvent = {
+    const timestamp = event.timestamp ?? new Date();
+
+    const enrichedEvent: TrackingEvent = {
       ...event,
+      timestamp,
       properties: {
         ...event.properties,
         portfolioId: this.config.portfolioId,
@@ -294,29 +328,33 @@ class PortfolioTracker {
         viewportSize: `${window.innerWidth}x${window.innerHeight}`,
         language: navigator.language,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        timestamp: new Date(),
+        timestamp,
       },
     };
 
     if (this.isOnline) {
       this.sendEvent(enrichedEvent);
     } else {
-      this.eventQueue.push(enrichedEvent);
+      this.enqueueEvent(enrichedEvent);
     }
   }
 
   private async sendEvent(event: TrackingEvent) {
     try {
-      await fetch(`${this.config.apiEndpoint}/events`, {
+      const response = await fetch(`${this.config.apiEndpoint}/events`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(event),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} while sending tracking event`);
+      }
     } catch (error) {
       console.error("Failed to send tracking event:", error);
-      this.eventQueue.push(event);
+      this.enqueueEvent(event);
     }
   }
 
@@ -327,40 +365,72 @@ class PortfolioTracker {
     this.eventQueue = [];
 
     try {
-      await fetch(`${this.config.apiEndpoint}/events/batch`, {
+      const response = await fetch(`${this.config.apiEndpoint}/events/batch`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ events }),
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status} while flushing event queue`);
+      }
     } catch (error) {
       console.error("Failed to flush event queue:", error);
-      this.eventQueue.unshift(...events);
+      this.eventQueue = [...events, ...this.eventQueue].slice(
+        -PortfolioTracker.MAX_QUEUE_SIZE
+      );
     }
   }
 
+  private enqueueEvent(event: TrackingEvent) {
+    if (this.eventQueue.length >= PortfolioTracker.MAX_QUEUE_SIZE) {
+      this.eventQueue.shift();
+    }
+    this.eventQueue.push(event);
+  }
+
+  private getMatchingElement(event: Event, selector: string): HTMLElement | null {
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      return null;
+    }
+
+    return target.closest(selector) as HTMLElement | null;
+  }
+
+  private createId(prefix: string): string {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return `${prefix}_${crypto.randomUUID()}`;
+    }
+
+    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+      const bytes = new Uint8Array(12);
+      crypto.getRandomValues(bytes);
+      const random = Array.from(bytes, (byte) =>
+        byte.toString(16).padStart(2, "0")
+      ).join("");
+      return `${prefix}_${random}_${Date.now().toString(36)}`;
+    }
+
+    return `${prefix}_${Math.random().toString(36).slice(2, 11)}_${Date.now().toString(36)}`;
+  }
+
   private generateSessionId(): string {
-    return (
-      "session_" +
-      Math.random().toString(36).substr(2, 9) +
-      Date.now().toString(36)
-    );
+    return this.createId("session");
   }
 
   private getCrossDeviceId(): string {
     let crossDeviceId = localStorage.getItem("portfolio_cross_device_id");
     if (!crossDeviceId) {
-      crossDeviceId =
-        "cd_" +
-        Math.random().toString(36).substr(2, 9) +
-        Date.now().toString(36);
+      crossDeviceId = this.createId("cd");
     }
     return crossDeviceId;
   }
 
   // Public methods for manual tracking
-  public trackCustomEvent(type: string, properties: Record<string, any>) {
+  public trackCustomEvent(type: string, properties: Record<string, unknown>) {
     this.trackEvent({
       type,
       properties,
@@ -388,6 +458,12 @@ class PortfolioTracker {
         timestamp: new Date(),
       },
     });
+  }
+
+  public destroy() {
+    for (const cleanup of this.cleanupFns.splice(0)) {
+      cleanup();
+    }
   }
 }
 
