@@ -25,6 +25,7 @@ const Profile = lazy(() => import("./pages/Profile"));
 const PublicProfile = lazy(() => import("./pages/PublicProfile"));
 const ShowWorkLanding = lazy(() => import("./components/ShowWorkLanding"));
 const Login = lazy(() => import("./pages/Login"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 const DeveloperSetupPage = lazy(() => import("./pages/DeveloperSetupPage"));
 const ProjectDetail = lazy(() => import("./app/showcase/ProjectDetail"));
 import { CustomCursor } from "./components/ui/custom-cursor";
@@ -119,6 +120,7 @@ function App() {
               <ManualProjectForm />
             </ProtectedRoute>
           } />
+          <Route path="/dashboard/add" element={<Navigate to="/showcase/add" replace />} />
           <Route path="/showcase/quick-add" element={
             <ProtectedRoute>
               <QuickAdd />
@@ -202,6 +204,8 @@ function App() {
               <Profile />
             </ProtectedRoute>
           } />
+
+          <Route path="*" element={<NotFound />} />
 
         </Routes>
         </Suspense>

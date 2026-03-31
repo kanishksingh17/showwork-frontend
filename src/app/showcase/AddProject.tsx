@@ -33,7 +33,6 @@ import { CreateProjectRequestSchema } from "@/lib/validation/projectSchema";
 import TechnologySelector from "@/components/project/TechnologySelector";
 import MediaUploader from "@/components/media/MediaUploader";
 import CodeQualityWidget from "@/components/project/CodeQualityWidget";
-import { useMediaUpload } from "@/hooks/useMediaUpload";
 import { useCodeQuality } from "@/hooks/useCodeQuality";
 
 const defaultFormData = {
@@ -57,18 +56,10 @@ export default function AddProject() {
   >([]);
   const [mediaFiles, setMediaFiles] = useState<MediaFile[]>([]);
   const [codeQualityMetrics, setCodeQualityMetrics] =
-    useState<CodeQualityMetrics | null>(null);
+    useState<CodeQualityMetrics | undefined>(undefined);
   const [isSaving, setIsSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [tagInput, setTagInput] = useState("");
-
-  // Custom hooks
-  useMediaUpload({
-    projectId: "temp-project-id",
-    userId: "current-user-id",
-    onFilesUploaded: setMediaFiles,
-    onError: (error) => setErrors((prev) => ({ ...prev, media: error })),
-  });
 
   const codeQuality = useCodeQuality({
     onError: (error) => setErrors((prev) => ({ ...prev, codeQuality: error })),
@@ -102,7 +93,15 @@ export default function AddProject() {
         setFormData(draft.formData || { ...defaultFormData });
         setSelectedTechnologies(draft.selectedTechnologies || []);
         setMediaFiles(draft.mediaFiles || []);
-        setCodeQualityMetrics(draft.codeQualityMetrics || null);
+        if (draft.codeQualityMetrics) {
+          setCodeQualityMetrics({
+            ...draft.codeQualityMetrics,
+            // Drafts are serialized through JSON, so restore Date fields.
+            lastCommit: new Date(draft.codeQualityMetrics.lastCommit),
+          });
+        } else {
+          setCodeQualityMetrics(undefined);
+        }
         setCurrentStep(draft.currentStep || 1);
       } catch (error) {
         console.error("Failed to load draft:", error);

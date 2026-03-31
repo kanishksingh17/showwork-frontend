@@ -26,7 +26,6 @@ interface PortfolioBuilderProps {
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
   const dispatch = usePortfolioDispatch();
   const { user } = useAuth();
-  const previewUsername = user?.username || user?.id || "";
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<PortfolioTemplate | null>(null);
   const [detectedJobRole, setDetectedJobRole] = useState<JobRole | null>(null);
@@ -131,7 +130,11 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
 
   // Fetch PROJECTS
   useEffect(() => {
-    if (isDemo) { setFetchedProjects([]); return; }
+    // Keep template selection preview static; defer project fetching until build steps.
+    if (isDemo || currentStep === "landing" || currentStep === "template-preview") {
+      setFetchedProjects([]);
+      return;
+    }
     const load = async () => {
       try {
         const res = await fetch("/api/projects?limit=50", { credentials: "include" });
@@ -152,7 +155,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       } catch (e) { }
     };
     load();
-  }, [isDemo]);
+  }, [isDemo, currentStep]);
 
   // Sync Job Role
   useEffect(() => {
@@ -306,17 +309,13 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                   <div className="flex-1 relative group flex flex-col overflow-hidden">
                     {selectedTemplate.templateEngine === 'external' && selectedTemplate.previewUrl ? (
                       <iframe
-                        src={
-                          selectedTemplate.id === 'recommended-fullstack'
-                            ? selectedTemplate.previewUrl
-                            : `${selectedTemplate.previewUrl}?username=${encodeURIComponent(previewUsername)}`
-                        }
+                        src={selectedTemplate.previewUrl}
                         className="w-full h-full border-0"
                         title="Template Preview"
                       />
                     ) : (
                       <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        <PortfolioTemplateInner userData={userData} projects={fetchedProjects.length > 0 ? fetchedProjects : projects} />
+                        <PortfolioTemplateInner userData={userData} projects={projects} />
                       </div>
                     )}
                   </div>

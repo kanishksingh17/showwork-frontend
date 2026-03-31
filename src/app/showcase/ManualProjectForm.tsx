@@ -161,6 +161,40 @@ export default function ManualProjectForm() {
   const [backendProjectId, setBackendProjectId] = useState<string | null>(effectiveId || null);
   const saveToBackendRef = useRef<(isPublishing?: boolean) => Promise<string | null>>(async () => null);
 
+  // Manual save function for immediate persistence
+  const saveDraft = useCallback(() => {
+    const draftData = {
+      formData,
+      mediaFiles,
+      mediaUrl,
+      currentSection,
+      completedSections,
+      timestamp: new Date().toISOString(),
+    };
+    localStorage.setItem("manual-project-draft", JSON.stringify(draftData));
+
+    // Also save to backend (debounced)
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToBackendRef.current();
+    }, 1000);
+  }, [
+    completedSections,
+    currentSection,
+    formData,
+    mediaFiles,
+    mediaUrl,
+  ]);
+
+  // Simulate upload (for keyboard shortcut)
+  const simulateUpload = useCallback(() => {
+    const url = prompt("Paste an image or demo URL (simulated upload)");
+    if (url) {
+      setMediaUrl(url);
+      saveDraft();
+    }
+  }, [saveDraft]);
+
   // Command palette commands
   const commands = [
     {
@@ -312,31 +346,6 @@ export default function ManualProjectForm() {
     }
   }, []);
 
-  // Manual save function for immediate persistence
-  const saveDraft = useCallback(() => {
-    const draftData = {
-      formData,
-      mediaFiles,
-      mediaUrl,
-      currentSection,
-      completedSections,
-      timestamp: new Date().toISOString(),
-    };
-    localStorage.setItem("manual-project-draft", JSON.stringify(draftData));
-
-    // Also save to Supabase backend (debounced)
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      saveToBackendRef.current();
-    }, 1000);
-  }, [
-    completedSections,
-    currentSection,
-    formData,
-    mediaFiles,
-    mediaUrl,
-  ]);
-
   // Show save notification
   const showSaveNotification = () => {
     const el = document.createElement("div");
@@ -352,15 +361,6 @@ export default function ManualProjectForm() {
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 1400);
   };
-
-  // Simulate upload (for keyboard shortcut)
-  const simulateUpload = useCallback(() => {
-    const url = prompt("Paste an image or demo URL (simulated upload)");
-    if (url) {
-      setMediaUrl(url);
-      saveDraft();
-    }
-  }, [saveDraft]);
 
   const handleInputChange = (
     field: keyof ProjectFormData,
