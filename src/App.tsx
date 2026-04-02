@@ -14,7 +14,6 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Community = lazy(() => import("./pages/Community"));
 const PortfolioBuilder = lazy(() => import("./pages/PortfolioBuilder"));
 const PortfolioManagement = lazy(() => import("./pages/PortfolioManagement"));
-const PortfolioDemo = lazy(() => import("./pages/PortfolioDemo"));
 const ApplicationTracker = lazy(() => import("./pages/ApplicationTracker"));
 
 // ... existing code ...
@@ -84,7 +83,7 @@ function App() {
           <Route path="/demo-portfolio" element={<PortfolioBuilder isDemo={true} />} />
           <Route path="/demo-content" element={<ContentManagement isDemo={true} />} />
           <Route path="/demo-analytics" element={<Analytics isDemo={true} />} />
-          <Route path="/demo/template-03" element={<PortfolioDemo />} />
+          <Route path="/demo/template-03" element={<Navigate to="/demo-portfolio" replace />} />
 
 
           {/* Protected routes */}
@@ -165,16 +164,6 @@ function App() {
           <Route path="/portfolio/manage" element={
             <ProtectedRoute>
               <PortfolioManagement />
-            </ProtectedRoute>
-          } />
-          <Route path="/portfolio/demo/:templateId" element={
-            <ProtectedRoute>
-              <PortfolioDemo />
-            </ProtectedRoute>
-          } />
-          <Route path="/portfolio/demo" element={
-            <ProtectedRoute>
-              <PortfolioDemo />
             </ProtectedRoute>
           } />
 

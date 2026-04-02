@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "../components/ui/button";
 import {
   Sparkles,
@@ -10,18 +10,202 @@ import { toast } from "sonner";
 import type { PortfolioTemplate, UserPortfolio, JobRole } from "../types/portfolio";
 import { UnifiedLayout } from "../components/UnifiedLayout";
 import { PortfolioSelector } from "../components/portfolio/PortfolioSelector";
-import { PortfolioTemplateInner } from "../components/portfolio/templates/PortfolioTemplate";
 import { ModernPortfolioEditor } from "../components/portfolio/ModernPortfolioEditor";
 import { LoginModal } from "@/components/auth/LoginModal";
 import { usePortfolioDispatch } from "@/store/portfolio/hooks";
 import { selectTemplate, setSections, updateUserData, changeWebsitePageComponentContent } from "@/store/portfolio/portfolioSlice";
 import { useAuth } from "@/contexts/useAuth";
+import { PortfolioDemoPreview } from "./PortfolioDemo";
 
 type BuilderStep = "landing" | "template-preview" | "preparation" | "customizer" | "preview";
 
 interface PortfolioBuilderProps {
   isDemo?: boolean;
 }
+
+const BASE_PREVIEW_USER = {
+  id: "preview-user",
+  name: "Raj Singh",
+  email: "raj@example.com",
+  bio: "Engineer focused on shipping reliable products with strong UX and measurable impact.",
+  tagline: "Full-Stack Engineer",
+  username: "rajsingh",
+  techStack: ["TypeScript", "React", "Node.js", "PostgreSQL"],
+  skills: [
+    { name: "TypeScript", percentage: 92, category: "programming" },
+    { name: "React", percentage: 90, category: "frontend" },
+    { name: "Node.js", percentage: 88, category: "backend" },
+    { name: "System Design", percentage: 84, category: "architecture" },
+  ],
+  socials: {
+    github: "https://github.com/soumyajit4419",
+    linkedin: "https://www.linkedin.com/in/soumyajit4419/",
+    twitter: "https://x.com/rajsingh",
+  },
+  hasResume: true,
+};
+
+const TEMPLATE_PREVIEW_CONTENT: Record<string, { tagline: string; bio: string; projects: Array<any> }> = {
+  "recommended-fullstack": {
+    tagline: "Full-Stack Developer",
+    bio: "Builds performant web products end-to-end with clean architecture and product focus.",
+    projects: [
+      { id: "p-fs-1", name: "Growth Commerce", description: "Checkout funnel with 18% higher conversion.", technologies: ["React", "Node.js", "PostgreSQL"] },
+      { id: "p-fs-2", name: "Realtime Ops", description: "Operations dashboard with websocket alerts.", technologies: ["TypeScript", "Socket.io", "Redis"] },
+    ],
+  },
+  "api-engineer": {
+    tagline: "API Engineer",
+    bio: "Designs resilient REST and GraphQL APIs with excellent developer experience.",
+    projects: [
+      { id: "p-api-1", name: "Payments API", description: "Idempotent payment workflows and audit trails.", technologies: ["Node.js", "OpenAPI", "PostgreSQL"] },
+      { id: "p-api-2", name: "Partner Graph", description: "GraphQL federation for multi-domain data.", technologies: ["GraphQL", "Apollo", "TypeScript"] },
+    ],
+  },
+  "modern-dev": {
+    tagline: "Frontend Engineer",
+    bio: "Creates delightful interfaces with strong accessibility and performance baselines.",
+    projects: [
+      { id: "p-fe-1", name: "Design System", description: "Reusable UI primitives across products.", technologies: ["React", "Tailwind", "Storybook"] },
+      { id: "p-fe-2", name: "Marketing Studio", description: "Animated landing pages with CMS tooling.", technologies: ["Next.js", "Framer Motion", "MDX"] },
+    ],
+  },
+  "modern-minimalist": {
+    tagline: "Product Engineer",
+    bio: "Ships focused user flows with clean visual systems and maintainable code.",
+    projects: [
+      { id: "p-mm-1", name: "Creator Hub", description: "Portfolio manager with publishing workflows.", technologies: ["React", "TypeScript", "Supabase"] },
+      { id: "p-mm-2", name: "Client Portal", description: "Lightweight client collaboration dashboard.", technologies: ["Vite", "TanStack Query", "Zod"] },
+    ],
+  },
+  "microservices-architect": {
+    tagline: "Distributed Systems Architect",
+    bio: "Leads service decomposition, observability, and reliability at scale.",
+    projects: [
+      { id: "p-ms-1", name: "Order Mesh", description: "Domain-driven microservices for order lifecycle.", technologies: ["Go", "gRPC", "Kafka"] },
+      { id: "p-ms-2", name: "Traffic Router", description: "Canary and progressive rollout controller.", technologies: ["Kubernetes", "Envoy", "Prometheus"] },
+    ],
+  },
+  "cloud-architect": {
+    tagline: "Cloud Architect",
+    bio: "Builds secure cloud platforms with strong cost and reliability controls.",
+    projects: [
+      { id: "p-ca-1", name: "Platform Blueprint", description: "Multi-account IaC reference architecture.", technologies: ["AWS", "Terraform", "GitHub Actions"] },
+      { id: "p-ca-2", name: "FinOps Guardrails", description: "Budget anomaly detection with policy automation.", technologies: ["Lambda", "Athena", "CloudWatch"] },
+    ],
+  },
+  "infra-architect": {
+    tagline: "DevOps Architect",
+    bio: "Designs CI/CD and infra standards for fast, safe delivery.",
+    projects: [
+      { id: "p-devops-1", name: "Release Factory", description: "Standardized pipelines for 40+ services.", technologies: ["ArgoCD", "Helm", "Kubernetes"] },
+      { id: "p-devops-2", name: "Drift Sentinel", description: "Infrastructure drift detection and remediation.", technologies: ["Terraform", "OPA", "Python"] },
+    ],
+  },
+  "reliability-engineer": {
+    tagline: "Site Reliability Engineer",
+    bio: "Improves availability with SLOs, automation, and incident excellence.",
+    projects: [
+      { id: "p-sre-1", name: "SLO Control Center", description: "Service-level objective monitoring and alerts.", technologies: ["Prometheus", "Grafana", "Alertmanager"] },
+      { id: "p-sre-2", name: "Incident Timeline", description: "Automated incident command and postmortems.", technologies: ["PagerDuty", "Slack API", "Node.js"] },
+    ],
+  },
+  "data-pipeline-engineer": {
+    tagline: "Data Engineer",
+    bio: "Builds reliable data pipelines for analytics and ML workloads.",
+    projects: [
+      { id: "p-de-1", name: "Streaming Lakehouse", description: "Near-real-time ingestion and transformations.", technologies: ["Kafka", "dbt", "Snowflake"] },
+      { id: "p-de-2", name: "Quality Gates", description: "Data contracts and quality assertions pipeline.", technologies: ["Airflow", "Great Expectations", "Python"] },
+    ],
+  },
+  "mobile-engineer": {
+    tagline: "Mobile Engineer",
+    bio: "Builds polished mobile apps with strong performance and offline support.",
+    projects: [
+      { id: "p-mobile-1", name: "Habit Mobile", description: "Cross-platform app with offline sync.", technologies: ["React Native", "Expo", "SQLite"] },
+      { id: "p-mobile-2", name: "Travel Wallet", description: "Secure itinerary and expense tracker.", technologies: ["Flutter", "Firebase", "Dart"] },
+    ],
+  },
+  "analytics-engineer": {
+    tagline: "Analytics Engineer",
+    bio: "Turns raw data into trusted metrics and executive-ready dashboards.",
+    projects: [
+      { id: "p-analytics-1", name: "Revenue Model", description: "Unified revenue mart and KPI layer.", technologies: ["dbt", "BigQuery", "Looker"] },
+      { id: "p-analytics-2", name: "Funnel Observatory", description: "Lifecycle funnel monitoring suite.", technologies: ["SQL", "Metabase", "Airbyte"] },
+    ],
+  },
+  "blockchain-dev": {
+    tagline: "Blockchain Engineer",
+    bio: "Designs secure smart contracts and production-grade web3 integrations.",
+    projects: [
+      { id: "p-chain-1", name: "Vault Protocol", description: "Audited staking and reward contracts.", technologies: ["Solidity", "Foundry", "Ethers.js"] },
+      { id: "p-chain-2", name: "Wallet Gateway", description: "Multi-chain wallet connect orchestration.", technologies: ["TypeScript", "wagmi", "viem"] },
+    ],
+  },
+  "mlops-pipeline": {
+    tagline: "MLOps Engineer",
+    bio: "Operationalizes ML with repeatable training and safe model delivery.",
+    projects: [
+      { id: "p-mlops-1", name: "Model Release Train", description: "Versioned model training and rollout gates.", technologies: ["MLflow", "Kubernetes", "Python"] },
+      { id: "p-mlops-2", name: "Drift Radar", description: "Live drift detection and retraining triggers.", technologies: ["Evidently", "FastAPI", "PostgreSQL"] },
+    ],
+  },
+  "open-source-portfolio": {
+    tagline: "Open Source Maintainer",
+    bio: "Maintains tooling used by developers across multiple ecosystems.",
+    projects: [
+      { id: "p-oss-1", name: "CLI Toolkit", description: "Open-source CLI utilities with plugin system.", technologies: ["Node.js", "TypeScript", "pnpm"] },
+      { id: "p-oss-2", name: "UI Starter", description: "Accessible component starter for teams.", technologies: ["React", "Radix", "Vitest"] },
+    ],
+  },
+  "security-architect-v2": {
+    tagline: "Application Security Engineer",
+    bio: "Builds secure-by-default systems with practical threat modeling.",
+    projects: [
+      { id: "p-sec-1", name: "Threat Mapper", description: "Threat model automation and risk scoring.", technologies: ["OWASP", "Node.js", "Neo4j"] },
+      { id: "p-sec-2", name: "Policy Shield", description: "Runtime policy checks in CI/CD.", technologies: ["OPA", "GitHub Actions", "Rego"] },
+    ],
+  },
+  "research-portfolio": {
+    tagline: "ML Research Engineer",
+    bio: "Explores model architectures and publishes reproducible experiments.",
+    projects: [
+      { id: "p-research-1", name: "Sparse Attention Lab", description: "Efficiency experiments for long-context models.", technologies: ["PyTorch", "JAX", "WandB"] },
+      { id: "p-research-2", name: "Benchmark Suite", description: "Evaluation harness for model variants.", technologies: ["Python", "HuggingFace", "Docker"] },
+    ],
+  },
+  "cli-portfolio": {
+    tagline: "Developer Tools Engineer",
+    bio: "Builds terminal-first tooling that accelerates developer workflows.",
+    projects: [
+      { id: "p-cli-1", name: "Terminal Portfolio", description: "Interactive shell-like portfolio experience.", technologies: ["React", "xterm.js", "TypeScript"] },
+      { id: "p-cli-2", name: "Repo Scout", description: "CLI repo insights with markdown exports.", technologies: ["Go", "Cobra", "SQLite"] },
+    ],
+  },
+  "systems-programming": {
+    tagline: "Systems Engineer",
+    bio: "Builds high-performance systems and desktop-like web experiences.",
+    projects: [
+      { id: "p-sys-1", name: "Web Desktop", description: "Window manager and dock in browser runtime.", technologies: ["TypeScript", "Canvas", "Web Workers"] },
+      { id: "p-sys-2", name: "Memory Profiler", description: "Low-overhead profiling toolkit.", technologies: ["Rust", "WASM", "D3"] },
+    ],
+  },
+};
+
+const getTemplatePreviewData = (templateId: string | undefined) => {
+  const key = templateId || "recommended-fullstack";
+  const template = TEMPLATE_PREVIEW_CONTENT[key] || TEMPLATE_PREVIEW_CONTENT["recommended-fullstack"];
+  const userData = {
+    ...BASE_PREVIEW_USER,
+    tagline: template.tagline,
+    bio: template.bio,
+  };
+
+  return {
+    userData,
+    projects: template.projects,
+  };
+};
 
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
   const dispatch = usePortfolioDispatch();
@@ -38,6 +222,12 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [hasResumeFile, setHasResumeFile] = useState(false);
   const [resumeFileData, setResumeFileData] = useState<{name: string, sizeStr: string} | null>(null);
+  const isSelectionPreviewStep = currentStep === "landing" || currentStep === "template-preview";
+  const previewData = useMemo(() => getTemplatePreviewData(selectedTemplate?.id), [selectedTemplate?.id]);
+  const showcasedProjects = useMemo(
+    () => fetchedProjects.filter((p) => p.showcase),
+    [fetchedProjects],
+  );
 
   // Real user data
   const [userData, setUserData] = useState<{
@@ -75,7 +265,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
 
   // Fetch USER data
   useEffect(() => {
-    if (isDemo) {
+    if (isDemo || isSelectionPreviewStep) {
       setUserData({ id: "demo-user", name: "Demo User", skills: [] });
       return;
     }
@@ -126,12 +316,12 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       } catch (e) { }
     };
     loadData();
-  }, [isDemo, user]);
+  }, [isDemo, user, isSelectionPreviewStep]);
 
   // Fetch PROJECTS
   useEffect(() => {
     // Keep template selection preview static; defer project fetching until build steps.
-    if (isDemo || currentStep === "landing" || currentStep === "template-preview") {
+    if (isDemo || isSelectionPreviewStep) {
       setFetchedProjects([]);
       return;
     }
@@ -155,7 +345,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       } catch (e) { }
     };
     load();
-  }, [isDemo, currentStep]);
+  }, [isDemo, isSelectionPreviewStep]);
 
   // Sync Job Role
   useEffect(() => {
@@ -230,7 +420,14 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     try {
       const { PortfolioAIService } = await import("../services/portfolio-ai-service");
       const aiService = new PortfolioAIService();
-      const projectsToUse = fetchedProjects.length > 0 ? fetchedProjects : projects;
+      const projectsToUse = showcasedProjects;
+
+      if (projectsToUse.length === 0) {
+        toast.error("No showcased projects found. Please mark projects as showcased in the Showcase tab first.");
+        setCurrentStep("preparation");
+        setIsGenerating(false);
+        return;
+      }
 
       setPreparationProgress(20);
       const filledSections = await Promise.all((selectedTemplate.sections || []).map(async (section, idx, arr) => {
@@ -315,7 +512,12 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                       />
                     ) : (
                       <div className="flex-1 overflow-y-auto custom-scrollbar">
-                        <PortfolioTemplateInner userData={userData} projects={projects} />
+                        <PortfolioDemoPreview
+                          templateId={selectedTemplate.id}
+                          userData={previewData.userData}
+                          projects={previewData.projects}
+                          className="w-full h-full"
+                        />
                       </div>
                     )}
                   </div>
@@ -427,7 +629,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                 <div className="prep-section">
                   <div className="prep-section-header">
                     <span className="prep-section-label">Projects</span>
-                    <span className="prep-stat-badge">{fetchedProjects.length || 20} synced</span>
+                    <span className="prep-stat-badge">{showcasedProjects.length} showcased</span>
                   </div>
                   <div className="prep-projects-row">
                     <div className="prep-projects-icon">
@@ -517,11 +719,11 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               <ModernPortfolioEditor
                 template={selectedTemplate}
                 userData={userData || { id: "user", name: "Dev", skills: [], socials: {} }}
-                projects={fetchedProjects.length > 0 ? fetchedProjects : projects}
+                projects={showcasedProjects}
                 jobRole={detectedJobRole}
                 onSave={async () => {
                   if (!selectedTemplate) return;
-                  const res = await fetch("/api/portfolio/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ templateId: selectedTemplate.id, userId: userData?.id, userData, projects: fetchedProjects }) });
+                  const res = await fetch("/api/portfolio/create", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ templateId: selectedTemplate.id, userId: userData?.id, userData, projects: showcasedProjects }) });
                   const d = await res.json();
                   if (d.success && d.url) window.open(d.url, '_blank');
                 }}
