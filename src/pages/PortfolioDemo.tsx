@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { portfolioStore } from '@/store/portfolio';
-import { PortfolioTemplate } from '@/components/portfolio/templates/PortfolioTemplate';
+import { PortfolioTemplateInner } from '@/components/portfolio/templates/PortfolioTemplate';
 import { selectTemplate, updateUserData, initializeDefaultSections } from '@/store/portfolio/portfolioSlice';
+import { usePortfolioDispatch } from '@/store/portfolio/hooks';
 
 const DEMO_USER = {
     name: 'Raj Singh',
@@ -18,29 +19,63 @@ const DEMO_USER = {
     },
 };
 
+const DEMO_PROJECTS = [
+    {
+        id: 'demo-p1',
+        name: 'Portfolio Engine',
+        description: 'Template-driven portfolio builder with section variants and live editing.',
+        technologies: ['React', 'TypeScript', 'Redux'],
+    },
+    {
+        id: 'demo-p2',
+        name: 'DevOps Insights',
+        description: 'Operational dashboard for releases, reliability, and change tracking.',
+        technologies: ['Node.js', 'PostgreSQL', 'Grafana'],
+    },
+];
+
+export interface PortfolioDemoPreviewProps {
+    templateId?: string;
+    userData?: any;
+    projects?: any[];
+    className?: string;
+}
+
+export const PortfolioDemoPreview: React.FC<PortfolioDemoPreviewProps> = ({
+    templateId = 'recommended-fullstack',
+    userData = DEMO_USER,
+    projects = DEMO_PROJECTS,
+    className = 'w-full min-h-screen bg-white',
+}) => {
+    const dispatch = usePortfolioDispatch();
+
+    useEffect(() => {
+        dispatch(initializeDefaultSections());
+    }, [dispatch]);
+
+    useEffect(() => {
+        dispatch(selectTemplate(templateId));
+    }, [dispatch, templateId]);
+
+    useEffect(() => {
+        dispatch(updateUserData(userData as any));
+    }, [dispatch, userData]);
+
+    return (
+        <div className={className}>
+            <PortfolioTemplateInner userData={userData} projects={projects} />
+        </div>
+    );
+};
+
 /**
  * PortfolioDemoInner — syncs demo data and selected template to Redux
  */
 const PortfolioDemoInner: React.FC = () => {
-    const dispatch = useDispatch();
     const { templateId } = useParams<{ templateId: string }>();
 
-    useEffect(() => {
-        // Sync demo user data
-        dispatch(updateUserData(DEMO_USER as any));
-
-        // Initialize default sections if needed
-        dispatch(initializeDefaultSections());
-
-        // Select the template from the URL (fallback to recommended-fullstack)
-        const id = templateId || 'recommended-fullstack';
-        dispatch(selectTemplate(id));
-    }, [dispatch, templateId]);
-
     return (
-        <div className="w-full min-h-screen bg-white">
-            <PortfolioTemplate />
-        </div>
+        <PortfolioDemoPreview templateId={templateId || 'recommended-fullstack'} />
     );
 };
 
