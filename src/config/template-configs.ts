@@ -51,7 +51,7 @@ export const TEMPLATE_CONFIGS: Record<string, TemplateConfig> = {
     'recommended-fullstack': {
         id: 'recommended-fullstack',
         name: 'Full-Stack Developer',
-        engine: 'external',
+        engine: 'section',
         port: 3003,
         defaultTheme: {
             primaryColor: '#2563eb',

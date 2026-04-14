@@ -9,6 +9,8 @@ import {
     type TemplateThemeConfig,
     DEFAULT_THEME,
 } from '@/config/template-configs';
+import { usePortfolioDispatch } from '@/store/portfolio/hooks';
+import { updateTheme } from '@/store/portfolio/portfolioSlice';
 
 interface ThemePanelProps {
     templateId: string;
@@ -27,10 +29,15 @@ export const ThemePanel: React.FC<ThemePanelProps> = ({ templateId, iframeRef })
     );
     const [isSaving, setIsSaving] = useState(false);
     const [savedAt, setSavedAt] = useState<Date | null>(null);
+    const dispatch = usePortfolioDispatch();
 
     const handleThemeChange = useCallback((key: keyof TemplateThemeConfig, value: string) => {
         const updated = { ...theme, [key]: value };
         setTheme(updated);
+        
+        // Sync with internal Redux template
+        dispatch(updateTheme(updated));
+
         // Phase 2: real-time postMessage to the live iframe
         if (iframeRef?.current?.contentWindow) {
             iframeRef.current.contentWindow.postMessage({ type: 'UPDATE_THEME', payload: updated }, '*');
@@ -132,7 +139,7 @@ export const ThemePanel: React.FC<ThemePanelProps> = ({ templateId, iframeRef })
                     </section>
 
                     {/* ── Section Toggles ─────────────────────────────────────────── */}
-                    {config.toggleableSections.length > 0 && (
+                    {config.engine === 'external' && config.toggleableSections.length > 0 && (
                         <section>
                             <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Sections</p>
                             <div className="space-y-2">

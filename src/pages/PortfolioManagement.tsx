@@ -144,7 +144,7 @@ export default function PortfolioManagement() {
     };
 
     return (
-        <UnifiedLayout activePage="portfolio-manage">
+        <UnifiedLayout activePage={activeTab === 'resumes' ? 'resume' : 'portfolio-manage'}>
             <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#FAFAFA] dark:bg-[#0f172a]">
                 {/* Header */}
                 <header className="h-16 flex items-center justify-between px-8 bg-[#FAFAFA]/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">

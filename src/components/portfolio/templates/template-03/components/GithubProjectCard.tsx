@@ -1,50 +1,77 @@
 import React from 'react';
-import { BookOpen, Star, GitFork, ArrowRight } from 'lucide-react';
-import { smartTrim, ProjectCardContract } from '../lib';
+import { BookOpen, Star, GitFork, ArrowRight, ExternalLink } from 'lucide-react';
+import { smartTrim } from '../lib';
+import type { ContentContract } from '../lib';
+
+const ProjectCardContract: ContentContract = {
+    maxWords: 15,
+};
 
 export function GithubProjectCard({ project, titleAs }: { project: any, titleAs?: keyof JSX.IntrinsicElements }) {
     let Component = titleAs ?? 'h2';
-
-    // Systematic Trimming (AI output != UI output)
-    const displayDescription = smartTrim(project.description, ProjectCardContract);
+    const displayDescription = smartTrim(project.description || project.description_short || "", ProjectCardContract);
 
     return (
         <li className='group relative flex flex-col items-start h-full list-none'>
-            <div className="relative flex flex-col justify-between h-full w-full py-5 px-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm transition-all group-hover:scale-[1.03] group-hover:shadow-md group-hover:bg-zinc-50 dark:group-hover:bg-zinc-900/50">
-                <div className=''>
-                    <div className='flex flex-col sm:flex-row justify-center sm:justify-start items-start sm:items-center gap-2 text-zinc-900 dark:text-zinc-100'>
-                        <BookOpen size={20} className="text-zinc-500" />
-                        <Component className="text-sm font-semibold tracking-tight">
-                            {project.name}
-                        </Component>
+            <div className="relative flex flex-col justify-between h-full w-full p-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm transition-all duration-300 hover:shadow-xl hover:-translate-y-1">
+                {/* Header Row */}
+                <div className="flex justify-between items-start w-full mb-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-500 dark:text-blue-400 border border-blue-100 dark:border-blue-800/50">
+                        <BookOpen size={20} />
                     </div>
-                    <p className="relative z-10 mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                    <a
+                        href={project.link?.href || project.githubUrl || '#'}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        className="p-2 rounded-lg text-zinc-400 hover:text-[color:var(--brand-primary)] hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all"
+                    >
+                        <ExternalLink className="h-4 w-4" />
+                    </a>
+                </div>
+
+                {/* Content */}
+                <div className="mb-4">
+                    <Component className="text-base font-bold text-zinc-900 dark:text-zinc-100 mb-2 tracking-tight">
+                        {project.name}
+                    </Component>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed font-medium">
                         {displayDescription}
                     </p>
                 </div>
 
-                <div className="relative z-10 mt-auto pt-4">
-                    <div className='flex flex-row items-center gap-2 text-xs font-semibold opacity-80 text-zinc-500'>
-                        {project.gitStars > 0 && (
-                            <div className="flex items-center gap-1">
-                                <Star size={16} />
-                                {project.gitStars}
+                {/* Stats & Link */}
+                <div className="mt-auto flex items-center justify-between pt-4">
+                    <div className='flex flex-row items-center gap-4 text-xs font-bold text-zinc-500'>
+                        {(project.gitStars > 0 || project.stargazers_count > 0) && (
+                            <div className="flex items-center gap-1 hover:text-yellow-500 transition-colors">
+                                <Star size={14} className="fill-current" />
+                                {project.gitStars || project.stargazers_count}
                             </div>
                         )}
-                        {project.gitForks > 0 && (
+                        {(project.gitForks > 0 || project.forks_count > 0) && (
+                            <div className="flex items-center gap-1 hover:text-blue-500 transition-colors">
+                                <GitFork size={14} />
+                                {project.gitForks || project.forks_count}
+                            </div>
+                        )}
+                        {project.language && (
                             <div className="flex items-center gap-1">
-                                <GitFork size={16} />
-                                {project.gitForks}
+                                <div className="w-2 h-2 rounded-full bg-[color:var(--brand-primary)]" />
+                                {project.language}
                             </div>
                         )}
                     </div>
+                    <ArrowRight size={16} className="text-zinc-300 group-hover:text-[color:var(--brand-primary)] group-hover:translate-x-1 transition-all" />
                 </div>
+                
+                {/* accessibility link */}
                 <a
                     href={project.link?.href || project.githubUrl || '#'}
                     target='_blank'
                     rel='noopener noreferrer'
-                    className='absolute inset-0 z-20'>
-                    <ArrowRight className="absolute bottom-6 right-4 h-4 w-4 text-zinc-400 group-hover:text-purple-500 translation-colors" />
+                    className='absolute inset-0 z-10 opacity-0'
+                >
+                    {project.name}
                 </a>
             </div>
         </li>

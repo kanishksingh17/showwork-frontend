@@ -12,6 +12,7 @@ import {
   Plug,
   FileText,
   PanelLeftClose,
+  User,
 } from "lucide-react";
 
 interface UnifiedSidebarProps {
@@ -43,8 +44,10 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     if (path === "/analytics") return "analytics";
     if (path === "/community") return "community";
     if (path === "/integrations") return "integrations";
-    if (path === "/portfolio" || path.startsWith("/portfolio/"))
+    if (path === "/portfolio" || path.startsWith("/portfolio/")) {
       return "portfolio";
+    }
+    if (path === "/resume" || path.startsWith("/resume/")) return "resume";
     return "dashboard";
   };
 
@@ -76,6 +79,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       title: "WORKSPACE",
       items: [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
+        { id: "resume", label: "Resume", icon: User, path: "/resume" },
         { id: "portfolio", label: "Portfolio", icon: FolderOpen, path: "/portfolio" },
         { id: "portfolio-manage", label: "Asset Manager", icon: Briefcase, path: "/portfolio/manage" },
         { id: "content", label: "Content", icon: FileText, path: "/content" },
@@ -104,7 +108,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     ? allNavigationGroups.map(group => ({
       ...group,
       items: group.items
-        .filter(item => ['dashboard', 'portfolio', 'content', 'showcase', 'analytics'].includes(item.id))
+        .filter(item => ['dashboard', 'portfolio', 'content', 'showcase', 'analytics', 'resume'].includes(item.id))
         .map(item => {
           if (item.id === 'dashboard') return { ...item, path: "/", state: { fromDemo: true } };
           if (item.id === 'portfolio') return { ...item, path: "/demo-portfolio" };

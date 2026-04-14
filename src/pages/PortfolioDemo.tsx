@@ -3,7 +3,7 @@ import { Provider } from 'react-redux';
 import { useParams } from 'react-router-dom';
 import { portfolioStore } from '@/store/portfolio';
 import { PortfolioTemplateInner } from '@/components/portfolio/templates/PortfolioTemplate';
-import { selectTemplate, updateUserData, initializeDefaultSections } from '@/store/portfolio/portfolioSlice';
+import { selectTemplate, updateUserData, initializeDefaultSections, setPreviewMode } from '@/store/portfolio/portfolioSlice';
 import { usePortfolioDispatch } from '@/store/portfolio/hooks';
 
 const DEMO_USER = {
@@ -60,6 +60,14 @@ export const PortfolioDemoPreview: React.FC<PortfolioDemoPreviewProps> = ({
     useEffect(() => {
         dispatch(updateUserData(userData as any));
     }, [dispatch, userData]);
+
+    // Force preview mode so EditableBlocks do not render their interactive borders
+    useEffect(() => {
+        dispatch(setPreviewMode(true));
+        return () => {
+            dispatch(setPreviewMode(false));
+        };
+    }, [dispatch]);
 
     return (
         <div className={className}>

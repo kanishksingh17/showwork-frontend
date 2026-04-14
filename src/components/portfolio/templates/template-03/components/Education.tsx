@@ -3,7 +3,7 @@ import { CustomIcon } from './CustomIcon';
 
 function EducationItem({ educationItem }: { educationItem: any }) {
     return (
-        <li className="flex gap-4 text-zinc-900 dark:text-zinc-100">
+        <div className="flex gap-4 text-zinc-900 dark:text-zinc-100">
             <div className="relative mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full shadow-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                 <CustomIcon name={educationItem.logo || 'education'} />
             </div>
@@ -24,20 +24,30 @@ function EducationItem({ educationItem }: { educationItem: any }) {
                     {educationItem.start} - {educationItem.end}
                 </dd>
             </dl>
-        </li>
-    )
+        </div>
+    );
 }
 
 export default function Education({ items }: { items?: any[] }) {
-    const displayList = (items || []).map(item => ({
-        school: item.schoolName,
-        major: item.degreeName + (item.fieldOfStudy ? ` in ${item.fieldOfStudy}` : ''),
-        logo: 'education',
-        start: item.startDate ? new Date(item.startDate).getFullYear().toString() : '',
-        end: item.endDate ? new Date(item.endDate).getFullYear().toString() : 'Present'
-    }));
+    const mockEducation = [
+        {
+            school: 'Haldia Institute of Technology',
+            major: 'Computer Science and Engineering',
+            logo: 'education',
+            start: '2018',
+            end: '2022'
+        }
+    ];
 
-    if (displayList.length === 0) return null;
+    const displayList = (items || []).length > 0 
+        ? items!.map(item => ({
+            school: item.schoolName,
+            major: item.degreeName + (item.fieldOfStudy ? ` in ${item.fieldOfStudy}` : ''),
+            logo: 'education',
+            start: item.startDate ? new Date(item.startDate).getFullYear().toString() : '',
+            end: item.endDate ? new Date(item.endDate).getFullYear().toString() : 'Present'
+        }))
+        : mockEducation;
 
     return (
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 shadow-sm p-6 bg-white dark:bg-zinc-900/50">
@@ -45,9 +55,11 @@ export default function Education({ items }: { items?: any[] }) {
                 <LucideGraduationCap className="h-5 w-5 text-zinc-400" />
                 <span className="ml-3">Education</span>
             </h2>
-            <ol className="mt-6 space-y-4">
+            <ol className="mt-6 space-y-6 divide-y divide-zinc-100 dark:divide-zinc-800">
                 {displayList.map((educationItem, educationItemIndex) => (
-                    <EducationItem key={educationItemIndex} educationItem={educationItem} />
+                    <li key={educationItemIndex} className={educationItemIndex > 0 ? 'pt-6' : ''}>
+                        <EducationItem educationItem={educationItem} />
+                    </li>
                 ))}
             </ol>
         </div>

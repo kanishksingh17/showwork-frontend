@@ -4,13 +4,22 @@ import { cn } from '@/lib/utils';
 export default function SocialLinks({ className, user }: { className?: string, user?: any }) {
     const displayEmail = user?.email;
 
+    const sanitizeUrl = (url: string) => {
+        if (!url) return '#';
+        if (url.startsWith('mailto:')) return url;
+        if (!/^https?:\/\//i.test(url)) {
+            return `https://${url}`;
+        }
+        return url;
+    };
+
     const links = [
-        ...(user?.socials?.github ? [{ name: 'Github', icon: 'github', href: user.socials.github, external: true }] : []),
-        ...(user?.socials?.twitter ? [{ name: 'Twitter', icon: 'x', href: user.socials.twitter, external: true }] : []),
-        ...(user?.socials?.linkedin ? [{ name: 'Linkedin', icon: 'linkedin', href: user.socials.linkedin, external: true }] : []),
-        ...(user?.socialLinks?.github ? [{ name: 'Github', icon: 'github', href: user.socialLinks.github, external: true }] : []),
-        ...(user?.socialLinks?.twitter ? [{ name: 'Twitter', icon: 'x', href: user.socialLinks.twitter, external: true }] : []),
-        ...(user?.socialLinks?.linkedin ? [{ name: 'Linkedin', icon: 'linkedin', href: user.socialLinks.linkedin, external: true }] : []),
+        ...(user?.socials?.github ? [{ name: 'Github', icon: 'github', href: sanitizeUrl(user.socials.github), external: true }] : []),
+        ...(user?.socials?.twitter ? [{ name: 'Twitter', icon: 'x', href: sanitizeUrl(user.socials.twitter), external: true }] : []),
+        ...(user?.socials?.linkedin ? [{ name: 'Linkedin', icon: 'linkedin', href: sanitizeUrl(user.socials.linkedin), external: true }] : []),
+        ...(user?.socialLinks?.github ? [{ name: 'Github', icon: 'github', href: sanitizeUrl(user.socialLinks.github), external: true }] : []),
+        ...(user?.socialLinks?.twitter ? [{ name: 'Twitter', icon: 'x', href: sanitizeUrl(user.socialLinks.twitter), external: true }] : []),
+        ...(user?.socialLinks?.linkedin ? [{ name: 'Linkedin', icon: 'linkedin', href: sanitizeUrl(user.socialLinks.linkedin), external: true }] : []),
     ];
 
     // Deduplicate links by name
@@ -46,9 +55,9 @@ export default function SocialLinks({ className, user }: { className?: string, u
                     target="_blank"
                     rel="noreferrer"
                     aria-label='Email'
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
                 >
-                    <CustomIcon name='email' />
+                    <CustomIcon name='email' size={20} />
                     <span className="sr-only">Email</span>
                 </a>
             )}

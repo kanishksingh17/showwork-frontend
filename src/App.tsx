@@ -14,6 +14,7 @@ const Analytics = lazy(() => import("./pages/Analytics"));
 const Community = lazy(() => import("./pages/Community"));
 const PortfolioBuilder = lazy(() => import("./pages/PortfolioBuilder"));
 const PortfolioManagement = lazy(() => import("./pages/PortfolioManagement"));
+const ResumeBuilder = lazy(() => import("./pages/ResumeBuilder"));
 const ApplicationTracker = lazy(() => import("./pages/ApplicationTracker"));
 
 // ... existing code ...
@@ -205,6 +206,11 @@ function App() {
           <Route path="/portfolio/manage" element={withRouteSuspense(
             <ProtectedRoute>
               <PortfolioManagement />
+            </ProtectedRoute>
+          )} />
+          <Route path="/resume" element={withRouteSuspense(
+            <ProtectedRoute>
+              <ResumeBuilder />
             </ProtectedRoute>
           )} />
 

@@ -44,12 +44,12 @@ export const ResumePreview: React.FC<ResumePreviewProps> = ({ userData, projects
                 </Button>
             </div>
 
-            {/* Resume Canvas (A4 Aspect Ratio) */}
+            {/* Resume Canvas */}
             <div
-                className="w-full max-w-[800px] aspect-[1/1.414] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-200 overflow-hidden"
-                style={{ height: 'auto' }}
+                className="w-full max-w-[800px] bg-white shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-gray-200 overflow-y-auto"
+                style={{ minHeight: '1131px' }}
             >
-                <div ref={componentRef} className="w-full h-full">
+                <div ref={componentRef} className="w-full">
                     {renderTemplate()}
                 </div>
             </div>

@@ -63,17 +63,23 @@ export interface PortfolioState {
         name: string;
         title: string;
         bio: string;
+        headline?: string;
         professionalHeadline?: string;
         professionalBio?: string;
         profileImage: string;
+        avatar?: string;
         resumeUrl?: string; // URL to resume PDF
+        email?: string;
+        tagline?: string;
         socialLinks: Record<string, string>;
+        socials?: Record<string, string>;
         experience?: any[];
         education?: any[];
     };
 
     // Preview mode
     isPreviewMode: boolean;
+    isRightPanelOpen: boolean;
     activeSection: string | null;
 
     // Editor mode (Portfolio vs Resume)
@@ -107,6 +113,7 @@ const initialState: PortfolioState = {
         education: [],
     },
     isPreviewMode: false,
+    isRightPanelOpen: false,
     activeSection: null,
     editorMode: 'portfolio',
     resumeTemplateId: 'resume-minimal',
@@ -223,9 +230,16 @@ const portfolioSlice = createSlice({
         togglePreviewMode: (state) => {
             state.isPreviewMode = !state.isPreviewMode;
         },
+        setPreviewMode: (state, action: PayloadAction<boolean>) => {
+            state.isPreviewMode = action.payload;
+        },
 
         setActiveSection: (state, action: PayloadAction<string | null>) => {
             state.activeSection = action.payload;
+        },
+
+        setRightPanelOpen: (state, action: PayloadAction<boolean>) => {
+            state.isRightPanelOpen = action.payload;
         },
 
         // Initialize with default sections
@@ -315,7 +329,9 @@ export const {
     updateUserData,
     changeWebsitePageComponentContent,
     togglePreviewMode,
+    setPreviewMode,
     setActiveSection,
+    setRightPanelOpen,
     setEditorMode,
     setResumeTemplateId,
     initializeDefaultSections,

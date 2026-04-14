@@ -51,12 +51,16 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
                         name: getString(backendUser.name),
                         title: getString(backendUser.title) || (backendUser.techStack?.[0] ? `${getString(backendUser.techStack[0])} Developer` : 'Software Developer'),
                         bio: getString(backendUser.bio),
+                        headline: getString(backendUser.professionalHeadline || backendUser.headline),
+                        professionalHeadline: getString(backendUser.professionalHeadline),
+                        professionalBio: getString(backendUser.professionalBio || backendUser.bio),
                         profileImage: backendUser.avatar || '',
                         avatar: backendUser.avatar || '',
                         techStack: (backendUser.techStack || []).map((t: any) => getString(t)),
-                        // Provide both `socials` and `socialLinks` keys for compatibility
+                        // Provide multiple keys for resilience
                         socials: backendUser.socials || {},
                         socialLinks: backendUser.socials || {},
+                        email: getString(backendUser.email),
                         experience: (json.data.experience || []).map((exp: any) => ({
                             ...exp,
                             company: getString(exp.company),
@@ -69,7 +73,6 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
                             degree: getString(edu.degree),
                             description: getString(edu.description)
                         })),
-                        email: getString(backendUser.email)
                     };
 
                     const sanitizedProjects = (json.data.projects || []).map((p: any) => ({

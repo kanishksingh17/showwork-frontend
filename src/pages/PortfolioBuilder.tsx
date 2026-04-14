@@ -29,7 +29,7 @@ const BASE_PREVIEW_USER = {
   email: "raj@example.com",
   bio: "Engineer focused on shipping reliable products with strong UX and measurable impact.",
   tagline: "Full-Stack Engineer",
-  username: "rajsingh",
+  username: "shadcn",
   techStack: ["TypeScript", "React", "Node.js", "PostgreSQL"],
   skills: [
     { name: "TypeScript", percentage: 92, category: "programming" },
@@ -48,10 +48,80 @@ const BASE_PREVIEW_USER = {
 const TEMPLATE_PREVIEW_CONTENT: Record<string, { tagline: string; bio: string; projects: Array<any> }> = {
   "recommended-fullstack": {
     tagline: "Full-Stack Developer",
-    bio: "Builds performant web products end-to-end with clean architecture and product focus.",
+    bio: "Building high-performance and open-source software loved by millions. I specialize in building full-stack platforms that scale and sharing my journey with the world.",
     projects: [
-      { id: "p-fs-1", name: "Growth Commerce", description: "Checkout funnel with 18% higher conversion.", technologies: ["React", "Node.js", "PostgreSQL"] },
-      { id: "p-fs-2", name: "Realtime Ops", description: "Operations dashboard with websocket alerts.", technologies: ["TypeScript", "Socket.io", "Redis"] },
+        {
+            id: 'p-1',
+            name: 'CalmBreath',
+            description: 'A minimal mindfulness app focused on breathing techniques and stress reduction.',
+            link: { href: 'https://calmbreath.io', label: 'CalmBreath' },
+            logo: '/images/icon/breathe-app-icon.png',
+            tags: ['App', 'iOS']
+        },
+        {
+            id: 'p-2',
+            name: 'AI Tool Directory',
+            description: 'A curated list of the best AI-powered tools on the market.',
+            link: { href: 'https://aitools.directory', label: 'AI Tool Directory' },
+            logo: '/images/icon/aibesttools.png',
+            tags: ['AI', 'Directory']
+        },
+        {
+            id: 'p-3',
+            name: 'Startup Navigator',
+            description: 'Your comprehensive guide to startup directories and resources.',
+            link: { href: 'https://startupnavigator.com', label: 'Startup Navigator' },
+            logo: '/images/icon/bestdirectories.png',
+            tags: ['Resources', 'Startup']
+        },
+        {
+            id: 'p-4',
+            name: 'SEO Explore',
+            description: 'Explore all the best SEO tools in one place.',
+            link: { href: 'https://seoexplore.com', label: 'SEO Explore' },
+            logo: '/images/icon/domainscore.png',
+            tags: ['SEO']
+        },
+        {
+            id: 'p-5',
+            name: 'GitHub Visualizer',
+            description: 'Turn your GitHub metrics into beautiful visual reports.',
+            link: { href: 'https://githubvisualizer.io', label: 'GitHub Visualizer' },
+            logo: '/images/icon/github-cards.png',
+            tags: ['Visual Cards', 'GitHub Metrics']
+        },
+        {
+            id: 'p-6',
+            name: 'Dev Tool Set',
+            description: 'A collection of high-performance utilities and productivity boosters for developers.',
+            link: { href: 'https://devtoolset.io', label: 'Dev Tool Set' },
+            logo: '/images/icon/devtoolset.png',
+            tags: ['Developer Tools', 'Open Source']
+        },
+        {
+            id: 'p-7',
+            name: 'Flux1',
+            description: 'Next-generation predictable state management for React and React Native applications.',
+            link: { href: 'https://flux1.com', label: 'Flux1' },
+            logo: '/images/icon/flux1.png',
+            tags: ['React', 'State Management']
+        },
+        {
+            id: 'p-8',
+            name: 'Magic Box',
+            description: 'An all-in-one UI kit featuring magical micro-interactions built right in.',
+            link: { href: 'https://magicbox.dev', label: 'Magic Box' },
+            logo: '/images/icon/magicbox.png',
+            tags: ['UI Kit', 'Animations']
+        },
+        {
+            id: 'p-9',
+            name: 'User Growth Engine',
+            description: 'Actionable analytics tracking and growth hacking scripts for indie hackers.',
+            link: { href: 'https://usergrowth.io', label: 'User Growth' },
+            logo: '/images/icon/usergrowth.ico',
+            tags: ['Analytics', 'Growth']
+        }
     ],
   },
   "api-engineer": {
@@ -242,6 +312,8 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     quizResults?: Array<{ technology: string; score: number; attempts: number }>;
     socials?: { github?: string; linkedin?: string; twitter?: string };
     hasResume?: boolean;
+    experience?: any[];
+    education?: any[];
   } | null>(null);
 
   // Mock projects fallback
@@ -276,6 +348,23 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
           const data = await response.json();
           if (data.success && data.user) {
             const user = data.user;
+            
+            // Also fetch the full portfolio data which includes experience & education
+            let experience: any[] = [];
+            let education: any[] = [];
+            try {
+              const dataRes = await fetch("/api/portfolio/data", { credentials: "include" });
+              if (dataRes.ok) {
+                const fullData = await dataRes.json();
+                if (fullData.success && fullData.data) {
+                  experience = fullData.data.experience || [];
+                  education = fullData.data.education || [];
+                }
+              }
+            } catch (e) {
+              // Silently ignore — experience/education will just be empty
+            }
+
             setUserData({
               id: user._id || user.id || "current-user",
               name: user.name || "Developer",
@@ -296,6 +385,8 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                 twitter: user.socials?.twitter || "",
               },
               hasResume: !!user.resumeUrl,
+              experience,
+              education,
             });
             return;
           }
@@ -339,6 +430,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               imageUrl: p.imageUrl || null,
               isFeatured: p.featured || false,
               showcase: p.showcase || false,
+              owner: p.owner,
             })));
           }
         }
@@ -379,7 +471,46 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     fd.append('resume', file);
     try {
       const r = await fetch('/api/resume/upload', { method: 'POST', body: fd, credentials: 'include' });
-      if (r.ok) toast.success("Resume processed!");
+      if (r.ok) {
+        toast.promise(
+          async () => {
+             // Wait briefly for the parser to finalize saving
+             await new Promise(resolve => setTimeout(resolve, 800));
+             
+             // Fetch the full portfolio data which includes parsed experience & education
+             const dataRes = await fetch("/api/portfolio/data", { credentials: "include" });
+             if (dataRes.ok) {
+               const fullData = await dataRes.json();
+               if (fullData.success && fullData.data) {
+                  const user = fullData.data.user || {};
+                  setUserData(prev => ({
+                    ...prev,
+                    id: user._id || user.id || prev?.id || "current-user",
+                    name: user.name || prev?.name || "Developer",
+                    bio: user.bio || user.tagline || prev?.bio || "",
+                    tagline: user.tagline || prev?.tagline || "",
+                    socials: {
+                      github: user.socials?.github || prev?.socials?.github || "",
+                      linkedin: user.socials?.linkedin || prev?.socials?.linkedin || "",
+                      twitter: user.socials?.twitter || prev?.socials?.twitter || "",
+                    },
+                    techStack: user.techStack || prev?.techStack || [],
+                    experience: fullData.data.experience || [],
+                    education: fullData.data.education || [],
+                    hasResume: true
+                  }) as any);
+                  return "Resume parsed successfully!";
+               }
+             }
+             throw new Error("Sync failed");
+          },
+          {
+            loading: 'Reading resume details...',
+            success: (msg) => msg,
+            error: 'Could not sync resume data.',
+          }
+        );
+      }
     } catch (e) { toast.error("Upload failed."); }
     finally { setIsGenerating(false); }
   };
@@ -661,10 +792,10 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                     <span className="prep-field-helper">Used to pull your experience, skills & endorsements.</span>
                   </div>
 
-                  <div className="prep-field">
+                   <div className="prep-field">
                     <label>Résumé</label>
-                    <div className={`prep-upload-zone ${hasResumeFile ? 'uploaded' : ''}`} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-dim)'; }} onDragLeave={(e) => { e.preventDefault(); if (!hasResumeFile) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }} onDrop={async (e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; if (file && file.type === 'application/pdf') { handleResumeFile(file); } else { e.currentTarget.style.borderColor = 'tomato'; setTimeout(() => { if(e.currentTarget) e.currentTarget.style.borderColor = ''; }, 1200); } }}>
-                      <input type="file" accept=".pdf" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleResumeFile(f); }} />
+                    <div className={`prep-upload-zone ${hasResumeFile ? 'uploaded' : ''}`} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-dim)'; }} onDragLeave={(e) => { e.preventDefault(); if (!hasResumeFile) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }} onDrop={async (e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; const isWordOrPdf = file && (file.type === 'application/pdf' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); if (isWordOrPdf) { handleResumeFile(file); } else { e.currentTarget.style.borderColor = 'tomato'; setTimeout(() => { if(e.currentTarget) e.currentTarget.style.borderColor = ''; }, 1200); } }}>
+                      <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleResumeFile(f); }} />
                       <div className="prep-upload-icon-wrap">
                         <svg className="file-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px', color: hasResumeFile ? 'var(--green)' : 'var(--text-2)' }}>
                           <path d="M9 1H3.5C2.67 1 2 1.67 2 2.5v11c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5V6L9 1z"/>
@@ -674,7 +805,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                       <div className="prep-upload-text">
                         {!hasResumeFile ? (
                           <>
-                            <div className="prep-upload-title">Upload résumé (PDF)</div>
+                            <div className="prep-upload-title">Upload résumé (PDF or Word)</div>
                             <div className="prep-upload-sub">Adds achievements & context to your profile</div>
                           </>
                         ) : (
