@@ -211,18 +211,19 @@ export function ComprehensiveAnalyticsDashboard({ portfolioId, isDemo = false }:
                 <p className="text-xs text-text-secondary-light">Conversion efficiency between search and offer</p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="bg-primary-50 dark:bg-primary-900/20 text-primary-DEFAULT text-[10px] font-bold px-2 py-1 rounded">
+                <span className="bg-primary-50 dark:bg-primary-900/20 text-primary-DEFAULT text-[10px] font-black px-3 py-1 rounded-full border border-primary-100 dark:border-primary-900/30 uppercase tracking-widest shadow-sm">
                   Overall Conversion: {data.funnel.overallConversion}
                 </span>
               </div>
             </div>
 
-            <div className="flex flex-col md:flex-row items-center justify-between gap-4 md:gap-2">
+            <div className="flex flex-col md:flex-row items-stretch justify-between gap-2 overflow-x-auto pb-2 scrollbar-hide">
               {data.funnel.stages.map((stage: any, index: number) => (
-                <div key={stage.name} className="flex items-center flex-1 w-full gap-2">
-                  <div className="flex-1 bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 border border-border-light dark:border-border-dark relative group hover:border-blue-300 dark:hover:border-blue-700 transition-colors">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg ${
+                <div key={stage.name} className="flex flex-1 items-center min-w-[140px]">
+                  {/* Stage Card */}
+                  <div className="flex-1 bg-gray-50/50 dark:bg-gray-800/40 rounded-xl p-4 border border-border-light dark:border-border-dark relative group hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 flex flex-col justify-between h-full">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className={`p-2 rounded-lg shrink-0 ${
                         index === 0 ? 'bg-blue-100 text-blue-600' :
                         index === 1 ? 'bg-purple-100 text-purple-600' :
                         index === 2 ? 'bg-indigo-100 text-indigo-600' :
@@ -232,24 +233,31 @@ export function ComprehensiveAnalyticsDashboard({ portfolioId, isDemo = false }:
                          index === 1 ? <MousePointerClick className="w-4 h-4" /> :
                          index === 2 ? <FileText className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                       </div>
-                      <span className="text-xs font-bold text-text-secondary-light uppercase tracking-wider">{stage.name}</span>
+                      <span className="text-[10px] font-black text-text-secondary-light dark:text-text-secondary-dark uppercase tracking-widest">{stage.name}</span>
                     </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">{stage.value}</div>
-                    {stage.change && (
-                      <div className="text-[10px] text-success font-bold flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" /> {stage.change} vs last period
-                      </div>
-                    )}
-                    {stage.conversion && (
-                      <div className="text-[10px] text-text-secondary-light font-medium">
-                        {stage.conversion} Conversion
-                      </div>
-                    )}
+                    
+                    <div className="space-y-1">
+                      <div className="text-2xl font-black text-gray-900 dark:text-white tracking-tight leading-none">{stage.value}</div>
+                      {stage.change && (
+                        <div className="text-[10px] text-success font-bold flex items-center gap-1">
+                          <TrendingUp className="w-3 h-3" /> {stage.change}
+                        </div>
+                      )}
+                      {stage.conversion && (
+                        <div className="text-[10px] text-text-secondary-light font-bold">
+                          {stage.conversion} Conv.
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Connector - only show between cards */}
                   {index < data.funnel.stages.length - 1 && (
-                    <div className="hidden md:flex flex-col items-center">
-                      <ArrowRight className="w-5 h-5 text-gray-300 dark:text-gray-600" />
-                      <span className="text-[10px] font-bold text-danger bg-red-50 dark:bg-red-900/20 px-1.5 py-0.5 rounded mt-1">-{(index === 0 ? 73 : index === 1 ? 92 : 86)}%</span>
+                    <div className="flex flex-col items-center px-2 shrink-0">
+                      <ArrowRight className="w-4 h-4 text-gray-300 dark:text-gray-600 mb-1" />
+                      <span className="text-[9px] font-black text-danger bg-red-50 dark:bg-red-900/30 px-1.5 py-0.5 rounded border border-red-100 dark:border-red-900/50 shadow-sm shrink-0">
+                        -{(index === 0 ? 73 : index === 1 ? 92 : 86)}%
+                      </span>
                     </div>
                   )}
                 </div>
