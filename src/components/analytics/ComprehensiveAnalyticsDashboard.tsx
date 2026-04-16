@@ -70,9 +70,6 @@ export function ComprehensiveAnalyticsDashboard({ portfolioId, isDemo = false }:
       {isDemo && (
         <div className="bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10 border-b border-blue-200/50 dark:border-blue-800/50 px-8 py-2 flex items-center justify-between animate-in fade-in slide-in-from-top duration-500">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 rounded-full p-1">
-              <Sparkles className="w-3 h-3 text-white" />
-            </div>
             <p className="text-xs font-semibold text-blue-800 dark:text-blue-300">
               <span className="font-bold uppercase tracking-wider mr-2">Demo View:</span> 
               You are viewing showcase analytics. Sign up to track your own real-time performance.
