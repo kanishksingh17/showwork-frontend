@@ -8,6 +8,7 @@ import { ResumeTableView } from '@/components/AssetManagement/ResumeTableView';
 import { VersionComparison } from '@/components/AssetManagement/VersionComparison';
 import { NewAssetModal } from '@/components/AssetManagement/NewAssetModal';
 import { ResumeAnalysisModal } from '@/components/AssetManagement/ResumeAnalysisModal';
+import { ComingSoonOverlay } from '@/components/ui/ComingSoonOverlay';
 import {
     Plus,
     Star,
