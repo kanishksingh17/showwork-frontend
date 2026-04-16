@@ -582,6 +582,7 @@ export default function PortfolioManagement() {
                 applications={[]} // Can be populated from Application Tracker in future
                 onResumeCreated={handleResumeCreated}
             />
+            </ComingSoonOverlay>
         </UnifiedLayout>
     );
 }

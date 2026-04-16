@@ -49,6 +49,8 @@ interface ContentManagementProps {
   isDemo?: boolean;
 }
 
+import { ComingSoonOverlay } from "../components/ui/ComingSoonOverlay";
+
 export default function ContentManagement({ isDemo = false }: ContentManagementProps) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   // Mock Data for "Creative Flow" style preview
@@ -259,7 +261,12 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
       showAuthButtons={isDemo}
       header={headerContent}
     >
-      <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-950">
+      <ComingSoonOverlay
+        title="Content Management"
+        description="Amplify your reach. Manage cross-posting, content calendars, and AI-assisted creation from a single dashboard."
+        imagePath="/assets/coming-soon/content.png"
+      >
+        <div className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-950">
         {/* Content Area */}
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} className="h-full flex flex-col" onValueChange={(value) => {
@@ -401,6 +408,7 @@ export default function ContentManagement({ isDemo = false }: ContentManagementP
           window.location.href = '/login';
         }}
       />
+      </ComingSoonOverlay>
     </UnifiedLayout >
   );
 }
