@@ -70,6 +70,7 @@ interface Platform {
   icon: React.ReactNode;
   description: string;
   color: string;
+  comingSoon?: boolean;
 }
 
 interface Answer {
@@ -660,6 +661,7 @@ const PLATFORMS: Platform[] = [
     icon: <TwitterIcon className="w-6 h-6" />,
     description: "Tech discussions and industry updates",
     color: "bg-black",
+    comingSoon: true,
   },
   {
     id: "instagram",
@@ -667,6 +669,7 @@ const PLATFORMS: Platform[] = [
     icon: <InstagramIcon className="w-6 h-6" />,
     description: "Visual content and behind-the-scenes",
     color: "bg-gradient-to-r from-purple-500 to-pink-500",
+    comingSoon: true,
   },
   {
     id: "reddit",
@@ -674,6 +677,7 @@ const PLATFORMS: Platform[] = [
     icon: <RedditIcon className="w-6 h-6" />,
     description: "Community discussions and knowledge sharing",
     color: "bg-orange-600",
+    comingSoon: true,
   },
 ];
 
