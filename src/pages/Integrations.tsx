@@ -30,7 +30,6 @@ interface IntegrationItem {
   icon: React.ElementType;
   color: string;
   isNew?: boolean;
-  comingSoon?: boolean;
   category: "Developer tools" | "Design tools" | "Communication" | "Productivity" | "Browser tools";
 }
 
@@ -58,7 +57,6 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Tweet your updates and projects.",
     icon: XIcon,
     color: "bg-black",
-    comingSoon: true,
     category: "Communication"
   },
   {
@@ -67,7 +65,6 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Share visual content and updates.",
     icon: Instagram,
     color: "bg-pink-600",
-    comingSoon: true,
     category: "Communication"
   },
   {
@@ -76,7 +73,6 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Post to your Facebook pages.",
     icon: Facebook,
     color: "bg-blue-700",
-    comingSoon: true,
     category: "Communication"
   },
   {
@@ -85,7 +81,6 @@ const INTEGRATIONS: IntegrationItem[] = [
     description: "Share projects on Reddit.",
     icon: RedditIcon,
     color: "bg-orange-600",
-    comingSoon: true,
     category: "Communication"
   }
 ];
@@ -256,7 +251,7 @@ export default function Integrations() {
               return (
                 <div
                   key={item.id}
-                  onClick={() => !item.comingSoon && handleToggle(item.id, isConnected)}
+                  onClick={() => handleToggle(item.id, isConnected)}
                   className={`group flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-700 cursor-pointer`}
                 >
                   <div className="flex items-start gap-4">
@@ -266,9 +261,7 @@ export default function Integrations() {
                     <div>
                       <div className="flex items-center gap-2">
                         <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
-                        {item.comingSoon ? (
-                          <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-gray-100 text-gray-500 hover:bg-gray-100">Coming Soon</Badge>
-                        ) : item.isNew && (
+                        {item.isNew && (
                           <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-green-100 text-green-700 hover:bg-green-100">NEW</Badge>
                         )}
                       </div>
@@ -278,7 +271,6 @@ export default function Integrations() {
 
                   <Switch
                     checked={isConnected}
-                    disabled={!!item.comingSoon}
                     onCheckedChange={() => { }} // Handle via parent div onClick
                     className="data-[state=checked]:bg-blue-600 pointer-events-none"
                   />
