@@ -78,8 +78,6 @@ const FEED_POSTS = [
   }
 ];
 
-import { ComingSoonOverlay } from "../components/ui/ComingSoonOverlay";
-
 export default function Community() {
   const [activeTab, setActiveTab] = useState("Latest");
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -90,13 +88,7 @@ export default function Community() {
 
   return (
     <UnifiedLayout activePage="community">
-      <ComingSoonOverlay
-        title="Developer Community"
-        description="Connect. Share. Grow. A space for developers to showcase work, get feedback, and build meaningful networks."
-        imagePath="/assets/coming-soon/community.png"
-      />
-      <div className="hidden">
-        <div className="flex-1 flex flex-col h-full overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-6 border-b border-gray-100 bg-white flex-shrink-0">
           <div className="relative w-96">

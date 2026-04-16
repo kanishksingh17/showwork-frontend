@@ -62,14 +62,14 @@ const RESUME_TEMPLATES: ResumeTemplate[] = [
 
 export default function ResumeBuilder({ isDemo = false }: { isDemo?: boolean }) {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
   
-  // Auto-redirect from demo to main route if already logged in
+  // Auto-redirect from demo to main route if already logged in - wait for stability
   useEffect(() => {
-    if (isDemo && isAuthenticated) {
+    if (isDemo && isAuthenticated && !isLoading) {
       navigate("/resume", { replace: true });
     }
-  }, [isDemo, isAuthenticated, navigate]);
+  }, [isDemo, isAuthenticated, isLoading, navigate]);
 
   const [currentStep, setCurrentStep] = useState<ResumeStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("modern");
@@ -118,6 +118,11 @@ export default function ResumeBuilder({ isDemo = false }: { isDemo?: boolean }) 
   }, [selectedCategory]);
 
   const handleStartBuilding = () => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setCurrentStep("preparation");
     setPreparationProgress(0);
     

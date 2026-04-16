@@ -8,6 +8,7 @@ export interface AuthContextValue {
   isAuthenticated: boolean;
   setUser: React.Dispatch<React.SetStateAction<AuthUser | null>>;
   refreshUser: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | undefined>(undefined);

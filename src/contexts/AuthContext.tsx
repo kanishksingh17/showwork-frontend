@@ -113,9 +113,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [hasHydratedUser, user]);
 
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${apiBaseUrl}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Auth logout error:", error);
+    } finally {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAuthenticated(false);
+    }
+  }, []);
+
   const value = useMemo(
-    () => ({ user, isLoading, isAuthenticated, setUser, refreshUser }),
-    [user, isLoading, isAuthenticated, refreshUser],
+    () => ({ user, isLoading, isAuthenticated, setUser, refreshUser, logout }),
+    [user, isLoading, isAuthenticated, refreshUser, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

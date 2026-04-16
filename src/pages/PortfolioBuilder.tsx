@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Sparkles,
@@ -279,10 +279,18 @@ const getTemplatePreviewData = (templateId: string | undefined) => {
 };
 
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
+  const navigate = useNavigate();
   const dispatch = usePortfolioDispatch();
   const [searchParams] = useSearchParams();
   const portfolioId = searchParams.get('id');
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+  
+  // Auto-redirect from demo to main route if already logged in - wait for stability
+  useEffect(() => {
+    if (isDemo && isAuthenticated && !isLoading) {
+      navigate("/portfolio", { replace: true });
+    }
+  }, [isDemo, isAuthenticated, isLoading, navigate]);
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<PortfolioTemplate | null>(null);
   const [detectedJobRole, setDetectedJobRole] = useState<JobRole | null>(null);
@@ -654,7 +662,13 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                     </Button>
                     <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
                     <Button
-                      onClick={() => setCurrentStep("preparation")}
+                      onClick={() => {
+                        if (isDemo && !isAuthenticated) {
+                          setShowLoginModal(true);
+                        } else {
+                          setCurrentStep("preparation");
+                        }
+                      }}
                       className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 h-9 text-sm font-bold shadow-lg shadow-blue-500/20 gap-2"
                     >
                       <Briefcase className="w-4 h-4" />

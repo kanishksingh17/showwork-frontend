@@ -8,7 +8,6 @@ import { ResumeTableView } from '@/components/AssetManagement/ResumeTableView';
 import { VersionComparison } from '@/components/AssetManagement/VersionComparison';
 import { NewAssetModal } from '@/components/AssetManagement/NewAssetModal';
 import { ResumeAnalysisModal } from '@/components/AssetManagement/ResumeAnalysisModal';
-import { ComingSoonOverlay } from '@/components/ui/ComingSoonOverlay';
 import {
     Plus,
     Star,
@@ -149,13 +148,7 @@ export default function PortfolioManagement() {
 
     return (
         <UnifiedLayout activePage="portfolio-manage">
-            <ComingSoonOverlay 
-                title="Asset Manager" 
-                description="Experience a new way to manage your career assets. Organize resumes, portfolios, and track versions with AI-driven insights."
-                imagePath="/assets/coming-soon/asset-manager.png"
-            />
-            {/* The actual page content is hidden behind the full-screen overlay */}
-            <div className="hidden">
+            <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#FAFAFA] dark:bg-[#0f172a]">
                 {/* Header */}
                 <header className="h-16 flex items-center justify-between px-8 bg-[#FAFAFA]/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
                     <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 hidden md:block">Asset Management</h1>
@@ -450,7 +443,7 @@ export default function PortfolioManagement() {
                                                         <span className={`text-[10px] px-1.5 py-0.5 rounded border uppercase tracking-wider font-medium ${portfolio.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                                                             {portfolio.status}
                                                         </span>
-                                                        <button 
+                                                        <button
                                                             onClick={() => navigate(`/portfolio-builder?id=${portfolio.id}`)}
                                                             className="text-[10px] font-semibold text-blue-600 hover:underline group-hover:opacity-100 opacity-0 transition-opacity"
                                                         >
@@ -570,6 +563,7 @@ export default function PortfolioManagement() {
                 </div>
             </div>
 
+            {/* New Asset Modal */}
             <NewAssetModal
                 isOpen={isAssetModalOpen}
                 onClose={() => setIsAssetModalOpen(false)}
@@ -588,7 +582,6 @@ export default function PortfolioManagement() {
                 applications={[]} // Can be populated from Application Tracker in future
                 onResumeCreated={handleResumeCreated}
             />
-            </div>
         </UnifiedLayout>
     );
 }

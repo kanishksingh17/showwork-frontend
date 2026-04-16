@@ -14,6 +14,7 @@ import {
   PanelLeftClose,
   User,
 } from "lucide-react";
+import { useAuth } from "@/contexts/useAuth";
 
 interface UnifiedSidebarProps {
   currentPage?: string;
@@ -30,6 +31,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, logout } = useAuth();
 
   // NOTE: This sidebar is completely static - navigation items never change order or position
 
@@ -37,18 +39,20 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
   const getCurrentPage = () => {
     if (currentPage) return currentPage;
     const path = location.pathname;
-    if (path === "/dashboard") return "dashboard";
-    if (path === "/content" || path.startsWith("/content/")) return "content";
-    if (path === "/showcase" || path.startsWith("/showcase/"))
-      return "showcase";
-    if (path === "/analytics") return "analytics";
+    
+    // Exact matches or startsWith for both demo and main routes
+    if (path === "/dashboard" || path === "/") return "dashboard";
+    if (path === "/content" || path.startsWith("/content/") || path === "/demo-content") return "content";
+    if (path === "/showcase" || path.startsWith("/showcase/") || path === "/demo-showcase") return "showcase";
+    if (path === "/analytics" || path === "/demo-analytics") return "analytics";
     if (path === "/community") return "community";
     if (path === "/integrations") return "integrations";
     if (path === "/portfolio/manage") return "portfolio-manage";
-    if (path === "/portfolio" || path.startsWith("/portfolio/")) {
+    if (path === "/portfolio" || path.startsWith("/portfolio/") || path === "/demo-portfolio") {
       return "portfolio";
     }
-    if (path === "/resume" || path.startsWith("/resume/")) return "resume";
+    if (path === "/resume" || path.startsWith("/resume/") || path === "/demo-resume") return "resume";
+    
     return "dashboard";
   };
 
@@ -56,20 +60,14 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
 
   const handleLogout = async () => {
     try {
-      // Call backend logout endpoint to destroy session
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-    } catch (error) {
-      console.error("Logout API error:", error);
-    } finally {
-      // Clear local storage
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
+      await logout();
+      // Clear specific app draft data not handled by AuthContext
       localStorage.removeItem("project-draft-unified");
-
+      
       // Redirect to login
+      navigate("/login");
+    } catch (error) {
+      console.error("Sidebar logout error:", error);
       navigate("/login");
     }
   };
@@ -104,11 +102,12 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     }
   ];
 
-  // Filter groups for onboarding mode (when showAuthButtons is true OR we are on the login/demo pages)
-  const isOnboardingMode = showAuthButtons || 
-                           location.pathname === '/login' || 
-                           location.pathname.startsWith('/demo-') ||
-                           location.pathname === '/';
+  // Filter groups for onboarding mode (when showAuthButtons is true OR we are on the login/landing/demo pages)
+  const isOnboardingMode = showAuthButtons ||
+    !isAuthenticated ||
+    location.pathname === '/login' ||
+    location.pathname.startsWith('/demo-') ||
+    location.pathname === '/';
 
   const navigationGroups = isOnboardingMode
     ? allNavigationGroups.map(group => ({

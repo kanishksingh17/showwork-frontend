@@ -970,7 +970,11 @@ export const PortfolioSelector: React.FC<PortfolioSelectorProps> = ({
             key={card.id}
             className="group relative flex flex-col cursor-pointer"
             onClick={() => {
-              onTemplateSelect(templates.find(t => t.id === card.id) || templates[0]);
+              if (isDemo) {
+                setShowLoginModal(true);
+              } else {
+                onTemplateSelect(templates.find(t => t.id === card.id) || templates[0]);
+              }
             }}
           >
             <div className="mb-3">
