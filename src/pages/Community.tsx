@@ -94,7 +94,8 @@ export default function Community() {
         title="Developer Community"
         description="Connect. Share. Grow. A space for developers to showcase work, get feedback, and build meaningful networks."
         imagePath="/assets/coming-soon/community.png"
-      >
+      />
+      <div className="hidden">
         <div className="flex-1 flex flex-col h-full overflow-hidden">
         {/* Top Header */}
         <header className="h-16 flex items-center justify-between px-6 border-b border-gray-100 bg-white flex-shrink-0">
@@ -323,7 +324,6 @@ export default function Community() {
         </div>
 
       </div>
-      </ComingSoonOverlay>
     </UnifiedLayout>
   );
 }

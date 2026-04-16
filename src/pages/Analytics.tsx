@@ -14,11 +14,12 @@ const Analytics = ({ isDemo = false }: AnalyticsProps) => {
         title="Predictive Analytics"
         description="Data that drives decisions. Monitor your reach, engagement, and profile performance with advanced AI-driven insights."
         imagePath="/assets/coming-soon/analytics.png"
-      >
+      />
+      <div className="hidden">
         <div className="h-full overflow-hidden">
           <ComprehensiveAnalyticsDashboard portfolioId="current_user" isDemo={isDemo} />
         </div>
-      </ComingSoonOverlay>
+      </div>
     </UnifiedLayout>
   );
 };

@@ -153,8 +153,9 @@ export default function PortfolioManagement() {
                 title="Asset Manager" 
                 description="Experience a new way to manage your career assets. Organize resumes, portfolios, and track versions with AI-driven insights."
                 imagePath="/assets/coming-soon/asset-manager.png"
-            >
-                <div className="flex-1 flex flex-col h-full overflow-hidden relative bg-[#FAFAFA] dark:bg-[#0f172a]">
+            />
+            {/* The actual page content is hidden behind the full-screen overlay */}
+            <div className="hidden">
                 {/* Header */}
                 <header className="h-16 flex items-center justify-between px-8 bg-[#FAFAFA]/80 dark:bg-[#0f172a]/80 backdrop-blur-md sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
                     <h1 className="text-lg font-semibold text-slate-900 dark:text-slate-100 hidden md:block">Asset Management</h1>
@@ -569,7 +570,6 @@ export default function PortfolioManagement() {
                 </div>
             </div>
 
-            {/* New Asset Modal */}
             <NewAssetModal
                 isOpen={isAssetModalOpen}
                 onClose={() => setIsAssetModalOpen(false)}
@@ -588,7 +588,6 @@ export default function PortfolioManagement() {
                 applications={[]} // Can be populated from Application Tracker in future
                 onResumeCreated={handleResumeCreated}
             />
-            </ComingSoonOverlay>
         </UnifiedLayout>
     );
 }

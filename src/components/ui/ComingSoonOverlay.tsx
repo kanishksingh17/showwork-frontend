@@ -7,7 +7,6 @@ interface ComingSoonOverlayProps {
   title: string;
   description: string;
   imagePath: string;
-  children?: React.ReactNode;
 }
 
 const PageSkeleton = () => (
