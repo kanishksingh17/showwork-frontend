@@ -114,7 +114,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     ? allNavigationGroups.map(group => ({
       ...group,
       items: group.items
-        .filter(item => ['dashboard', 'portfolio', 'portfolio-manage', 'content', 'showcase', 'analytics', 'resume'].includes(item.id))
+        .filter(item => ['dashboard', 'portfolio', 'content', 'showcase', 'analytics', 'resume'].includes(item.id))
         .map(item => {
           if (item.id === 'dashboard') return { ...item, path: "/", state: { fromDemo: true } };
           if (item.id === 'portfolio') return { ...item, path: "/demo-portfolio" };
