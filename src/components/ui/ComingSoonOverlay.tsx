@@ -11,14 +11,59 @@ interface ComingSoonOverlayProps {
 }
 
 const PageSkeleton = () => (
-  <div className="w-full h-full p-8 flex flex-col gap-8 opacity-20">
-    <div className="flex justify-between items-center bg-gray-200 dark:bg-gray-800 h-16 w-full rounded-2xl animate-pulse" />
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
-      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
-      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+  <div className="w-full h-full flex opacity-30 dark:opacity-20 pointer-events-none select-none">
+    {/* Sidebar Skeleton */}
+    <div className="hidden md:flex w-64 border-r border-gray-200 dark:border-gray-800 flex-col py-6 px-4 gap-6 bg-white/50 dark:bg-slate-950/50">
+      <div className="h-8 w-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse mb-8" />
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="flex gap-3 items-center">
+          <div className="h-5 w-5 bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse" />
+          <div className="h-4 w-full bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse" />
+        </div>
+      ))}
     </div>
-    <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-[2rem] animate-pulse" />
+
+    {/* Main Area Skeleton */}
+    <div className="flex-1 flex flex-col">
+      {/* Header Skeleton */}
+      <div className="h-16 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-8 bg-white/50 dark:bg-slate-950/50">
+        <div className="h-6 w-48 bg-gray-200 dark:bg-gray-800 rounded-md animate-pulse" />
+        <div className="flex gap-4">
+          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+        </div>
+      </div>
+      
+      {/* Content Skeleton */}
+      <div className="flex-1 p-8 flex flex-col gap-8 bg-gray-50/50 dark:bg-slate-900/50 overflow-hidden">
+        {/* KPI Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 shrink-0">
+          {[...Array(3)].map((_, i) => (
+            <div key={i} className="h-32 bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 rounded-2xl animate-pulse flex flex-col p-5 justify-between">
+              <div className="h-4 w-24 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div className="h-10 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+            </div>
+          ))}
+        </div>
+        
+        {/* Main Panels */}
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 rounded-2xl animate-pulse p-6 flex flex-col gap-4">
+             <div className="h-6 w-40 bg-gray-200 dark:bg-gray-700 rounded-md" />
+             <div className="flex-1 bg-gray-100 dark:bg-gray-700/50 rounded-xl mt-4" />
+          </div>
+          <div className="bg-white dark:bg-slate-800 border border-gray-100 dark:border-gray-700 rounded-2xl animate-pulse p-6 flex flex-col gap-4">
+             <div className="h-6 w-32 bg-gray-200 dark:bg-gray-700 rounded-md mb-2" />
+             {[...Array(5)].map((_, i) => (
+               <div key={i} className="flex gap-4 items-center">
+                 <div className="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700" />
+                 <div className="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded" />
+               </div>
+             ))}
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 );
 
