@@ -104,8 +104,13 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
     }
   ];
 
-  // Filter groups for onboarding mode (when showAuthButtons is true)
-  const navigationGroups = showAuthButtons
+  // Filter groups for onboarding mode (when showAuthButtons is true OR we are on the login/demo pages)
+  const isOnboardingMode = showAuthButtons || 
+                           location.pathname === '/login' || 
+                           location.pathname.startsWith('/demo-') ||
+                           location.pathname === '/';
+
+  const navigationGroups = isOnboardingMode
     ? allNavigationGroups.map(group => ({
       ...group,
       items: group.items
