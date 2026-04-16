@@ -10,17 +10,28 @@ interface ComingSoonOverlayProps {
   children?: React.ReactNode;
 }
 
+const PageSkeleton = () => (
+  <div className="w-full h-full p-8 flex flex-col gap-8 opacity-20">
+    <div className="flex justify-between items-center bg-gray-200 dark:bg-gray-800 h-16 w-full rounded-2xl animate-pulse" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+      <div className="h-32 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+    </div>
+    <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-[2rem] animate-pulse" />
+  </div>
+);
+
 export const ComingSoonOverlay: React.FC<ComingSoonOverlayProps> = ({
   title,
   description,
   imagePath,
-  children
 }) => {
   return (
     <div className="relative w-full h-full min-h-[calc(100vh-4rem)] overflow-hidden">
-      {/* Background Content (Blurred) */}
-      <div className="absolute inset-0 blur-xl scale-105 pointer-events-none opacity-40 select-none grayscale">
-        {children}
+      {/* Background Content (Blurred Skeleton) */}
+      <div className="absolute inset-0 blur-2xl scale-105 pointer-events-none select-none overflow-hidden">
+        <PageSkeleton />
       </div>
 
       {/* Overlay Layer */}
