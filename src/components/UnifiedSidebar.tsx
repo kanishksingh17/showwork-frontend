@@ -80,11 +80,11 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
       title: "WORKSPACE",
       items: [
         { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-        { id: "resume", label: "Resume", icon: User, path: "/resume" },
         { id: "portfolio", label: "Portfolio", icon: FolderOpen, path: "/portfolio" },
+        { id: "resume", label: "Resume", icon: User, path: "/resume" },
+        { id: "showcase", label: "Showcase", icon: Package, path: "/showcase" },
         { id: "portfolio-manage", label: "Asset Manager", icon: Briefcase, path: "/portfolio/manage" },
         { id: "content", label: "Content", icon: FileText, path: "/content" },
-        { id: "showcase", label: "Showcase", icon: Package, path: "/showcase" },
       ]
     },
     {
