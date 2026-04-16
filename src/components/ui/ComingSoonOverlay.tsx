@@ -35,68 +35,56 @@ export const ComingSoonOverlay: React.FC<ComingSoonOverlayProps> = ({
       </div>
 
       {/* Overlay Layer */}
-      <div className="absolute inset-0 bg-white/40 dark:bg-slate-950/60 backdrop-blur-md flex items-center justify-center p-6 z-20">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: "easeOut" }}
-          className="max-w-4xl w-full bg-white/80 dark:bg-slate-900/80 border border-white/20 dark:border-slate-700/50 rounded-[2.5rem] shadow-2xl overflow-hidden backdrop-blur-2xl flex flex-col md:flex-row"
+      <div className="absolute inset-0 bg-white/20 dark:bg-slate-950/40 flex flex-col items-center justify-center p-6 z-20">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-col items-center text-center max-w-2xl"
         >
-          {/* Visual Side */}
-          <div className="md:w-1/2 relative h-64 md:h-auto overflow-hidden">
-            <img 
-              src={imagePath} 
-              alt={title} 
-              className="absolute inset-0 w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-8">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-8 h-px bg-blue-400" />
-                <span className="text-[10px] font-black text-blue-400 uppercase tracking-widest">Next Phase</span>
-              </div>
-              <h3 className="text-xl font-bold text-white tracking-tight">{title}</h3>
-            </div>
+          {/* Subtle Coming Soon Badge */}
+          <div className="inline-flex items-center gap-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl px-4 py-1.5 rounded-full border border-white/20 dark:border-slate-700/50 shadow-sm mb-8">
+            <Sparkles className="w-4 h-4 text-blue-500" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 dark:text-white">Coming Soon</span>
           </div>
 
-          {/* Content Side */}
-          <div className="md:w-1/2 p-8 md:p-12 flex flex-col justify-center">
-            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border border-blue-100 dark:border-blue-900/30 mb-6 w-fit">
-              <Sparkles className="w-3 h-3" /> Coming Soon
+          {/* Context Image (Reduced size, floating) */}
+          <div className="relative w-24 h-24 mb-6 rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 rotate-3">
+             <img src={imagePath} alt="" className="w-full h-full object-cover" />
+          </div>
+
+          <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-6 tracking-tight leading-none italic">
+            {title}
+          </h2>
+
+          <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-10 max-w-lg leading-relaxed font-medium">
+            {description} We're currently building out this module to ensure a seamless launch experience.
+          </p>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Button className="w-full sm:w-auto rounded-full px-10 h-14 bg-blue-600 hover:bg-blue-700 text-white shadow-xl shadow-blue-500/20 group font-bold text-base transition-all hover:scale-105 active:scale-95">
+              Notify Me <Bell className="ml-2 w-5 h-5 group-hover:rotate-12 transition-transform" />
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => window.history.back()}
+              className="w-full sm:w-auto rounded-full px-8 h-14 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-bold"
+            >
+              Back to Dashboard
+            </Button>
+          </div>
+
+          <div className="mt-16 flex flex-col items-center gap-3">
+            <div className="flex -space-x-3">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="w-10 h-10 rounded-full border-2 border-white dark:border-slate-950 bg-gray-200 overflow-hidden shadow-md">
+                  <img src={`https://i.pravatar.cc/100?img=${i + 20}`} alt="avatar" />
+                </div>
+              ))}
             </div>
-            
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white mb-4 tracking-tight leading-tight">
-              We're building something <span className="text-blue-600">extraordinary.</span>
-            </h2>
-            
-            <p className="text-sm md:text-base text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
-              {description} We are currently fine-tuning this feature to ensure you have the best experience possible for the official launch.
+            <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+              Join the 420+ early access waitlist
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <Button className="w-full sm:w-auto rounded-full px-8 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 group font-bold">
-                Notify Me <Bell className="ml-2 w-4 h-4 group-hover:rotate-12 transition-transform" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                onClick={() => window.history.back()}
-                className="w-full sm:w-auto rounded-full px-6 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-bold"
-              >
-                Go Back <ArrowRight className="ml-2 w-4 h-4" />
-              </Button>
-            </div>
-
-            <div className="mt-12 flex items-center gap-4">
-               <div className="flex -space-x-2">
-                 {[1,2,3].map(i => (
-                   <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-gray-200 overflow-hidden">
-                     <img src={`https://i.pravatar.cc/100?img=${i+10}`} alt="avatar" />
-                   </div>
-                 ))}
-               </div>
-               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                 420+ developers waiting
-               </p>
-            </div>
           </div>
         </motion.div>
       </div>
