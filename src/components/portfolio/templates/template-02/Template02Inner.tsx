@@ -12,6 +12,7 @@ import { ProjectsPage } from './components/ProjectsPage';
 import { Community } from './components/Community';
 import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
+import { EditableBlock } from '../../editor/EditableBlock';
 
 export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData }) => {
     const [currentView, setCurrentView] = React.useState<'home' | 'about' | 'blog' | 'speaking' | 'toolbox' | 'projects'>('home');
@@ -30,25 +31,59 @@ export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData }) 
                 <main className="min-h-[60vh]">
                     {currentView === 'home' && (
                         <div className="animate-in fade-in duration-700">
-                            <Hero userData={userData} nameToDisplay={nameToDisplay} />
-                            <About
-                                userData={userData}
-                                onLearnMore={() => handleNavigate('about')}
-                                onViewToolbox={() => handleNavigate('toolbox')}
-                            />
-                            <Blog userData={userData} onViewAll={() => handleNavigate('blog')} />
-                            <Community userData={userData} />
+                            <EditableBlock id="about">
+                                <Hero userData={userData} nameToDisplay={nameToDisplay} />
+                            </EditableBlock>
+
+                            <EditableBlock id="about">
+                                <About
+                                    userData={userData}
+                                    onLearnMore={() => handleNavigate('about')}
+                                    onViewToolbox={() => handleNavigate('toolbox')}
+                                />
+                            </EditableBlock>
+
+                            <EditableBlock id="blogs">
+                                <Blog userData={userData} onViewAll={() => handleNavigate('blog')} />
+                            </EditableBlock>
+
+                            <EditableBlock id="contact">
+                                <Community userData={userData} />
+                            </EditableBlock>
+
                             <Newsletter />
                         </div>
                     )}
-                    {currentView === 'about' && <AboutStory userData={userData} />}
-                    {currentView === 'blog' && <BlogPage userData={userData} />}
-                    {currentView === 'speaking' && <SpeakingPage userData={userData} />}
-                    {currentView === 'toolbox' && <ToolboxPage userData={userData} />}
-                    {currentView === 'projects' && <ProjectsPage userData={userData} />}
+                    {currentView === 'about' && (
+                        <EditableBlock id="about">
+                            <AboutStory userData={userData} />
+                        </EditableBlock>
+                    )}
+                    {currentView === 'blog' && (
+                        <EditableBlock id="blogs">
+                            <BlogPage userData={userData} />
+                        </EditableBlock>
+                    )}
+                    {currentView === 'speaking' && (
+                        <EditableBlock id="resume">
+                            <SpeakingPage userData={userData} />
+                        </EditableBlock>
+                    )}
+                    {currentView === 'toolbox' && (
+                        <EditableBlock id="skills">
+                            <ToolboxPage userData={userData} />
+                        </EditableBlock>
+                    )}
+                    {currentView === 'projects' && (
+                        <EditableBlock id="projects">
+                            <ProjectsPage userData={userData} />
+                        </EditableBlock>
+                    )}
                 </main>
 
-                <Footer userData={userData} />
+                <EditableBlock id="footer">
+                    <Footer userData={userData} />
+                </EditableBlock>
             </div>
 
             <style dangerouslySetInnerHTML={{

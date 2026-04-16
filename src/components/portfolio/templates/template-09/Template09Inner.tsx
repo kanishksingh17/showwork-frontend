@@ -11,12 +11,10 @@ import { Metrics } from './components/Metrics';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import { StatusBar } from './components/StatusBar';
+import { EditableBlock } from '../../editor/EditableBlock';
+import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 
-interface Template09InnerProps {
-    userData: any;
-}
-
-export const Template09Inner: React.FC<Template09InnerProps> = ({ userData }) => {
+export const Template09Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
 
     React.useEffect(() => {
@@ -52,21 +50,37 @@ export const Template09Inner: React.FC<Template09InnerProps> = ({ userData }) =>
 
             <main>
                 {/* Hero Section */}
-                <Hero name={userData?.name} />
+                <EditableBlock id="about">
+                    <Hero name={userData?.name} sections={sections} />
+                </EditableBlock>
 
                 {/* Tech Strip Marquee */}
-                <TechStrip />
+                <EditableBlock id="skills">
+                    <TechStrip />
+                </EditableBlock>
 
                 {/* Sections */}
-                <About />
-                <Architecture />
-                <Projects />
-                <Metrics />
-                <Contact />
+                <EditableBlock id="about">
+                    <About />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <Architecture sections={sections} />
+                </EditableBlock>
+                <EditableBlock id="projects">
+                    <Projects />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <Metrics />
+                </EditableBlock>
+                <EditableBlock id="contact">
+                    <Contact />
+                </EditableBlock>
             </main>
 
             {/* Footer */}
-            <Footer />
+            <EditableBlock id="footer">
+                <Footer />
+            </EditableBlock>
 
             {/* Status Bar */}
             <StatusBar />

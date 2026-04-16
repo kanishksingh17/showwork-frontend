@@ -11,8 +11,10 @@ import { CostOptimizationDevOps } from './components/CostOptimizationDevOps';
 import { ToolingDevOps } from './components/ToolingDevOps';
 import { ProjectsDevOps } from './components/ProjectsDevOps';
 import { ContactDevOps } from './components/ContactDevOps';
+import { EditableBlock } from '../../editor/EditableBlock';
+import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 
-export const Template07Inner: React.FC<{ userData: any; projects: any[] }> = ({ userData, projects }) => {
+export const Template07Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const envCanvasRef = useRef<HTMLCanvasElement>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
     const ringRef = useRef<HTMLDivElement>(null);
@@ -166,11 +168,11 @@ export const Template07Inner: React.FC<{ userData: any; projects: any[] }> = ({ 
             <canvas ref={envCanvasRef} id="env-canvas" className="absolute inset-0 z-0 pointer-events-none" />
 
             {/* Nav */}
-            <nav className="sticky top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-12 border-b border-white/5 bg-[var(--t07-bg-void)]/80 backdrop-blur-md">
-                <div className="nav-logo font-mono text-[13px] font-medium text-[var(--t07-text-secondary)] tracking-wider flex items-center gap-2">
+            <nav className="sticky top-0 left-0 right-0 z-[100] h-16 flex items-center justify-between px-6 lg:px-12 border-b border-white/5 bg-[var(--t07-bg-void)]/80 backdrop-blur-md">
+                <div className="nav-logo font-mono text-[13px] font-medium text-[var(--t07-text-secondary)] tracking-wider flex items-center gap-2 mr-6 shrink-0">
                     <Terminal size={14} className="text-[var(--t07-purple-bright)]" /> {userData?.name?.toLowerCase().replace(/\s/g, '.') || 'alex.mercer'}
                 </div>
-                <ul className="hidden md:flex items-center gap-8 list-none">
+                <ul className="hidden lg:flex items-center gap-4 lg:gap-6 list-none flex-1 justify-center">
                     {[
                         { id: 'hero', label: 'Home' },
                         { id: 'philosophy', label: 'Philosophy' },
@@ -192,23 +194,43 @@ export const Template07Inner: React.FC<{ userData: any; projects: any[] }> = ({ 
                         </li>
                     ))}
                 </ul>
-                <a href="#contact" className="nav-cta border border-white/20 text-white px-5 py-2 rounded-lg text-[13px] hover:border-[var(--t07-purple-bright)] hover:bg-[var(--t07-purple-bright)]/10 transition-all">
+                <a href="#contact" className="nav-cta border border-white/20 text-white px-5 py-2 rounded-lg text-[13px] hover:border-[var(--t07-purple-bright)] hover:bg-[var(--t07-purple-bright)]/10 transition-all whitespace-nowrap ml-6">
                     Open to Advisory
                 </a>
             </nav>
 
             {/* Content */}
             <main className="relative z-10">
-                <HeroDevOps userData={userData} />
-                <PhilosophyDevOps />
-                <PipelineDevOps />
-                <CloudDiagramDevOps />
-                <ObservabilityDevOps />
-                <SREDevOps />
-                <CostOptimizationDevOps />
-                <ToolingDevOps />
-                <ProjectsDevOps projects={projects} />
-                <ContactDevOps userData={userData} />
+                <EditableBlock id="about">
+                    <HeroDevOps userData={userData} sections={sections} />
+                </EditableBlock>
+                <EditableBlock id="about">
+                    <PhilosophyDevOps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <PipelineDevOps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <CloudDiagramDevOps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <ObservabilityDevOps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <SREDevOps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <CostOptimizationDevOps />
+                </EditableBlock>
+                <EditableBlock id="skills">
+                    <ToolingDevOps />
+                </EditableBlock>
+                <EditableBlock id="projects">
+                    <ProjectsDevOps projects={projects} />
+                </EditableBlock>
+                <EditableBlock id="contact">
+                    <ContactDevOps userData={userData} />
+                </EditableBlock>
             </main>
         </div>
     );

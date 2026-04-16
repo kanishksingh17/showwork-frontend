@@ -31,7 +31,7 @@ const MetricCount = ({ target, label, sub, color = 'var(--t06-ink)' }: { target:
     );
 };
 
-export const HeroPrincipal: React.FC<{ userData: any, onScrollTo?: (id: string) => void }> = ({ userData, onScrollTo }) => {
+export const HeroPrincipal: React.FC<{ userData: any, heroData?: any, onScrollTo?: (id: string) => void }> = ({ userData, heroData = {}, onScrollTo }) => {
     return (
         <section id="hero" className="relative min-h-[90vh] pt-8 pb-20 border-b border-[var(--t06-line)] overflow-hidden">
             <div className="t06-grid-backdrop opacity-40" />
@@ -46,19 +46,23 @@ export const HeroPrincipal: React.FC<{ userData: any, onScrollTo?: (id: string) 
                             animate={{ opacity: 1, y: 0 }}
                             className="font-mono text-[11px] uppercase tracking-[0.28em] text-[var(--t06-accent)] mb-4 block"
                         >
-                            Principal Cloud Architect
+                            {heroData.tagline || "Principal Cloud Architect"}
                         </motion.span>
 
                         <h1 className="font-serif text-[clamp(40px,5vw,60px)] font-medium leading-[1.1] tracking-tight mb-4">
-                            Distributed systems <br />
-                            designed for <br />
-                            <span className="italic text-[var(--t06-accent)]">consequence.</span>
+                            {heroData.headlineLine1 || "Distributed systems"} <br />
+                            {heroData.headlineLine2 || "designed for"} <br />
+                            <span className="italic text-[var(--t06-accent)]">{heroData.headlineHighlight || "consequence."}</span>
                         </h1>
 
                         <p className="font-sans text-[clamp(14px,1.5vw,17px)] font-light text-[var(--t06-ink-3)] leading-relaxed max-w-[480px] mb-8">
-                            I design cloud architectures that serve as foundations — not features.
-                            Scalability, cost governance, and fault tolerance engineered before
-                            the first service is deployed.
+                            {heroData.description || (
+                                <>
+                                    I design cloud architectures that serve as foundations — not features.
+                                    Scalability, cost governance, and fault tolerance engineered before
+                                    the first service is deployed.
+                                </>
+                            )}
                         </p>
 
                         <div className="flex items-center gap-8 mb-10">
@@ -78,10 +82,10 @@ export const HeroPrincipal: React.FC<{ userData: any, onScrollTo?: (id: string) 
 
                         {/* Metric Strip */}
                         <div className="grid grid-cols-4 border-t border-[var(--t06-line)]">
-                            <MetricCount target={340} label="Services Orchestrated" sub="Across 4 cloud providers" />
-                            <MetricCount target={99} label="Aggregate Uptime %" sub="Production average, 3 yr" color="var(--t06-accent)" />
-                            <MetricCount target={62} label="Cost Reduction %" sub="Through architecture review" />
-                            <MetricCount target={12} label="Enterprise Engagements" sub="Advisory & design" />
+                            <MetricCount target={heroData.metric1Value || 340} label={heroData.metric1Label || "Services Orchestrated"} sub={heroData.metric1Sub || "Across 4 cloud providers"} />
+                            <MetricCount target={heroData.metric2Value || 99} label={heroData.metric2Label || "Aggregate Uptime %"} sub={heroData.metric2Sub || "Production average, 3 yr"} color="var(--t06-accent)" />
+                            <MetricCount target={heroData.metric3Value || 62} label={heroData.metric3Label || "Cost Reduction %"} sub={heroData.metric3Sub || "Through architecture review"} />
+                            <MetricCount target={heroData.metric4Value || 12} label={heroData.metric4Label || "Enterprise Engagements"} sub={heroData.metric4Sub || "Advisory & design"} />
                         </div>
                     </div>
 

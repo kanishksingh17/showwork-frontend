@@ -5,7 +5,7 @@ import { HardDrive, ShieldAlert, Eye } from 'lucide-react';
 export const PhilosophyDevOps: React.FC = () => {
     return (
         <section id="philosophy">
-            <div className="section-inner w-[min(1100px,95vw)] grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+            <div className="section-inner w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}

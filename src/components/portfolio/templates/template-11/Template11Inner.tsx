@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import './template-11.css';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
 const Sidebar: React.FC<{ activeTab?: string; setActiveTab?: (tab: any) => void }> = () => (
     <>
@@ -54,8 +55,10 @@ const Sidebar: React.FC<{ activeTab?: string; setActiveTab?: (tab: any) => void 
     </>
 );
 
-export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
+export const Template11Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const [activeTab, setActiveTab] = useState<'home' | 'projects' | 'stack' | 'impact' | 'contact'>('home');
+
+    const heroData = sections?.find((s: any) => s.variant === 'HeroDataCommand' || s.id === 'about')?.customData || {};
 
     return (
         <div className="bg-[--datacmd-bg-dark] text-gray-200 min-h-screen flex flex-col font-body selection:bg-[--datacmd-primary]/30 template-11-wrapper">
@@ -121,79 +124,89 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
 
                         {/* System Integrity */}
                         <div className="md:col-span-3 dashboard-panel">
-                            <div className="panel-header">
-                                <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">System Integrity</span>
-                                <span className="flex h-2 w-2 rounded-full bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
-                            </div>
-                            <div className="p-4 flex flex-col justify-center h-full">
-                                <div className="text-3xl font-mono text-white mb-1">99.98%</div>
-                                <div className="text-[10px] text-gray-500 uppercase font-mono tracking-tighter">Data Pipeline Uptime</div>
-                                <div className="mt-4 flex gap-1 h-8 items-end">
-                                    <div className="flex-1 bg-[#22c55e33] h-full"></div>
-                                    <div className="flex-1 bg-[#22c55e66] h-3/4"></div>
-                                    <div className="flex-1 bg-[#22c55e33] h-full"></div>
-                                    <div className="flex-1 bg-[#22c55e99] h-2/3"></div>
-                                    <div className="flex-1 bg-[--datacmd-primary]/40 h-5/6"></div>
-                                    <div className="flex-1 bg-[#22c55e4d] h-full"></div>
+                            <EditableBlock id="resume">
+                                <div className="panel-header">
+                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">{heroData.integrityLabel || "System Integrity"}</span>
+                                    <span className="flex h-2 w-2 rounded-full bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
                                 </div>
-                            </div>
+                                <div className="p-4 flex flex-col justify-center h-full">
+                                    <div className="text-3xl font-mono text-white mb-1">{heroData.integrityValue || "99.98%"}</div>
+                                    <div className="text-[10px] text-gray-500 uppercase font-mono tracking-tighter">Data Pipeline Uptime</div>
+                                    <div className="mt-4 flex gap-1 h-8 items-end">
+                                        <div className="flex-1 bg-[#22c55e33] h-full"></div>
+                                        <div className="flex-1 bg-[#22c55e66] h-3/4"></div>
+                                        <div className="flex-1 bg-[#22c55e33] h-full"></div>
+                                        <div className="flex-1 bg-[#22c55e99] h-2/3"></div>
+                                        <div className="flex-1 bg-[--datacmd-primary]/40 h-5/6"></div>
+                                        <div className="flex-1 bg-[#22c55e4d] h-full"></div>
+                                    </div>
+                                </div>
+                            </EditableBlock>
                         </div>
 
                         {/* Central Hero */}
                         <div className="md:col-span-6 flex flex-col items-center justify-center text-center py-6 px-4">
-                            <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
-                                <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">Central Command v2.4</span>
-                            </div>
-                            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-white pixel-text">
-                                DATA.<br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-white to-gray-400">CLARITY.</span><br />
-                                IMPACT.
-                            </h1>
+                            <EditableBlock id="about">
+                                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
+                                    <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">{heroData.tagline || "Central Command v2.4"}</span>
+                                </div>
+                                <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-white pixel-text">
+                                    {heroData.headlineLine1 || "DATA."}<br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-white to-gray-400">{heroData.headlineLine2 || "CLARITY."}</span><br />
+                                    {heroData.headlineLine3 || "IMPACT."}
+                                </h1>
+                            </EditableBlock>
                         </div>
 
                         {/* Live Pipeline */}
                         <div className="md:col-span-3 dashboard-panel">
-                            <div className="panel-header">
-                                <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Live Pipeline</span>
-                                <span className="material-symbols-outlined text-xs text-[--datacmd-primary]">analytics</span>
-                            </div>
-                            <div className="p-3 font-mono text-[10px] leading-tight space-y-1 text-gray-400">
-                                <div className="flex justify-between border-b border-white/5 pb-1">
-                                    <span>[STREAM]</span>
-                                    <span className="text-emerald-400">SUCCESS</span>
+                            <EditableBlock id="resume">
+                                <div className="panel-header">
+                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Live Pipeline</span>
+                                    <span className="material-symbols-outlined text-xs text-[--datacmd-primary]">analytics</span>
                                 </div>
-                                <div className="pt-1">FETCHING data.events_v2...</div>
-                                <div className="text-gray-600">Transforming schema...</div>
-                                <div className="text-[--datacmd-primary]">Loading to Snowflake...</div>
-                                <div className="flex justify-between pt-2">
-                                    <span>LATENCY</span>
-                                    <span>42ms</span>
+                                <div className="p-3 font-mono text-[10px] leading-tight space-y-1 text-gray-400">
+                                    <div className="flex justify-between border-b border-white/5 pb-1">
+                                        <span>[STREAM]</span>
+                                        <span className="text-emerald-400">SUCCESS</span>
+                                    </div>
+                                    <div className="pt-1">FETCHING data.events_v2...</div>
+                                    <div className="text-gray-600">Transforming schema...</div>
+                                    <div className="text-[--datacmd-primary]">Loading to Snowflake...</div>
+                                    <div className="flex justify-between pt-2">
+                                        <span>LATENCY</span>
+                                        <span>42ms</span>
+                                    </div>
                                 </div>
-                            </div>
+                            </EditableBlock>
                         </div>
 
                         {/* SQL Model */}
                         <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
-                            <div className="panel-header">
-                                <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">SQL_MODELS.sql</span>
-                                <span className="material-symbols-outlined text-xs text-gray-500">code</span>
-                            </div>
-                            <div className="p-4 font-mono text-xs leading-relaxed text-gray-300">
-                                <p><span className="code-syntax-keyword">SELECT</span> date_trunc(<span className="code-syntax-string">'month'</span>, created_at),</p>
-                                <p className="pl-4"><span className="code-syntax-func">COUNT</span>(<span className="code-syntax-keyword">DISTINCT</span> user_id) <span className="code-syntax-keyword">AS</span> mau,</p>
-                                <p className="pl-4"><span className="code-syntax-func">SUM</span>(order_value) <span className="code-syntax-keyword">AS</span> revenue</p>
-                                <p><span className="code-syntax-keyword">FROM</span> staging.analytics_events</p>
-                                <p><span className="code-syntax-keyword">WHERE</span> status = <span className="code-syntax-string">'completed'</span></p>
-                                <p><span className="code-syntax-keyword">GROUP BY</span> 1</p>
-                                <p><span className="code-syntax-keyword">ORDER BY</span> 1 <span className="code-syntax-keyword">DESC</span>;</p>
-                            </div>
+                            <EditableBlock id="resume">
+                                <div className="panel-header">
+                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">SQL_MODELS.sql</span>
+                                    <span className="material-symbols-outlined text-xs text-gray-500">code</span>
+                                </div>
+                                <div className="p-4 font-mono text-xs leading-relaxed text-gray-300">
+                                    <p><span className="code-syntax-keyword">SELECT</span> date_trunc(<span className="code-syntax-string">'month'</span>, created_at),</p>
+                                    <p className="pl-4"><span className="code-syntax-keyword">DISTINCT</span> user_id) <span className="code-syntax-keyword">AS</span> mau,</p>
+                                    <p className="pl-4"><span className="code-syntax-func">SUM</span>(order_value) <span className="code-syntax-keyword">AS</span> revenue</p>
+                                    <p><span className="code-syntax-keyword">FROM</span> staging.analytics_events</p>
+                                    <p><span className="code-syntax-keyword">WHERE</span> status = <span className="code-syntax-string">'completed'</span></p>
+                                    <p><span className="code-syntax-keyword">GROUP BY</span> 1</p>
+                                    <p><span className="code-syntax-keyword">ORDER BY</span> 1 <span className="code-syntax-keyword">DESC</span>;</p>
+                                </div>
+                            </EditableBlock>
                         </div>
 
                         {/* Bio & CTA */}
                         <div className="md:col-span-4 lg:col-span-6 flex flex-col items-center justify-center p-8 space-y-6">
-                            <p className="text-gray-400 max-w-md mx-auto text-sm md:text-base font-light text-center leading-relaxed">
-                                Senior Data Analyst & Analytics Engineer building robust infrastructures that turn chaotic data into high-fidelity business intelligence.
-                            </p>
+                            <EditableBlock id="about">
+                                <p className="text-gray-400 max-w-md mx-auto text-sm md:text-base font-light text-center leading-relaxed">
+                                    {heroData.bio || "Senior Data Analyst & Analytics Engineer building robust infrastructures that turn chaotic data into high-fidelity business intelligence."}
+                                </p>
+                            </EditableBlock>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <button onClick={() => setActiveTab('projects')} className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-gradient-to-r from-[--datacmd-primary] to-[--datacmd-secondary] font-mono rounded-lg hover:shadow-[0_0_30px_rgba(124,58,237,0.4)]">
                                     EXPLORE REPOS
@@ -207,70 +220,80 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
 
                         {/* Revenue Optimization */}
                         <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
-                            <div className="panel-header">
-                                <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Revenue Optimization</span>
-                                <span className="text-[--datacmd-accent-cyan] text-[10px] font-mono">+12.4%</span>
-                            </div>
-                            <div className="p-4 h-full flex flex-col">
-                                <div className="flex items-end justify-between h-24 gap-1">
-                                    <div className="w-full bg-[--datacmd-accent-cyan]/10 h-1/4 rounded-t-sm"></div>
-                                    <div className="w-full bg-[--datacmd-accent-cyan]/20 h-2/4 rounded-t-sm"></div>
-                                    <div className="w-full bg-[--datacmd-accent-cyan]/30 h-1/3 rounded-t-sm"></div>
-                                    <div className="w-full bg-[--datacmd-accent-cyan]/50 h-3/4 rounded-t-sm"></div>
-                                    <div className="w-full bg-[--datacmd-accent-cyan]/70 h-2/3 rounded-t-sm"></div>
-                                    <div className="w-full bg-[--datacmd-accent-cyan] h-full rounded-t-sm shadow-[0_0_10px_#06B6D4]"></div>
+                            <EditableBlock id="resume">
+                                <div className="panel-header">
+                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Revenue Optimization</span>
+                                    <span className="text-[--datacmd-accent-cyan] text-[10px] font-mono">+12.4%</span>
                                 </div>
-                                <div className="mt-4 grid grid-cols-2 gap-2">
-                                    <div className="bg-white/5 p-2 rounded border border-white/5">
-                                        <div className="text-[9px] text-gray-500 font-mono">CAC</div>
-                                        <div className="text-xs text-white">$42.10</div>
+                                <div className="p-4 h-full flex flex-col">
+                                    <div className="flex items-end justify-between h-24 gap-1">
+                                        <div className="w-full bg-[--datacmd-accent-cyan]/10 h-1/4 rounded-t-sm"></div>
+                                        <div className="w-full bg-[--datacmd-accent-cyan]/20 h-2/4 rounded-t-sm"></div>
+                                        <div className="w-full bg-[--datacmd-accent-cyan]/30 h-1/3 rounded-t-sm"></div>
+                                        <div className="w-full bg-[--datacmd-accent-cyan]/50 h-3/4 rounded-t-sm"></div>
+                                        <div className="w-full bg-[--datacmd-accent-cyan]/70 h-2/3 rounded-t-sm"></div>
+                                        <div className="w-full bg-[--datacmd-accent-cyan] h-full rounded-t-sm shadow-[0_0_10px_#06B6D4]"></div>
                                     </div>
-                                    <div className="bg-white/5 p-2 rounded border border-white/5">
-                                        <div className="text-[9px] text-gray-500 font-mono">LTV</div>
-                                        <div className="text-xs text-white">$890.0</div>
+                                    <div className="mt-4 grid grid-cols-2 gap-2">
+                                        <div className="bg-white/5 p-2 rounded border border-white/5">
+                                            <div className="text-[9px] text-gray-500 font-mono">CAC</div>
+                                            <div className="text-xs text-white">$42.10</div>
+                                        </div>
+                                        <div className="bg-white/5 p-2 rounded border border-white/5">
+                                            <div className="text-[9px] text-gray-500 font-mono">LTV</div>
+                                            <div className="text-xs text-white">$890.0</div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </EditableBlock>
                         </div>
 
                         {/* Bottom Row Metrics */}
                         <div className="md:col-span-12 lg:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                            <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                <div className="bg-[#7C3AED]/20 p-2 rounded">
-                                    <span className="material-symbols-outlined text-[#7C3AED]">database</span>
+                            <EditableBlock id="skills">
+                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                    <div className="bg-[#7C3AED]/20 p-2 rounded">
+                                        <span className="material-symbols-outlined text-[#7C3AED]">database</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Stack</div>
+                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">dbt + Snowflake + Airflow</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Stack</div>
-                                    <div className="text-sm font-bold text-white tracking-widest leading-tight">dbt + Snowflake + Airflow</div>
+                            </EditableBlock>
+                            <EditableBlock id="resume">
+                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                    <div className="bg-[#3B82F6]/20 p-2 rounded">
+                                        <span className="material-symbols-outlined text-[#3B82F6]">monitoring</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">KPIs TRACKED</div>
+                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">250+ Metrics Built</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                <div className="bg-[#3B82F6]/20 p-2 rounded">
-                                    <span className="material-symbols-outlined text-[#3B82F6]">monitoring</span>
+                            </EditableBlock>
+                            <EditableBlock id="resume">
+                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                    <div className="bg-[#06B6D4]/20 p-2 rounded">
+                                        <span className="material-symbols-outlined text-[#06B6D4]">payments</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">IMPACT</div>
+                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">$2.5M Identified Rev</div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">KPIs TRACKED</div>
-                                    <div className="text-sm font-bold text-white tracking-widest leading-tight">250+ Metrics Built</div>
+                            </EditableBlock>
+                            <EditableBlock id="resume">
+                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                    <div className="bg-[#9333ea]/20 p-2 rounded">
+                                        <span className="material-symbols-outlined text-[#c084fc]">precision_manufacturing</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">AUTOMATION</div>
+                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">85% Workload Reduction</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                <div className="bg-[#06B6D4]/20 p-2 rounded">
-                                    <span className="material-symbols-outlined text-[#06B6D4]">payments</span>
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">IMPACT</div>
-                                    <div className="text-sm font-bold text-white tracking-widest leading-tight">$2.5M Identified Rev</div>
-                                </div>
-                            </div>
-                            <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                <div className="bg-[#9333ea]/20 p-2 rounded">
-                                    <span className="material-symbols-outlined text-[#c084fc]">precision_manufacturing</span>
-                                </div>
-                                <div>
-                                    <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">AUTOMATION</div>
-                                    <div className="text-sm font-bold text-white tracking-widest leading-tight">85% Workload Reduction</div>
-                                </div>
-                            </div>
+                            </EditableBlock>
                         </div>
 
                     </div>
@@ -280,46 +303,56 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
                     <div className="container mx-auto max-w-7xl h-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         <div className="lg:col-span-4 sticky top-28">
                             <div className="text-center lg:text-left mb-6">
-                                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
-                                    <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">System Architecture v3.0</span>
-                                </div>
-                                <h1 className="font-display text-4xl md:text-5xl text-white pixel-text tracking-wide">
-                                    TECHNICAL STACK
-                                </h1>
-                                <p className="text-gray-400 font-mono text-xs mt-2 max-w-2xl">
-                                    End-to-end data pipeline schematic. From raw ingestion to high-fidelity visualization.
-                                </p>
+                                <EditableBlock id="about">
+                                    <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
+                                        <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">System Architecture v3.0</span>
+                                    </div>
+                                    <h1 className="font-display text-4xl md:text-5xl text-white pixel-text tracking-wide">
+                                        TECHNICAL STACK
+                                    </h1>
+                                    <p className="text-gray-400 font-mono text-xs mt-2 max-w-2xl">
+                                        End-to-end data pipeline schematic. From raw ingestion to high-fidelity visualization.
+                                    </p>
+                                </EditableBlock>
                             </div>
                             <Sidebar />
                             <div className="mt-8 pt-8 border-t border-[--datacmd-border-muted] grid grid-cols-1 gap-4">
-                                <div className="flex items-center gap-3 px-2">
-                                    <span className="material-symbols-outlined text-gray-600">terminal</span>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">CLI Tools</span>
-                                        <span className="text-xs text-gray-300 font-mono">Bash, Zsh, Git</span>
+                                <EditableBlock id="skills">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <span className="material-symbols-outlined text-gray-600">terminal</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">CLI Tools</span>
+                                            <span className="text-xs text-gray-300 font-mono">Bash, Zsh, Git</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3 px-2">
-                                    <span className="material-symbols-outlined text-gray-600">cloud</span>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">Cloud Provider</span>
-                                        <span className="text-xs text-gray-300 font-mono">AWS (S3, EC2)</span>
+                                </EditableBlock>
+                                <EditableBlock id="skills">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <span className="material-symbols-outlined text-gray-600">cloud</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">Cloud Provider</span>
+                                            <span className="text-xs text-gray-300 font-mono">AWS (S3, EC2)</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3 px-2">
-                                    <span className="material-symbols-outlined text-gray-600">schedule</span>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">Orchestration</span>
-                                        <span className="text-xs text-gray-300 font-mono">Airflow, Prefect</span>
+                                </EditableBlock>
+                                <EditableBlock id="skills">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <span className="material-symbols-outlined text-gray-600">schedule</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">Orchestration</span>
+                                            <span className="text-xs text-gray-300 font-mono">Airflow, Prefect</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <div className="flex items-center gap-3 px-2">
-                                    <span className="material-symbols-outlined text-gray-600">security</span>
-                                    <div className="flex flex-col">
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">Governance</span>
-                                        <span className="text-xs text-gray-300 font-mono">Monte Carlo</span>
+                                </EditableBlock>
+                                <EditableBlock id="skills">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <span className="material-symbols-outlined text-gray-600">security</span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">Governance</span>
+                                            <span className="text-xs text-gray-300 font-mono">Monte Carlo</span>
+                                        </div>
                                     </div>
-                                </div>
+                                </EditableBlock>
                             </div>
                         </div>
 
@@ -557,7 +590,7 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
 
                         <div className="container mx-auto max-w-7xl h-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                             <div className="lg:col-span-4 sticky top-28">
-                                <div className="space-y-2 mb-4">
+                                <EditableBlock id="about" className="space-y-2 mb-4">
                                     <div className="inline-flex items-center space-x-2 bg-[--datacmd-accent-cyan]/10 border border-[--datacmd-accent-cyan]/20 rounded-full px-3 py-1">
                                         <span className="w-1.5 h-1.5 rounded-full bg-[--datacmd-accent-cyan] animate-pulse"></span>
                                         <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">Global Operations</span>
@@ -569,73 +602,79 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
                                     <p className="text-gray-400 text-sm font-light max-w-md">
                                         Initiate a secure connection to discuss data infrastructure, pipeline optimization, or business intelligence needs.
                                     </p>
-                                </div>
+                                </EditableBlock>
                                 <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
                                 <div className="flex gap-4 mt-6">
-                                    <a className="flex-1 dashboard-panel p-4 flex flex-col items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group" href="mailto:hello@example.com">
-                                        <span className="material-symbols-outlined text-2xl text-gray-400 group-hover:text-[--datacmd-accent-cyan] mb-2 transition-colors">mail</span>
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">Encrypted Email</span>
-                                    </a>
-                                    <a className="flex-1 dashboard-panel p-4 flex flex-col items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group" href="#">
-                                        <span className="material-symbols-outlined text-2xl text-gray-400 group-hover:text-[--datacmd-primary] mb-2 transition-colors">link</span>
-                                        <span className="text-[10px] font-mono text-gray-500 uppercase">LinkedIn Node</span>
-                                    </a>
+                                    <EditableBlock id="contact" className="flex-1">
+                                        <a className="w-full dashboard-panel p-4 flex flex-col items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group" href="mailto:hello@example.com">
+                                            <span className="material-symbols-outlined text-2xl text-gray-400 group-hover:text-[--datacmd-accent-cyan] mb-2 transition-colors">mail</span>
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">Encrypted Email</span>
+                                        </a>
+                                    </EditableBlock>
+                                    <EditableBlock id="contact" className="flex-1">
+                                        <a className="w-full dashboard-panel p-4 flex flex-col items-center justify-center hover:bg-white/5 transition-colors cursor-pointer group" href="#">
+                                            <span className="material-symbols-outlined text-2xl text-gray-400 group-hover:text-[--datacmd-primary] mb-2 transition-colors">link</span>
+                                            <span className="text-[10px] font-mono text-gray-500 uppercase">LinkedIn Node</span>
+                                        </a>
+                                    </EditableBlock>
                                 </div>
                             </div>
 
                             <div className="lg:col-span-8">
-                                <div className="dashboard-panel h-full shadow-[0_0_50px_-20px_rgba(124,58,237,0.2)]">
-                                    <div className="panel-header bg-[--datacmd-surface-dark]/80">
-                                        <div className="flex items-center space-x-2">
-                                            <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
-                                            <span className="text-[10px] font-mono tracking-widest text-white uppercase">Transmission Uplink</span>
+                                <EditableBlock id="contact">
+                                    <div className="dashboard-panel h-full shadow-[0_0_50px_-20px_rgba(124,58,237,0.2)]">
+                                        <div className="panel-header bg-[--datacmd-surface-dark]/80">
+                                            <div className="flex items-center space-x-2">
+                                                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
+                                                <span className="text-[10px] font-mono tracking-widest text-white uppercase">Transmission Uplink</span>
+                                            </div>
+                                            <div className="font-mono text-[10px] text-gray-500">SECURE_SSL_V3</div>
                                         </div>
-                                        <div className="font-mono text-[10px] text-gray-500">SECURE_SSL_V3</div>
-                                    </div>
-                                    <form className="p-6 md:p-8 space-y-6">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-1">
-                                                <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Identity // Name</label>
-                                                <input className="neon-input placeholder:text-gray-600" placeholder="John Doe" type="text" />
+                                        <form className="p-6 md:p-8 space-y-6">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Identity // Name</label>
+                                                    <input className="neon-input placeholder:text-gray-600" placeholder="John Doe" type="text" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Coordinates // Email</label>
+                                                    <input className="neon-input placeholder:text-gray-600" placeholder="john@company.com" type="email" />
+                                                </div>
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Coordinates // Email</label>
-                                                <input className="neon-input placeholder:text-gray-600" placeholder="john@company.com" type="email" />
+                                                <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Subject // Objective</label>
+                                                <select className="neon-input text-gray-400" aria-label="Objective">
+                                                    <option>Project Inquiry</option>
+                                                    <option>Consultation Request</option>
+                                                    <option>Speaking Opportunity</option>
+                                                    <option>Other</option>
+                                                </select>
                                             </div>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Subject // Objective</label>
-                                            <select className="neon-input text-gray-400" aria-label="Objective">
-                                                <option>Project Inquiry</option>
-                                                <option>Consultation Request</option>
-                                                <option>Speaking Opportunity</option>
-                                                <option>Other</option>
-                                            </select>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Payload // Message</label>
-                                            <textarea className="neon-input placeholder:text-gray-600 resize-none" placeholder="Describe your data challenges..." rows={6}></textarea>
-                                        </div>
-                                        <div className="pt-4 flex items-center justify-between">
-                                            <div className="hidden md:flex items-center space-x-2 text-[10px] text-gray-500 font-mono">
-                                                <span className="material-symbols-outlined text-sm">lock</span>
-                                                <span>End-to-end encrypted</span>
+                                            <div className="space-y-1">
+                                                <label className="text-xs font-mono text-[--datacmd-accent-cyan] uppercase tracking-wider ml-1">Payload // Message</label>
+                                                <textarea className="neon-input placeholder:text-gray-600 resize-none" placeholder="Describe your data challenges..." rows={6}></textarea>
                                             </div>
-                                            <button className="w-full md:w-auto group relative px-8 py-3 bg-gradient-to-r from-[--datacmd-primary] to-[--datacmd-secondary] rounded text-white font-mono font-bold text-sm tracking-wider hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] transition-all duration-300 overflow-hidden" type="button">
-                                                <span className="relative z-10 flex items-center justify-center">
-                                                    TRANSMIT MESSAGE
-                                                    <span className="material-symbols-outlined ml-2 text-sm group-hover:translate-x-1 transition-transform">send</span>
-                                                </span>
-                                                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
-                                            </button>
+                                            <div className="pt-4 flex items-center justify-between">
+                                                <div className="hidden md:flex items-center space-x-2 text-[10px] text-gray-500 font-mono">
+                                                    <span className="material-symbols-outlined text-sm">lock</span>
+                                                    <span>End-to-end encrypted</span>
+                                                </div>
+                                                <button className="w-full md:w-auto group relative px-8 py-3 bg-gradient-to-r from-[--datacmd-primary] to-[--datacmd-secondary] rounded text-white font-mono font-bold text-sm tracking-wider hover:shadow-[0_0_20px_rgba(124,58,237,0.5)] transition-all duration-300 overflow-hidden" type="button">
+                                                    <span className="relative z-10 flex items-center justify-center">
+                                                        TRANSMIT MESSAGE
+                                                        <span className="material-symbols-outlined ml-2 text-sm group-hover:translate-x-1 transition-transform">send</span>
+                                                    </span>
+                                                    <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-300"></div>
+                                                </button>
+                                            </div>
+                                        </form>
+                                        <div className="bg-black/40 border-t border-[--datacmd-border-muted] p-3 font-mono text-[9px] text-gray-500 h-16 overflow-hidden leading-relaxed">
+                                            <div className="opacity-50">&gt; Initializing handshake protocol...</div>
+                                            <div className="opacity-50">&gt; Listening on port 443...</div>
+                                            <div className="text-[--datacmd-accent-cyan] opacity-80 animate-pulse">&gt; Ready for input_</div>
                                         </div>
-                                    </form>
-                                    <div className="bg-black/40 border-t border-[--datacmd-border-muted] p-3 font-mono text-[9px] text-gray-500 h-16 overflow-hidden leading-relaxed">
-                                        <div className="opacity-50">&gt; Initializing handshake protocol...</div>
-                                        <div className="opacity-50">&gt; Listening on port 443...</div>
-                                        <div className="text-[--datacmd-accent-cyan] opacity-80 animate-pulse">&gt; Ready for input_</div>
                                     </div>
-                                </div>
+                                </EditableBlock>
                             </div>
                         </div>
                     </>
@@ -645,15 +684,17 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
                     <div className="container mx-auto max-w-7xl h-full relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         <div className="lg:col-span-4 sticky top-28">
                             <div className="text-center lg:text-left mb-6">
-                                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
-                                    <span className="text-[10px] font-mono text-[--datacmd-primary] tracking-widest uppercase">System Deployments v1.2</span>
-                                </div>
-                                <h1 className="font-display text-4xl md:text-5xl text-white pixel-text tracking-wide">
-                                    ARCHIVED PROJECTS
-                                </h1>
-                                <p className="text-gray-400 font-mono text-xs mt-2 max-w-2xl">
-                                    Searchable database of past data engineering and analytics deployments.
-                                </p>
+                                <EditableBlock id="projects">
+                                    <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
+                                        <span className="text-[10px] font-mono text-[--datacmd-primary] tracking-widest uppercase">System Deployments v1.2</span>
+                                    </div>
+                                    <h1 className="font-display text-4xl md:text-5xl text-white pixel-text tracking-wide">
+                                        ARCHIVED PROJECTS
+                                    </h1>
+                                    <p className="text-gray-400 font-mono text-xs mt-2 max-w-2xl">
+                                        Searchable database of past data engineering and analytics deployments.
+                                    </p>
+                                </EditableBlock>
                             </div>
                             <Sidebar />
                         </div>
@@ -753,15 +794,17 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = () => {
                         <div className="lg:col-span-8 flex flex-col gap-10">
                             {/* Header Section */}
                             <div className="text-left">
-                                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
-                                    <span className="text-[10px] font-mono text-[#22c55e] tracking-widest uppercase">Performance Metrics v4.1</span>
-                                </div>
-                                <h1 className="font-display text-4xl md:text-6xl text-white pixel-text tracking-wide uppercase">
-                                    Measurable Impact
-                                </h1>
-                                <p className="text-gray-400 font-mono text-xs md:text-sm mt-2 max-w-2xl">
-                                    Quantifying the engineering value driven across core operational metrics.
-                                </p>
+                                <EditableBlock id="about">
+                                    <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
+                                        <span className="text-[10px] font-mono text-[#22c55e] tracking-widest uppercase">Performance Metrics v4.1</span>
+                                    </div>
+                                    <h1 className="font-display text-4xl md:text-6xl text-white pixel-text tracking-wide uppercase">
+                                        Measurable Impact
+                                    </h1>
+                                    <p className="text-gray-400 font-mono text-xs md:text-sm mt-2 max-w-2xl">
+                                        Quantifying the engineering value driven across core operational metrics.
+                                    </p>
+                                </EditableBlock>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

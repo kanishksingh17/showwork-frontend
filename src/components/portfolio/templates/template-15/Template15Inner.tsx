@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
   useEffect(() => {
     // Add Fonts
     const link = document.createElement('link');
@@ -21,21 +22,27 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     };
   }, []);
 
-  const name = userData?.name || 'Marcus Wei';
+  // ── Bind to Redux Sections for real-time editing ───────────────────────
+  const aboutSection = sections.find(s => s.id === 'about')?.customData || {};
+  const resumeSection = sections.find(s => s.id === 'resume')?.customData || {};
+  const skillsSection = sections.find(s => s.id === 'skills')?.customData || {};
+
+  const name = aboutSection.name || userData?.name || 'Marcus Wei';
   const firstName = name.split(' ')[0];
   const avatar = userData?.avatar || userData?.profileImage || null;
-  const role = userData?.role || 'Application Security Engineer';
-  const bio = userData?.tagline || userData?.bio || 'Protecting software and APIs with OWASP Top 10 expertise and Secure SDLC integration.';
-  const email = userData?.email || 'marcus@security.dev';
+  const role = aboutSection.headline || userData?.role || 'Application Security Engineer';
+  const bio = aboutSection.bio || userData?.tagline || userData?.bio || 'Protecting software and APIs with OWASP Top 10 expertise and Secure SDLC integration.';
+  const email = aboutSection.email || userData?.email || 'marcus@security.dev';
 
+  const metricsFromStore = resumeSection.metrics || [];
   const metrics = {
-    vulnerabilities: userData?.metadata?.vulnerabilitiesFound || '400',
-    audits: userData?.metadata?.auditsCompleted || '60',
-    remediation: userData?.metadata?.remediationRate || '98',
-    critical: userData?.metadata?.criticalIncidents || '0'
+    vulnerabilities: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('vulnerab'))?.value || '400',
+    audits: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('audit'))?.value || '60',
+    remediation: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('remediation'))?.value || '98',
+    critical: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('critical'))?.value || '0'
   };
 
-  const skills = userData?.skills || ['Penetration Testing', 'API Security', 'Cloud Security', 'Secure Code Review', 'Red Teaming', 'DevSecOps'];
+  const skills = skillsSection.techSlugs || userData?.skills || ['Penetration Testing', 'API Security', 'Cloud Security', 'Secure Code Review', 'Red Teaming', 'DevSecOps'];
 
   return (
     <div className="template-15-container">
@@ -525,7 +532,7 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
       </nav>
 
       <section className="template-15-hero">
-        <div className="template-15-hero-content">
+        <EditableBlock id="about" className="template-15-hero-content">
           <div className="template-15-hero-eyebrow">
             <span className="eyebrow-dot"></span>
             {role}
@@ -557,7 +564,7 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
               <span className="hstat-lbl">Remediation rate</span>
             </div>
           </div>
-        </div>
+        </EditableBlock>
 
         <div className="template-15-shield-visual">
           <div className="shield-stage">
@@ -635,22 +642,22 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
           <h2 className="section-title">Measurable Security Outcomes</h2>
         </div>
         <div className="metrics-grid">
-          <div className="metric-card">
+          <EditableBlock id="resume" className="metric-card">
             <div className="metric-val">{metrics.vulnerabilities}+</div>
             <div className="metric-lbl">Vulnerabilities Identified</div>
-          </div>
-          <div className="metric-card">
+          </EditableBlock>
+          <EditableBlock id="resume" className="metric-card">
             <div className="metric-val">{metrics.audits}+</div>
             <div className="metric-lbl">Deep Audits Completed</div>
-          </div>
-          <div className="metric-card">
+          </EditableBlock>
+          <EditableBlock id="resume" className="metric-card">
             <div className="metric-val">{metrics.remediation}%</div>
             <div className="metric-lbl">Average Remediation Rate</div>
-          </div>
-          <div className="metric-card">
+          </EditableBlock>
+          <EditableBlock id="resume" className="metric-card">
             <div className="metric-val">{metrics.critical}</div>
             <div className="metric-lbl">Critical Incidents Post-Hardening</div>
-          </div>
+          </EditableBlock>
         </div>
       </section>
 
@@ -658,13 +665,13 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
       <section id="expertise" className="expertise-section section-padding">
         <div className="section-inner">
           <div className="expertise-layout">
-            <div>
+            <EditableBlock id="skills">
               <div className="section-eyebrow">Core expertise</div>
               <h2 className="section-title">Full-spectrum application security</h2>
               <p className="section-sub">From threat modeling at the design phase to post-deployment hardening — every layer of your application, covered.</p>
               <br /><br />
               <a href={`mailto:${email}`} className="template-15-btn-primary" style={{ fontSize: '13px', padding: '12px 22px' }}>View all services →</a>
-            </div>
+            </EditableBlock>
 
             <div className="expertise-cards" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               {(skills.length >= 6 ? skills.slice(0, 6).map((s: string) => ({ icon: '🛡️', title: s, desc: `Specialized focus and methodology in ${s} assessment.` })) : [
@@ -675,11 +682,13 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                 { icon: '🔴', title: 'Red Team Operations', desc: 'Full-scope adversarial simulations to test detection and response capabilities.' },
                 { icon: '🏗️', title: 'Secure SDLC Integration', desc: 'Embedding security gates into CI/CD pipelines — shift-left without slowdown.' }
               ]).map((item: any, i: number) => (
-                <div key={i} className="exp-card" style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '22px', boxShadow: 'var(--shadow-sm)', transition: 'all 0.22s' }}>
-                  <div className="exp-icon" style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '14px' }}>{item.icon}</div>
-                  <h3 className="exp-title" style={{ fontFamily: 'var(--display)', fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px', lineHeight: 1.3 }}>{item.title}</h3>
-                  <p className="exp-desc" style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>{item.desc}</p>
-                </div>
+                <EditableBlock key={i} id="skills">
+                  <div className="exp-card h-full" style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '22px', boxShadow: 'var(--shadow-sm)', transition: 'all 0.22s' }}>
+                    <div className="exp-icon" style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '14px' }}>{item.icon}</div>
+                    <h3 className="exp-title" style={{ fontFamily: 'var(--display)', fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px', lineHeight: 1.3 }}>{item.title}</h3>
+                    <p className="exp-desc" style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>{item.desc}</p>
+                  </div>
+                </EditableBlock>
               ))}
             </div>
           </div>
@@ -698,32 +707,34 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             { title: 'SaaS Multi-tenancy Audit', description: 'Deep-dive security review into a B2B SaaS platform revealing cross-tenant data exposure.', impact: '98% Remediation' },
             { title: 'Cloud Infrastructure Hardening', description: 'Comprehensive security posture review for a FinTech infrastructure on AWS.', impact: 'Soc 2 Ready' }
           ]).map((project: any, i: number) => (
-            <div key={i} className="case-card">
-              <div className="case-preview">
-                <div className="case-terminal">
-                  <div className="ct-r">▶ VULN_DETECTED: {project.title || 'Untitled Research'}</div>
-                  <div className="ct-y">▶ SEVERITY: Critical</div>
-                  <div>$ run security-audit --target {(project.title || 'untitled').toLowerCase().replace(/ /g, '-')}</div>
-                  <div className="ct-g">✓ Remediation_Verified [100%]</div>
-                  <div style={{ marginTop: '20px', fontSize: '9px', opacity: 0.5 }}>- Scanning buffer overflows... OK</div>
-                  <div style={{ fontSize: '9px', opacity: 0.5 }}>- Checking IAM policies... FIXED</div>
-                </div>
-              </div>
-              <div className="case-body">
-                <div className="case-title">{project.title || 'Untitled Security Research'}</div>
-                <p className="case-desc">{project.description || 'No description available for this research.'}</p>
-                <div className="case-stats">
-                  <div className="case-stat-item">
-                    <span className="case-stat-val">{project.impact || 'Verified Impact'}</span>
-                    <span className="case-stat-lbl">Outcome</span>
-                  </div>
-                  <div className="case-stat-item">
-                    <span className="case-stat-val">Critical</span>
-                    <span className="case-stat-lbl">Severity</span>
+            <EditableBlock key={i} id="projects">
+              <div className="case-card h-full">
+                <div className="case-preview">
+                  <div className="case-terminal">
+                    <div className="ct-r">▶ VULN_DETECTED: {project.title || 'Untitled Research'}</div>
+                    <div className="ct-y">▶ SEVERITY: Critical</div>
+                    <div>$ run security-audit --target {(project.title || 'untitled').toLowerCase().replace(/ /g, '-')}</div>
+                    <div className="ct-g">✓ Remediation_Verified [100%]</div>
+                    <div style={{ marginTop: '20px', fontSize: '9px', opacity: 0.5 }}>- Scanning buffer overflows... OK</div>
+                    <div style={{ fontSize: '9px', opacity: 0.5 }}>- Checking IAM policies... FIXED</div>
                   </div>
                 </div>
+                <div className="case-body">
+                  <div className="case-title">{project.title || 'Untitled Security Research'}</div>
+                  <p className="case-desc">{project.description || 'No description available for this research.'}</p>
+                  <div className="case-stats">
+                    <div className="case-stat-item">
+                      <span className="case-stat-val">{project.impact || 'Verified Impact'}</span>
+                      <span className="case-stat-lbl">Outcome</span>
+                    </div>
+                    <div className="case-stat-item">
+                      <span className="case-stat-val">Critical</span>
+                      <span className="case-stat-lbl">Severity</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
+            </EditableBlock>
           ))}
         </div>
       </section>

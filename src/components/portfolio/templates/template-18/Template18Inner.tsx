@@ -1,22 +1,29 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const rootRef = useRef<HTMLDivElement>(null);
     const [timeStr, setTimeStr] = useState('—');
 
-    // ── derive user info ────────────────────────────────────────────────────
-    const name = userData?.name || 'Kanishk Mehta';
-    const email = userData?.email || 'kanishk@example.dev';
-    const location = userData?.location || 'Bengaluru, India';
-    const bioStr = userData?.bio || userData?.tagline || 'Principal Systems Engineer';
-    const role = userData?.role || userData?.title || 'Principal Systems Engineer';
-    const github = userData?.socials?.github || userData?.socialLinks?.github || 'github.com/kanishkmehta';
-    const linkedin = userData?.socials?.linkedin || userData?.socialLinks?.linkedin || 'linkedin.com/in/kanishkmehta';
+    // ── Bind to Redux Sections for real-time editing ───────────────────────
+    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
+    const resumeSection = sections?.find(s => s.id === 'resume')?.customData || {};
+    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
+    const osHeroData = sections?.find(s => s.variant === 'HeroOS' || s.id === 'about')?.customData || {};
 
-    const skills = userData?.skills || ['C', 'eBPF / XDP', 'Rust', 'Linux Kernel', 'Distributed Systems'];
-    const expList = userData?.experience || [
-        { period: '2023 – Present', company: 'Razorpay', role: 'Principal Systems Engineer', description: 'Zero-copy payment pipeline, eBPF observability' }
+    // ── derive user info ────────────────────────────────────────────────────
+    const name = osHeroData.name || aboutSection.name || userData?.name || 'Kanishk Mehta';
+    const email = userData?.email || 'kanishk@example.dev';
+    const location = osHeroData.location || aboutSection.location || userData?.location || 'Bengaluru, India';
+    const bioStr = osHeroData.bio || aboutSection.bio || userData?.bio || 'Principal Systems Engineer';
+    const role = osHeroData.headline || aboutSection.headline || userData?.title || 'Principal Systems Engineer';
+    const github = userData?.socialLinks?.github || 'github.com/kanishkmehta';
+    const linkedin = userData?.socialLinks?.linkedin || 'linkedin.com/in/kanishkmehta';
+
+    const skills = skillsSection.techSlugs || userData?.skills || ['C', 'eBPF / XDP', 'Rust', 'Linux Kernel', 'Distributed Systems'];
+    const expList = resumeSection.experiences || userData?.experience || [
+        { period: '2023 – Present', company: 'Razorpay', title: 'Principal Systems Engineer', description: 'Zero-copy payment pipeline, eBPF observability' }
     ];
     const projList = (projects || []).slice(0, 4);
     if (projList.length === 0) {
@@ -462,7 +469,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="wbar-title">About.txt</div>
                         </div>
                         <div className="wbody wscroll">
-                            <div className="abt-in">
+                            <EditableBlock id="about" className="abt-in">
                                 <div className="ahd">
                                     <div className="a-av">🧑💻</div>
                                     <div>
@@ -482,7 +489,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                 <div className="a-tg">
                                     {skills.slice(0, 5).map((s: string) => <span key={s} className="atag hi">{s}</span>)}
                                 </div>
-                            </div>
+                            </EditableBlock>
                         </div>
                         <div className="wresize" id="wr-about" />
                     </div>
@@ -508,7 +515,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                     </div>
                                 ))}
                             </div>
-                            <div className="p-mn">
+                            <EditableBlock id="projects" className="p-mn">
                                 {projList[selProjIdx] && (() => {
                                     const p = projList[selProjIdx];
                                     const tArr = Array.isArray(p.tech) ? p.tech : (p.tech || '').split(',').map((t: string) => t.trim()).filter(Boolean);
@@ -526,7 +533,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                         </div>
                                     );
                                 })()}
-                            </div>
+                            </EditableBlock>
                         </div>
                         <div className="wresize" id="wr-projects" />
                     </div>
@@ -544,7 +551,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="wbar-title">Experience</div>
                         </div>
                         <div className="wbody wscroll">
-                            <div className="e-in">
+                            <EditableBlock id="resume" className="e-in">
                                 <div>
                                     <div className="e-t">Work History</div>
                                     <div className="e-m">{name} · {role}</div>
@@ -554,15 +561,15 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                         <div key={i} className="tli">
                                             <div className="tli-d" />
                                             <div className="tli-b">
-                                                <div className="tli-p">{exp.period || exp.date || 'Present'}</div>
-                                                <div className="tli-c">{exp.company || exp.employer}</div>
-                                                <div className="tli-r">{exp.role || exp.position}</div>
-                                                <div className="tli-l">{exp.description || (exp.bullets && exp.bullets.join('\n')) || ''}</div>
+                                                <div className="tli-p">{String(exp.period || exp.date || 'Present')}</div>
+                                                <div className="tli-c">{String(exp.company || exp.employer)}</div>
+                                                <div className="tli-r">{String(exp.role || exp.position)}</div>
+                                                <div className="tli-l">{String(exp.description || (exp.bullets && exp.bullets.join('\n')) || '')}</div>
                                             </div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </EditableBlock>
                         </div>
                         <div className="wresize" id="wr-experience" />
                     </div>
@@ -580,17 +587,17 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="wbar-title">Skills</div>
                         </div>
                         <div className="wbody wscroll">
-                            <div className="sk-in">
+                            <EditableBlock id="skills" className="sk-in">
                                 <div className="sk-gt">Technical Skills</div>
                                 <div className="sk-g">
-                                    {skills.map((s: string, i: number) => (
-                                        <div key={s} className="sk-i">
-                                            <div className="sk-n">{s}</div>
-                                            <div className="sk-b"><div className="sk-f" style={{ width: `${95 - (i * 5)}%` }} /></div>
+                                    {skills.map((s: any, i: number) => (
+                                        <div key={i} className="sk-i">
+                                            <div className="sk-n">{String(s || '')}</div>
+                                            <div className="sk-b"><div className="sk-f" style={{ width: `${Math.min(100, 95 - (i * 5))}%` }} /></div>
                                         </div>
                                     ))}
                                 </div>
-                            </div>
+                            </EditableBlock>
                         </div>
                         <div className="wresize" id="wr-skills" />
                     </div>
@@ -608,29 +615,29 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="wbar-title">Contact</div>
                         </div>
                         <div className="wbody wscroll">
-                            <div className="c-in">
+                            <EditableBlock id="about" className="c-in">
                                 <div className="ct-l">Get in touch.</div>
                                 <div className="ct-s">Open to conversations regarding new opportunities.</div>
                                 <div className="ct-lst">
                                     <div className="ctr">
                                         <div className="ctri">✉️</div>
                                         <div className="ctrl">Email</div>
-                                        <div className="ctrv">{email}</div>
+                                        <div className="ctrv">{String(email || '')}</div>
                                     </div>
                                     <div className="ctr">
                                         <div className="ctri">⌥</div>
                                         <div className="ctrl">GitHub</div>
-                                        <div className="ctrv">{github}</div>
+                                        <div className="ctrv">{String(github || '')}</div>
                                     </div>
                                     <div className="ctr">
                                         <div className="ctri">👤</div>
                                         <div className="ctrl">LinkedIn</div>
-                                        <div className="ctrv">{linkedin}</div>
+                                        <div className="ctrv">{String(linkedin || '')}</div>
                                     </div>
                                 </div>
                                 <div className="ct-n">Response time &lt;24h on weekdays.</div>
                                 <button className="ct-b" onClick={() => window.open(`mailto:${email}`)}>Send message →</button>
-                            </div>
+                            </EditableBlock>
                         </div>
                         <div className="wresize" id="wr-contact" />
                     </div>

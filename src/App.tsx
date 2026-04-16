@@ -125,6 +125,7 @@ function App() {
           <Route path="/demo-portfolio" element={withRouteSuspense(<PortfolioBuilder isDemo={true} />)} />
           <Route path="/demo-content" element={withRouteSuspense(<ContentManagement isDemo={true} />)} />
           <Route path="/demo-analytics" element={withRouteSuspense(<Analytics isDemo={true} />)} />
+          <Route path="/demo-resume" element={withRouteSuspense(<ResumeBuilder isDemo={true} />)} />
           <Route path="/demo/template-03" element={<Navigate to="/demo-portfolio" replace />} />
 
 

@@ -42,7 +42,7 @@ const INTEGRATED_TEMPLATES: PortfolioTemplate[] = [
       { id: 'projects', type: 'projects', variant: 'ProjectsMain', isVisible: true, order: 3, title: 'Projects', content: '', isRequired: true },
       { id: 'experience', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 4, title: 'Experience', content: '', isRequired: true },
       { id: 'education', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 5, title: 'Education', content: '', isRequired: true },
-      { id: 'blogs', type: 'contact', variant: 'ContactMain', isVisible: true, order: 6, title: 'Blogs', content: '', isRequired: true },
+      { id: 'blogs', type: 'blogs', variant: 'BlogsMain', isVisible: true, order: 6, title: 'Blogs', content: '', isRequired: true },
       { id: 'footer', type: 'footer', variant: 'FooterMain', isVisible: true, order: 7, title: 'Footer', content: '', isRequired: true },
     ]
   },
@@ -132,21 +132,6 @@ const INTEGRATED_TEMPLATES: PortfolioTemplate[] = [
       { id: 'skills', type: 'skills', variant: 'SkillsSRE', isVisible: true, order: 2, title: 'Skills', content: '', isRequired: true },
       { id: 'projects', type: 'projects', variant: 'ProjectsSRE', isVisible: true, order: 3, title: 'Projects', content: '', isRequired: true },
       { id: 'footer', type: 'footer', variant: 'FooterSRE', isVisible: true, order: 4, title: 'Footer', content: '', isRequired: true },
-    ]
-  },
-  {
-    id: "data-pipeline-engineer",
-    name: "Data Pipeline Engineer",
-    description: "High-throughput data engineering design with animated SVG pipeline architecture and live performance metrics.",
-    previewUrl: "/portfolio/demo/data-pipeline-engineer",
-    layout: "modern",
-    templateEngine: "section",
-    sections: [
-      { id: 'header', type: 'header', variant: 'HeaderPipeline', isVisible: true, order: 0, title: 'Header', content: '', isRequired: true },
-      { id: 'about', type: 'about', variant: 'HeroPipeline', isVisible: true, order: 1, title: 'About', content: '', isRequired: true },
-      { id: 'skills', type: 'skills', variant: 'ArchitecturePipeline', isVisible: true, order: 2, title: 'Skills', content: '', isRequired: true },
-      { id: 'projects', type: 'projects', variant: 'ProjectsPipeline', isVisible: true, order: 3, title: 'Projects', content: '', isRequired: true },
-      { id: 'footer', type: 'footer', variant: 'FooterPipeline', isVisible: true, order: 4, title: 'Footer', content: '', isRequired: true },
     ]
   },
   {

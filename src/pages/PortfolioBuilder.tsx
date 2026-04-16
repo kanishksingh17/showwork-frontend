@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Sparkles,
@@ -50,78 +51,78 @@ const TEMPLATE_PREVIEW_CONTENT: Record<string, { tagline: string; bio: string; p
     tagline: "Full-Stack Developer",
     bio: "Building high-performance and open-source software loved by millions. I specialize in building full-stack platforms that scale and sharing my journey with the world.",
     projects: [
-        {
-            id: 'p-1',
-            name: 'CalmBreath',
-            description: 'A minimal mindfulness app focused on breathing techniques and stress reduction.',
-            link: { href: 'https://calmbreath.io', label: 'CalmBreath' },
-            logo: '/images/icon/breathe-app-icon.png',
-            tags: ['App', 'iOS']
-        },
-        {
-            id: 'p-2',
-            name: 'AI Tool Directory',
-            description: 'A curated list of the best AI-powered tools on the market.',
-            link: { href: 'https://aitools.directory', label: 'AI Tool Directory' },
-            logo: '/images/icon/aibesttools.png',
-            tags: ['AI', 'Directory']
-        },
-        {
-            id: 'p-3',
-            name: 'Startup Navigator',
-            description: 'Your comprehensive guide to startup directories and resources.',
-            link: { href: 'https://startupnavigator.com', label: 'Startup Navigator' },
-            logo: '/images/icon/bestdirectories.png',
-            tags: ['Resources', 'Startup']
-        },
-        {
-            id: 'p-4',
-            name: 'SEO Explore',
-            description: 'Explore all the best SEO tools in one place.',
-            link: { href: 'https://seoexplore.com', label: 'SEO Explore' },
-            logo: '/images/icon/domainscore.png',
-            tags: ['SEO']
-        },
-        {
-            id: 'p-5',
-            name: 'GitHub Visualizer',
-            description: 'Turn your GitHub metrics into beautiful visual reports.',
-            link: { href: 'https://githubvisualizer.io', label: 'GitHub Visualizer' },
-            logo: '/images/icon/github-cards.png',
-            tags: ['Visual Cards', 'GitHub Metrics']
-        },
-        {
-            id: 'p-6',
-            name: 'Dev Tool Set',
-            description: 'A collection of high-performance utilities and productivity boosters for developers.',
-            link: { href: 'https://devtoolset.io', label: 'Dev Tool Set' },
-            logo: '/images/icon/devtoolset.png',
-            tags: ['Developer Tools', 'Open Source']
-        },
-        {
-            id: 'p-7',
-            name: 'Flux1',
-            description: 'Next-generation predictable state management for React and React Native applications.',
-            link: { href: 'https://flux1.com', label: 'Flux1' },
-            logo: '/images/icon/flux1.png',
-            tags: ['React', 'State Management']
-        },
-        {
-            id: 'p-8',
-            name: 'Magic Box',
-            description: 'An all-in-one UI kit featuring magical micro-interactions built right in.',
-            link: { href: 'https://magicbox.dev', label: 'Magic Box' },
-            logo: '/images/icon/magicbox.png',
-            tags: ['UI Kit', 'Animations']
-        },
-        {
-            id: 'p-9',
-            name: 'User Growth Engine',
-            description: 'Actionable analytics tracking and growth hacking scripts for indie hackers.',
-            link: { href: 'https://usergrowth.io', label: 'User Growth' },
-            logo: '/images/icon/usergrowth.ico',
-            tags: ['Analytics', 'Growth']
-        }
+      {
+        id: 'p-1',
+        name: 'CalmBreath',
+        description: 'A minimal mindfulness app focused on breathing techniques and stress reduction.',
+        link: { href: 'https://calmbreath.io', label: 'CalmBreath' },
+        logo: '/images/icon/breathe-app-icon.png',
+        tags: ['App', 'iOS']
+      },
+      {
+        id: 'p-2',
+        name: 'AI Tool Directory',
+        description: 'A curated list of the best AI-powered tools on the market.',
+        link: { href: 'https://aitools.directory', label: 'AI Tool Directory' },
+        logo: '/images/icon/aibesttools.png',
+        tags: ['AI', 'Directory']
+      },
+      {
+        id: 'p-3',
+        name: 'Startup Navigator',
+        description: 'Your comprehensive guide to startup directories and resources.',
+        link: { href: 'https://startupnavigator.com', label: 'Startup Navigator' },
+        logo: '/images/icon/bestdirectories.png',
+        tags: ['Resources', 'Startup']
+      },
+      {
+        id: 'p-4',
+        name: 'SEO Explore',
+        description: 'Explore all the best SEO tools in one place.',
+        link: { href: 'https://seoexplore.com', label: 'SEO Explore' },
+        logo: '/images/icon/domainscore.png',
+        tags: ['SEO']
+      },
+      {
+        id: 'p-5',
+        name: 'GitHub Visualizer',
+        description: 'Turn your GitHub metrics into beautiful visual reports.',
+        link: { href: 'https://githubvisualizer.io', label: 'GitHub Visualizer' },
+        logo: '/images/icon/github-cards.png',
+        tags: ['Visual Cards', 'GitHub Metrics']
+      },
+      {
+        id: 'p-6',
+        name: 'Dev Tool Set',
+        description: 'A collection of high-performance utilities and productivity boosters for developers.',
+        link: { href: 'https://devtoolset.io', label: 'Dev Tool Set' },
+        logo: '/images/icon/devtoolset.png',
+        tags: ['Developer Tools', 'Open Source']
+      },
+      {
+        id: 'p-7',
+        name: 'Flux1',
+        description: 'Next-generation predictable state management for React and React Native applications.',
+        link: { href: 'https://flux1.com', label: 'Flux1' },
+        logo: '/images/icon/flux1.png',
+        tags: ['React', 'State Management']
+      },
+      {
+        id: 'p-8',
+        name: 'Magic Box',
+        description: 'An all-in-one UI kit featuring magical micro-interactions built right in.',
+        link: { href: 'https://magicbox.dev', label: 'Magic Box' },
+        logo: '/images/icon/magicbox.png',
+        tags: ['UI Kit', 'Animations']
+      },
+      {
+        id: 'p-9',
+        name: 'User Growth Engine',
+        description: 'Actionable analytics tracking and growth hacking scripts for indie hackers.',
+        link: { href: 'https://usergrowth.io', label: 'User Growth' },
+        logo: '/images/icon/usergrowth.ico',
+        tags: ['Analytics', 'Growth']
+      }
     ],
   },
   "api-engineer": {
@@ -279,6 +280,8 @@ const getTemplatePreviewData = (templateId: string | undefined) => {
 
 export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderProps) {
   const dispatch = usePortfolioDispatch();
+  const [searchParams] = useSearchParams();
+  const portfolioId = searchParams.get('id');
   const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState<BuilderStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<PortfolioTemplate | null>(null);
@@ -291,7 +294,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   const [preparationProgress, setPreparationProgress] = useState(0);
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [hasResumeFile, setHasResumeFile] = useState(false);
-  const [resumeFileData, setResumeFileData] = useState<{name: string, sizeStr: string} | null>(null);
+  const [resumeFileData, setResumeFileData] = useState<{ name: string, sizeStr: string } | null>(null);
   const isSelectionPreviewStep = currentStep === "landing" || currentStep === "template-preview";
   const previewData = useMemo(() => getTemplatePreviewData(selectedTemplate?.id), [selectedTemplate?.id]);
   const showcasedProjects = useMemo(
@@ -348,7 +351,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
           const data = await response.json();
           if (data.success && data.user) {
             const user = data.user;
-            
+
             // Also fetch the full portfolio data which includes experience & education
             let experience: any[] = [];
             let education: any[] = [];
@@ -409,6 +412,33 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
     loadData();
   }, [isDemo, user, isSelectionPreviewStep]);
 
+  // Handle Loading Existing Portfolio
+  useEffect(() => {
+    if (portfolioId && !isDemo) {
+      const loadExistingPortfolio = async () => {
+        try {
+          const res = await fetch(`/api/portfolio/get?id=${portfolioId}`, { credentials: "include" });
+          if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.data) {
+              const portfolio = data.data;
+              const { loadPortfolio } = await import("@/store/portfolio/portfolioSlice");
+              dispatch(loadPortfolio(portfolio));
+              
+              // Set local state to skip selection
+              setSelectedTemplate({ id: portfolio.template_id } as any);
+              setCurrentStep("customizer");
+            }
+          }
+        } catch (e) {
+          console.error("Failed to load existing portfolio:", e);
+          toast.error("Could not load your portfolio. Starting fresh.");
+        }
+      };
+      loadExistingPortfolio();
+    }
+  }, [portfolioId, isDemo, dispatch]);
+
   // Fetch PROJECTS
   useEffect(() => {
     // Keep template selection preview static; defer project fetching until build steps.
@@ -463,9 +493,9 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   const handleResumeFile = async (file: File) => {
     setHasResumeFile(true);
     const kb = (file.size / 1024).toFixed(0);
-    const sizeStr = file.size > 1048576 ? (file.size/1048576).toFixed(1) + ' MB' : kb + ' KB';
+    const sizeStr = file.size > 1048576 ? (file.size / 1048576).toFixed(1) + ' MB' : kb + ' KB';
     setResumeFileData({ name: file.name, sizeStr });
-    
+
     setIsGenerating(true);
     const fd = new FormData();
     fd.append('resume', file);
@@ -474,35 +504,35 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
       if (r.ok) {
         toast.promise(
           async () => {
-             // Wait briefly for the parser to finalize saving
-             await new Promise(resolve => setTimeout(resolve, 800));
-             
-             // Fetch the full portfolio data which includes parsed experience & education
-             const dataRes = await fetch("/api/portfolio/data", { credentials: "include" });
-             if (dataRes.ok) {
-               const fullData = await dataRes.json();
-               if (fullData.success && fullData.data) {
-                  const user = fullData.data.user || {};
-                  setUserData(prev => ({
-                    ...prev,
-                    id: user._id || user.id || prev?.id || "current-user",
-                    name: user.name || prev?.name || "Developer",
-                    bio: user.bio || user.tagline || prev?.bio || "",
-                    tagline: user.tagline || prev?.tagline || "",
-                    socials: {
-                      github: user.socials?.github || prev?.socials?.github || "",
-                      linkedin: user.socials?.linkedin || prev?.socials?.linkedin || "",
-                      twitter: user.socials?.twitter || prev?.socials?.twitter || "",
-                    },
-                    techStack: user.techStack || prev?.techStack || [],
-                    experience: fullData.data.experience || [],
-                    education: fullData.data.education || [],
-                    hasResume: true
-                  }) as any);
-                  return "Resume parsed successfully!";
-               }
-             }
-             throw new Error("Sync failed");
+            // Wait briefly for the parser to finalize saving
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            // Fetch the full portfolio data which includes parsed experience & education
+            const dataRes = await fetch("/api/portfolio/data", { credentials: "include" });
+            if (dataRes.ok) {
+              const fullData = await dataRes.json();
+              if (fullData.success && fullData.data) {
+                const user = fullData.data.user || {};
+                setUserData(prev => ({
+                  ...prev,
+                  id: user._id || user.id || prev?.id || "current-user",
+                  name: user.name || prev?.name || "Developer",
+                  bio: user.bio || user.tagline || prev?.bio || "",
+                  tagline: user.tagline || prev?.tagline || "",
+                  socials: {
+                    github: user.socials?.github || prev?.socials?.github || "",
+                    linkedin: user.socials?.linkedin || prev?.socials?.linkedin || "",
+                    twitter: user.socials?.twitter || prev?.socials?.twitter || "",
+                  },
+                  techStack: user.techStack || prev?.techStack || [],
+                  experience: fullData.data.experience || [],
+                  education: fullData.data.education || [],
+                  hasResume: true
+                }) as any);
+                return "Resume parsed successfully!";
+              }
+            }
+            throw new Error("Sync failed");
           },
           {
             loading: 'Reading resume details...',
@@ -742,13 +772,13 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               .prep-cta-btn:active { transform: translateY(0); }
               .prep-cta-hint { text-align: center; margin-top: 11px; font-size: 12px; color: var(--text-3); margin-bottom: 0; }
             `}</style>
-            
+
             <div className="prep-card">
               <div className="prep-header">
                 <div className="prep-header-meta">
                   <div className="prep-icon-mark">
                     <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M8 2L10 6H14L11 9L12 13L8 10.5L4 13L5 9L2 6H6L8 2Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round"/>
+                      <path d="M8 2L10 6H14L11 9L12 13L8 10.5L4 13L5 9L2 6H6L8 2Z" fill="white" stroke="white" strokeWidth="0.5" strokeLinejoin="round" />
                     </svg>
                   </div>
                 </div>
@@ -765,9 +795,9 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                   <div className="prep-projects-row">
                     <div className="prep-projects-icon">
                       <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg">
-                        <rect x="1" y="3" width="14" height="10" rx="2"/>
-                        <path d="M5 3V2.5C5 1.67 5.67 1 6.5 1H9.5C10.33 1 11 1.67 11 2.5V3"/>
-                        <line x1="1" y1="7" x2="15" y2="7"/>
+                        <rect x="1" y="3" width="14" height="10" rx="2" />
+                        <path d="M5 3V2.5C5 1.67 5.67 1 6.5 1H9.5C10.33 1 11 1.67 11 2.5V3" />
+                        <line x1="1" y1="7" x2="15" y2="7" />
                       </svg>
                     </div>
                     <div className="prep-projects-info">
@@ -785,21 +815,21 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                     <label htmlFor="linkedin">LinkedIn Profile</label>
                     <div className="prep-input-wrap">
                       <svg className="prep-input-icon" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M2 2h3.5v11.5H2V2zM3.75 1a1.75 1.75 0 110 3.5A1.75 1.75 0 013.75 1zM7 6.5h3.3v1.6h.05C10.85 7 11.9 6.3 13.4 6.3c2.6 0 3.1 1.7 3.1 3.9v4.3H13v-3.8c0-1-.02-2.3-1.4-2.3-1.4 0-1.6 1.1-1.6 2.2v3.9H7V6.5z"/>
+                        <path d="M2 2h3.5v11.5H2V2zM3.75 1a1.75 1.75 0 110 3.5A1.75 1.75 0 013.75 1zM7 6.5h3.3v1.6h.05C10.85 7 11.9 6.3 13.4 6.3c2.6 0 3.1 1.7 3.1 3.9v4.3H13v-3.8c0-1-.02-2.3-1.4-2.3-1.4 0-1.6 1.1-1.6 2.2v3.9H7V6.5z" />
                       </svg>
                       <input type="text" id="linkedin" placeholder="linkedin.com/in/your-handle" value={linkedinUrl} onChange={(e) => setLinkedinUrl(e.target.value)} />
                     </div>
                     <span className="prep-field-helper">Used to pull your experience, skills & endorsements.</span>
                   </div>
 
-                   <div className="prep-field">
+                  <div className="prep-field">
                     <label>Résumé</label>
-                    <div className={`prep-upload-zone ${hasResumeFile ? 'uploaded' : ''}`} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-dim)'; }} onDragLeave={(e) => { e.preventDefault(); if (!hasResumeFile) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }} onDrop={async (e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; const isWordOrPdf = file && (file.type === 'application/pdf' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); if (isWordOrPdf) { handleResumeFile(file); } else { e.currentTarget.style.borderColor = 'tomato'; setTimeout(() => { if(e.currentTarget) e.currentTarget.style.borderColor = ''; }, 1200); } }}>
+                    <div className={`prep-upload-zone ${hasResumeFile ? 'uploaded' : ''}`} onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--accent-dim)'; }} onDragLeave={(e) => { e.preventDefault(); if (!hasResumeFile) { e.currentTarget.style.borderColor = ''; e.currentTarget.style.background = ''; } }} onDrop={async (e) => { e.preventDefault(); const file = e.dataTransfer.files?.[0]; const isWordOrPdf = file && (file.type === 'application/pdf' || file.type === 'application/msword' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'); if (isWordOrPdf) { handleResumeFile(file); } else { e.currentTarget.style.borderColor = 'tomato'; setTimeout(() => { if (e.currentTarget) e.currentTarget.style.borderColor = ''; }, 1200); } }}>
                       <input type="file" accept=".pdf,.doc,.docx" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleResumeFile(f); }} />
                       <div className="prep-upload-icon-wrap">
                         <svg className="file-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px', color: hasResumeFile ? 'var(--green)' : 'var(--text-2)' }}>
-                          <path d="M9 1H3.5C2.67 1 2 1.67 2 2.5v11c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5V6L9 1z"/>
-                          <polyline points="9 1 9 6 14 6"/>
+                          <path d="M9 1H3.5C2.67 1 2 1.67 2 2.5v11c0 .83.67 1.5 1.5 1.5h9c.83 0 1.5-.67 1.5-1.5V6L9 1z" />
+                          <polyline points="9 1 9 6 14 6" />
                         </svg>
                       </div>
                       <div className="prep-upload-text">
@@ -818,7 +848,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                       {!hasResumeFile && <span className="prep-upload-cta">Browse</span>}
                       {hasResumeFile && (
                         <div className="prep-check-badge">
-                          <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3"/></svg>
+                          <svg viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="2 6 5 9 10 3" /></svg>
                         </div>
                       )}
                     </div>
@@ -832,7 +862,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
                     <Sparkles className="animate-spin w-4 h-4 mr-2" />
                   ) : (
                     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" xmlns="http://www.w3.org/2000/svg" style={{ width: '16px', height: '16px', flexShrink: 0 }}>
-                      <path d="M8 1.5L9.8 5.7H14.3L10.8 8.3L12.1 12.5L8 9.9L3.9 12.5L5.2 8.3L1.7 5.7H6.2L8 1.5Z"/>
+                      <path d="M8 1.5L9.8 5.7H14.3L10.8 8.3L12.1 12.5L8 9.9L3.9 12.5L5.2 8.3L1.7 5.7H6.2L8 1.5Z" />
                     </svg>
                   )}
                   {isGenerating ? "Preparing..." : "Launch AI Engine"}

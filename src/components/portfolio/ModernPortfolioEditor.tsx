@@ -30,7 +30,8 @@ import {
     updateUserData,
     togglePreviewMode,
     setEditorMode,
-    resetPortfolio
+    resetPortfolio,
+    savePortfolioDraft // Import the new thunk
 } from '@/store/portfolio/portfolioSlice';
 
 import { RightContextPanel } from './editor/panels/RightContextPanel';
@@ -62,8 +63,11 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     const dispatch = usePortfolioDispatch();
     const [deviceView, setDeviceView] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
     const [activeTab, setActiveTab] = useState<'pages' | 'styles' | 'settings'>('pages');
+    const [isSaving, setIsSaving] = useState(false);
 
     const sections = usePortfolioSelector(state => state.portfolio.sections);
+    const theme = usePortfolioSelector(state => state.portfolio.theme);
+    const portfolioId = usePortfolioSelector(state => state.portfolio.id);
     const storeUserData = usePortfolioSelector(state => state.portfolio.userData);
     const isPreviewMode = usePortfolioSelector(state => state.portfolio.isPreviewMode);
     const editorMode = usePortfolioSelector(state => state.portfolio.editorMode);
@@ -91,6 +95,15 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
         // --- AUTO-PILOT SYNC ---
         // Only run if we have data and we haven't already customized these sections
         if (sections.length > 0) {
+            // 0. Migration: Ensure 'blogs' section has the correct type (for legacy portfolios)
+            const legacyBlogSec = sections.find(s => s.id === 'blogs' && s.type === 'contact');
+            if (legacyBlogSec) {
+                const updatedSections = sections.map(s =>
+                    s.id === 'blogs' ? { ...s, type: 'blogs' as any, variant: 'BlogsMain' } : s
+                );
+                dispatch(setSections(updatedSections));
+            }
+
             // 1. Sync About/Bio
             const aboutSec = sections.find(s => s.type === 'about');
             if (aboutSec && aboutSec.customData?.isAutoSynced !== true && (userData?.resumeBio || userData?.professionalBio || userData?.bio)) {
@@ -138,11 +151,11 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
             const resumeSec = sections.find(s => s.type === 'resume');
             const hasRealExp = userData?.experience && userData.experience.length > 0;
             const hasRealEdu = userData?.education && userData.education.length > 0;
-            
+
             if (resumeSec && (hasRealExp || hasRealEdu)) {
                 const currentExp = resumeSec.customData?.experiences || [];
                 const currentEdu = resumeSec.customData?.educations || [];
-                
+
                 // Construct mapped data for comparison
                 const mappedExp = (userData?.experience || []).map((e: any) => ({
                     company: e.companyName || e.company,
@@ -182,7 +195,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 if (uniqueLangs.length > 0) {
                     dispatch(updateSectionCustomData({
                         id: skillsSec.id,
-                        data: { 
+                        data: {
                             ...skillsSec.customData,
                             techSlugs: uniqueLangs,
                             isAutoSynced: true
@@ -201,10 +214,30 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
         }
     }, [template, jobRole, dispatch, userData, storeUserData?.name, sections, projects]);
 
+    // --- AUTO-SAVE REGISTRY ---
+    useEffect(() => {
+        // Don't auto-save if we're in preview mode or just loaded the template
+        if (isPreviewMode || !sections.length) return;
+
+        const timer = setTimeout(async () => {
+            setIsSaving(true);
+            try {
+                await dispatch(savePortfolioDraft()).unwrap();
+            } catch (error) {
+                console.error("Auto-save failed:", error);
+            } finally {
+                setIsSaving(false);
+            }
+        }, 3000); // 3 second debounce
+
+        return () => clearTimeout(timer);
+    }, [sections, theme, dispatch, isPreviewMode]);
+
     const renderTemplate = () => (
         <PortfolioTemplateInner
             userData={storeUserData}
             projects={projects}
+            sections={sections}
         />
     );
 
@@ -303,12 +336,12 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                         </button>
                         <div className="shrink-0">
                             <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate max-w-[180px]">
-                                {(storeUserData?.name || userData?.name || userData?.username) 
-                                    ? `${storeUserData?.name || userData?.name || userData?.username}'s Portfolio` 
+                                {(storeUserData?.name || userData?.name || userData?.username)
+                                    ? `${storeUserData?.name || userData?.name || userData?.username}'s Portfolio`
                                     : (detectedJobRole || 'Professional Portfolio')}
                             </h2>
                             <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase tracking-tighter">
-                                {isPreviewMode ? "Live Preview" : (editorMode === 'portfolio' ? "Latest Draft" : "Resume Builder")}
+                                {isSaving ? "Saving..." : (isPreviewMode ? "Live Preview" : (editorMode === 'portfolio' ? "Latest Draft" : "Resume Builder"))}
                             </p>
                         </div>
                     </div>
@@ -407,7 +440,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-4 md:p-8 flex items-start justify-center bg-zinc-50 dark:bg-zinc-950">
                     <div className={cn(
                         "transition-all duration-500 w-full",
-                        deviceView === 'desktop' ? (isPreviewMode ? "max-w-7xl" : "max-w-5xl") : "",
+                        deviceView === 'desktop' ? (isPreviewMode ? "max-w-7xl" : "max-w-6xl") : "",
                         deviceView === 'tablet' ? "max-w-[768px]" : "",
                         deviceView === 'mobile' ? "max-w-[420px]" : ""
                     )}>

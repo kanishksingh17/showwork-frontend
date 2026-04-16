@@ -11,6 +11,7 @@ import { BlogPage } from './components/BlogPage';
 import { ContactPage } from './components/ContactPage';
 import { ProjectsPage } from './components/ProjectsPage';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
 export const Template01Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [] }) => {
     const [currentView, setCurrentView] = React.useState<'home' | 'experience' | 'blog' | 'contact' | 'projects'>('home');
@@ -28,12 +29,29 @@ export const Template01Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                 <main className="px-8 py-12 md:px-16 md:py-16 flex-grow">
                     {currentView === 'home' && (
                         <div className="space-y-20">
-                            <Hero userData={userData} />
-                            <FeaturedProjects projects={projects} onNavigate={() => handleNavigate('projects')} />
-                            <SocialBlocks userData={userData} />
-                            <Experience userData={userData} onViewDetailed={() => handleNavigate('experience')} />
-                            <Projects projects={projects} onViewArchive={() => handleNavigate('projects')} />
-                            <Testimonials userData={userData} />
+                            <EditableBlock id="about">
+                                <Hero userData={userData} />
+                            </EditableBlock>
+
+                            <EditableBlock id="projects">
+                                <FeaturedProjects projects={projects} />
+                            </EditableBlock>
+
+                            <EditableBlock id="contact">
+                                <SocialBlocks userData={userData} />
+                            </EditableBlock>
+
+                            <EditableBlock id="resume">
+                                <Experience userData={userData} onViewDetailed={() => handleNavigate('experience')} />
+                            </EditableBlock>
+
+                            <EditableBlock id="projects">
+                                <Projects projects={projects} onViewArchive={() => handleNavigate('projects')} />
+                            </EditableBlock>
+
+                            <EditableBlock id="about">
+                                <Testimonials userData={userData} />
+                            </EditableBlock>
                         </div>
                     )}
 
@@ -54,9 +72,11 @@ export const Template01Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                     )}
                 </main>
 
-                <footer className="py-8 text-center text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700">
-                    <p>© {new Date().getFullYear()} {userData?.name || 'Developer'}. All rights reserved.</p>
-                </footer>
+                <EditableBlock id="footer">
+                    <footer className="py-8 text-center text-xs text-gray-400 dark:text-gray-500 border-t border-gray-100 dark:border-gray-700">
+                        <p>© {new Date().getFullYear()} {userData?.name || 'Developer'}. All rights reserved.</p>
+                    </footer>
+                </EditableBlock>
             </div>
 
             <style dangerouslySetInnerHTML={{

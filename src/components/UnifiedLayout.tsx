@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { UnifiedSidebar } from "@/components/UnifiedSidebar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/useAuth";
 
 interface UnifiedLayoutProps {
     children: React.ReactNode;
@@ -19,6 +20,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
     isDemo = false,
     header,
 }) => {
+    const { isAuthenticated } = useAuth();
     // Initialize state from localStorage if available, default to true
     const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
         if (typeof window !== 'undefined') {
@@ -62,7 +64,7 @@ export const UnifiedLayout: React.FC<UnifiedLayoutProps> = ({
                         isOpen={isSidebarOpen}
                         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
                         currentPage={activePage}
-                        showAuthButtons={showAuthButtons || isDemo}
+                        showAuthButtons={(showAuthButtons || isDemo) && !isAuthenticated}
                     />
                 </div>
             </div>

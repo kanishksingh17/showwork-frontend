@@ -34,6 +34,30 @@ export const enhanceProfileAI = createAsyncThunk(
     }
 );
 
+export const savePortfolioDraft = createAsyncThunk(
+    'portfolio/saveDraft',
+    async (_, { getState }) => {
+        const state = getState() as { portfolio: PortfolioState };
+        const { id, selectedTemplateId, sections, theme, userData, detectedJobRole } = state.portfolio;
+
+        const response = await apiJson('/api/portfolio/create', {
+            method: 'POST',
+            body: JSON.stringify({
+                id,
+                templateId: selectedTemplateId,
+                sections,
+                customizations: theme,
+                userData,
+                jobRole: detectedJobRole
+            })
+        });
+
+        // The response might be slightly different depending on API structure
+        // If apiJson returns the full response object with a 'data' field:
+        return response.data;
+    }
+);
+
 import type { PortfolioSection } from '@/types/portfolio';
 
 // Section configuration for portfolio templates (extends the base type)
@@ -44,6 +68,7 @@ export interface SectionConfig extends PortfolioSection {
 // Portfolio state interface
 export interface PortfolioState {
     // Template selection
+    id: string | null;
     selectedTemplateId: string | null;
     detectedJobRole: string | null;
 
@@ -71,6 +96,9 @@ export interface PortfolioState {
         resumeUrl?: string; // URL to resume PDF
         email?: string;
         tagline?: string;
+        location?: string;
+        company?: string;
+        portfolioUrl?: string;
         socialLinks: Record<string, string>;
         socials?: Record<string, string>;
         experience?: any[];
@@ -91,6 +119,7 @@ export interface PortfolioState {
 }
 
 const initialState: PortfolioState = {
+    id: null,
     selectedTemplateId: null,
     detectedJobRole: null,
     sections: [],
@@ -108,6 +137,9 @@ const initialState: PortfolioState = {
         professionalBio: '',
         profileImage: '',
         resumeUrl: '',
+        location: '',
+        company: '',
+        portfolioUrl: '',
         socialLinks: {},
         experience: [],
         education: [],
@@ -246,12 +278,83 @@ const portfolioSlice = createSlice({
         initializeDefaultSections: (state) => {
             state.sections = [
                 { id: 'header', type: 'header', variant: 'HeaderMain', isVisible: true, order: 0, title: 'Header', content: '', isRequired: true },
-                { id: 'about', type: 'about', variant: 'HeroMain', isVisible: true, order: 1, title: 'About', content: '', isRequired: true },
-                { id: 'skills', type: 'skills', variant: 'SkillsMain', isVisible: true, order: 2, title: 'Skills', content: '', isRequired: true },
-                { id: 'projects', type: 'projects', variant: 'ProjectsMain', isVisible: true, order: 3, title: 'Projects', content: '', isRequired: true },
-                { id: 'resume', type: 'resume', variant: 'ResumeMain', isVisible: true, order: 4, title: 'Resume', content: '', isRequired: true },
+                { 
+                    id: 'about', 
+                    type: 'about', 
+                    variant: 'HeroMain', 
+                    isVisible: true, 
+                    order: 1, 
+                    title: 'About', 
+                    content: '', 
+                    isRequired: true,
+                    customData: {
+                        headline: 'Creative Developer & Problem Solver',
+                        bio: 'I build high-performance web applications with a focus on user experience and scalability.',
+                        tagline: 'Transforming ideas into digital reality',
+                        location: 'San Francisco, CA',
+                        company: 'ShowWork Inc.',
+                        website: 'yourname.dev'
+                    }
+                },
+                { 
+                    id: 'skills', 
+                    type: 'skills', 
+                    variant: 'SkillsMain', 
+                    isVisible: true, 
+                    order: 2, 
+                    title: 'Skills', 
+                    content: '', 
+                    isRequired: true,
+                    customData: {
+                        techSlugs: ['react', 'typescript', 'nextdotjs', 'tailwindcss', 'nodejs']
+                    }
+                },
+                { 
+                    id: 'projects', 
+                    type: 'projects', 
+                    variant: 'ProjectsMain', 
+                    isVisible: true, 
+                    order: 3, 
+                    title: 'Projects', 
+                    content: '', 
+                    isRequired: true,
+                    customData: {
+                        manualProjects: []
+                    }
+                },
+                { 
+                    id: 'resume', 
+                    type: 'resume', 
+                    variant: 'ResumeMain', 
+                    isVisible: true, 
+                    order: 4, 
+                    title: 'Resume', 
+                    content: '', 
+                    isRequired: true,
+                    customData: {
+                        experiences: [],
+                        educations: [],
+                        metrics: [
+                            { label: 'GitHub Stars', value: '500+' },
+                            { label: 'Weekly Users', value: '1.2k' },
+                            { label: 'Pull Requests', value: '150+' }
+                        ]
+                    }
+                },
                 { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5, title: 'Contact', content: '', isRequired: true },
-                { id: 'footer', type: 'footer', variant: 'FooterMain', isVisible: true, order: 6, title: 'Footer', content: '', isRequired: true },
+                { 
+                    id: 'footer', 
+                    type: 'footer', 
+                    variant: 'FooterMain', 
+                    isVisible: true, 
+                    order: 6, 
+                    title: 'Footer', 
+                    content: '', 
+                    isRequired: true,
+                    customData: {
+                        copyright: `© ${new Date().getFullYear()} ShowWork Portfolio`
+                    }
+                },
             ];
         },
 
@@ -266,6 +369,20 @@ const portfolioSlice = createSlice({
 
         // Reset
         resetPortfolio: () => initialState,
+
+        // Load whole portfolio
+        loadPortfolio: (state, action: PayloadAction<any>) => {
+            const p = action.payload;
+            state.id = p.id || p.ID;
+            state.selectedTemplateId = p.template_id || p.TemplateID;
+            state.detectedJobRole = p.job_role || p.JobRole;
+            state.theme = p.customizations || p.Customizations || initialState.theme;
+            state.sections = p.sections || p.Sections || [];
+            
+            // Map userData if provided separately or if it's part of sections
+            // Usually we might want to keep the current userData (identity) 
+            // but update things like bio/title from the saved portfolio if they were customized.
+        },
     },
     extraReducers: (builder) => {
         builder
@@ -309,6 +426,11 @@ const portfolioSlice = createSlice({
                     if (!state.userData.title) state.userData.title = user.professional_headline;
                     if (!state.userData.bio) state.userData.bio = user.professional_bio;
                 }
+            })
+            .addCase(savePortfolioDraft.fulfilled, (state, action) => {
+                if (action.payload && action.payload.id) {
+                    state.id = action.payload.id;
+                }
             });
     },
 });
@@ -336,6 +458,7 @@ export const {
     setResumeTemplateId,
     initializeDefaultSections,
     resetPortfolio,
+    loadPortfolio,
 } = portfolioSlice.actions;
 
 export default portfolioSlice.reducer;

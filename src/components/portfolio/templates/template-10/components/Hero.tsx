@@ -4,9 +4,10 @@ import { Navbar } from './Navbar';
 
 interface HeroProps {
     name?: string;
+    mobileData?: any;
 }
 
-export const Hero: React.FC<HeroProps> = ({ name }) => {
+export const Hero: React.FC<HeroProps> = ({ name, mobileData = {} }) => {
     return (
         <section className="hero-section">
             {/* Atmosphere layers */}
@@ -25,11 +26,15 @@ export const Hero: React.FC<HeroProps> = ({ name }) => {
             <div className="hero-body">
                 <span className="available-badge">
                     <span className="badge-dot" />
-                    Available for new projects
+                    {mobileData.availableText || "Available for new projects"}
                 </span>
 
                 <h1 className="hero-headline">
-                    Mobile Apps.<br />Built to Ship.
+                    {mobileData.headline?.split('.').map((part: string, i: number) => (
+                        <React.Fragment key={i}>
+                            {part}{part && '.'}<br />
+                        </React.Fragment>
+                    )) || <>Mobile Apps.<br />Built to Ship.</>}
                 </h1>
 
                 {/* Side info */}
@@ -109,17 +114,17 @@ export const Hero: React.FC<HeroProps> = ({ name }) => {
             {/* Hero lower — body text + App Store card */}
             <div className="hero-lower grid-cols-1 md:grid-cols-2 lg:flex justify-between w-full">
                 <p className="hero-body-text pb-8 md:pb-0">
-                    I engineer <strong>cross-platform mobile applications</strong> that users actually keep. With 9 years building for iOS and Android, I specialize in performance optimization, scalable architecture, and pixel-perfect UI implementation that converts installs into loyal users.
+                    {mobileData.bio || "I engineer cross-platform mobile applications that users actually keep. With 9 years building for iOS and Android, I specialize in performance optimization, scalable architecture, and pixel-perfect UI implementation that converts installs into loyal users."}
                 </p>
 
                 {/* App Store Preview Card */}
                 <AppStoreCard
-                    appName="TrackFlow — Fitness"
-                    category="Health & Fitness · Latest App"
-                    rating="4.9"
-                    downloads="2.1M"
-                    loadTime="<2s"
-                    reviewsCount="18,400 reviews"
+                    appName={mobileData.appStoreName || "TrackFlow — Fitness"}
+                    category={mobileData.appStoreCategory || "Health & Fitness · Latest App"}
+                    rating={mobileData.appStoreRating || "4.9"}
+                    downloads={mobileData.appStoreDownloads || "2.1M"}
+                    loadTime={mobileData.appStoreLoadTime || "<2s"}
+                    reviewsCount={mobileData.appStoreReviews || "18,400 reviews"}
                 />
             </div>
 

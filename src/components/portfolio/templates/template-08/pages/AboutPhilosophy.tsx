@@ -1,6 +1,8 @@
 import React from 'react';
 
-export const AboutPhilosophy: React.FC = () => {
+export const AboutPhilosophy: React.FC<{ sections?: any[] }> = ({ sections }) => {
+    const philosophyData = sections?.find((s: any) => s.variant === 'AboutPhilosophy' || s.id === 'about')?.customData || {};
+
     return (
         <div className="space-y-32 animate-fade-in">
             {/* Headline Section */}
@@ -11,13 +13,13 @@ export const AboutPhilosophy: React.FC = () => {
                         <span className="text-[10px] font-bold tracking-[0.4em] uppercase text-muted">A01 // Strategic Intent</span>
                     </div>
                     <h1 className="text-[8vw] lg:text-[8rem] font-black monolith-text uppercase">
-                        INFRASTRUCTURE<br />
-                        <span className="text-transparent" style={{ WebkitTextStroke: '1.5px black' }}>PHILOSOPHY</span>
+                        {philosophyData.titleLine1 || "INFRASTRUCTURE"}<br />
+                        <span className="text-transparent" style={{ WebkitTextStroke: '1.5px black' }}>{philosophyData.titleLine2 || "PHILOSOPHY"}</span>
                     </h1>
                 </div>
                 <div className="lg:col-span-3 pb-6">
                     <p className="text-lg leading-relaxed text-muted font-light italic">
-                        Engineering resilience is not a reaction to failure, but a prerequisite for innovation. We treat reliability as the primary product feature.
+                        {philosophyData.introText || "Engineering resilience is not a reaction to failure, but a prerequisite for innovation. We treat reliability as the primary product feature."}
                     </p>
                 </div>
             </div>

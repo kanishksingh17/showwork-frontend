@@ -7,6 +7,7 @@ import { updateUserData } from '@/store/portfolio/portfolioSlice';
 export interface PortfolioTemplateProps {
     userData: any;
     projects: any[];
+    sections: any[];
 }
 
 /**
@@ -27,6 +28,7 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
     const WithPortfolioTemplate: React.FC<Omit<T, keyof PortfolioTemplateProps>> = (props) => {
         const dispatch = usePortfolioDispatch();
         const storeUserData = usePortfolioSelector(state => state.portfolio.userData);
+        const sections = usePortfolioSelector(state => state.portfolio.sections);
 
         const [userData, setUserData] = useState<any>(storeUserData || {});
         const [projects, setProjects] = useState<any[]>([]);
@@ -57,6 +59,7 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
                         profileImage: backendUser.avatar || '',
                         avatar: backendUser.avatar || '',
                         techStack: (backendUser.techStack || []).map((t: any) => getString(t)),
+                        skills: (backendUser.skills || []).map((t: any) => getString(t)),
                         // Provide multiple keys for resilience
                         socials: backendUser.socials || {},
                         socialLinks: backendUser.socials || {},
@@ -102,11 +105,17 @@ export function withPortfolioTemplate<T extends PortfolioTemplateProps>(
         }, [dispatch]);
 
 
+        // Merge manual projects from the builder if they exist
+        const projectSection = sections?.find(s => s.id === 'projects');
+        const manualProjects = projectSection?.customData?.manualProjects || [];
+        const displayProjects = manualProjects.length > 0 ? manualProjects : projects;
+
         // Merge any passed props with the fetched data
         const templateProps = {
             ...props,
             userData: userData,
-            projects,
+            projects: displayProjects,
+            sections,
         } as T;
 
         return (

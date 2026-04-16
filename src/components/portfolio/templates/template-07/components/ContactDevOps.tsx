@@ -9,7 +9,7 @@ export const ContactDevOps: React.FC<{ userData: any }> = ({ userData }) => {
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                className="card contact-card w-[min(800px,90vw)] p-12 lg:p-16 text-center"
+                className="card contact-card w-full max-w-3xl p-12 lg:p-16 text-center"
             >
                 <div className="availability-badge inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 rounded-full px-4 py-1.5 mb-8 text-[12px] text-green-300">
                     <span className="avail-dot w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />

@@ -8,10 +8,11 @@ interface EditableBlockProps {
     id: string; // The section type/ID matching Redux
     children: React.ReactNode;
     className?: string;
+    style?: React.CSSProperties;
     onAIPolish?: () => void;
 }
 
-export const EditableBlock: React.FC<EditableBlockProps> = ({ id, children, className, onAIPolish }) => {
+export const EditableBlock: React.FC<EditableBlockProps> = ({ id, children, className, style, onAIPolish }) => {
     const dispatch = usePortfolioDispatch();
     const editorMode = usePortfolioSelector(state => state.portfolio.editorMode);
     const activeSection = usePortfolioSelector(state => state.portfolio.activeSection);
@@ -20,7 +21,7 @@ export const EditableBlock: React.FC<EditableBlockProps> = ({ id, children, clas
     // If we're not in the editor (e.g. livesite), just render standard children
     // but preserve the wrapping <div> so that any layout classNames passed by the parent are kept.
     if (editorMode !== 'portfolio' || isPreviewMode) {
-        return className ? <div className={className}>{children}</div> : <>{children}</>;
+        return className || style ? <div className={className} style={style}>{children}</div> : <>{children}</>;
     }
 
     const isActive = activeSection === id;
@@ -30,10 +31,11 @@ export const EditableBlock: React.FC<EditableBlockProps> = ({ id, children, clas
             className={cn(
                 "group relative rounded-xl border-2 transition-all p-1 -m-1",
                 isActive 
-                    ? "border-indigo-500/50 bg-indigo-50/10 dark:bg-indigo-900/10" 
-                    : "border-transparent hover:border-gray-300 dark:hover:border-zinc-700 hover:bg-gray-50/50 dark:hover:bg-zinc-800/30",
+                    ? "border-indigo-500/50 bg-indigo-500/5" 
+                    : "border-transparent hover:border-indigo-500/30",
                 className
             )}
+            style={style}
             onClick={(e) => {
                 e.stopPropagation();
                 dispatch(setActiveSection(id));
@@ -41,7 +43,7 @@ export const EditableBlock: React.FC<EditableBlockProps> = ({ id, children, clas
         >
             {/* Toolbar: two clearly labeled action buttons */}
             <div className={cn(
-                "absolute -top-5 right-0 z-50 flex items-center opacity-0 transition-all duration-150 pointer-events-none",
+                "absolute top-4 right-4 z-[110] flex items-center opacity-0 transition-all duration-150 pointer-events-none",
                 "group-hover:opacity-100 group-hover:pointer-events-auto",
                 isActive ? "opacity-100 pointer-events-auto" : ""
             )}>

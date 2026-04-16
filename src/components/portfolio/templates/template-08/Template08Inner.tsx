@@ -3,6 +3,8 @@ import { HeaderStrategic } from './components/HeaderStrategic';
 import { HeroStrategic } from './components/HeroStrategic';
 import { FooterStrategic } from './components/FooterStrategic';
 import { ProfileCardStrategic } from './components/ProfileCardStrategic';
+import { EditableBlock } from '../../editor/EditableBlock';
+import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 import './template-08.css';
 
 // Pages
@@ -17,26 +19,22 @@ import { ToolingEcosystem } from './pages/ToolingEcosystem';
 import { CaseStudies } from './pages/CaseStudies';
 import { ContactAdvisory } from './pages/ContactAdvisory';
 
-interface Template08InnerProps {
-    userData: any;
-}
-
 type PageKey = 'about' | 'cicd' | 'cloud' | 'observability' | 'reliability' | 'incidents' | 'cost' | 'tooling' | 'cases' | 'contact';
 
-export const Template08Inner: React.FC<Template08InnerProps> = ({ userData }) => {
+export const Template08Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const [activePage, setActivePage] = useState<PageKey>('about');
 
-    const pages: Record<PageKey, { label: string, component: React.FC }> = {
-        about: { label: '01 About', component: AboutPhilosophy },
-        cicd: { label: '02 CI/CD', component: CICDArchitecture },
-        cloud: { label: '03 Cloud', component: CloudInfrastructure },
-        observability: { label: '04 Observability', component: ObservabilityMonitoring },
-        reliability: { label: '05 Reliability', component: ReliabilitySRE },
-        incidents: { label: '06 Incidents', component: IncidentResponse },
-        cost: { label: '07 Cost', component: CostOptimization },
-        tooling: { label: '08 Tooling', component: ToolingEcosystem },
-        cases: { label: '09 Case Studies', component: CaseStudies },
-        contact: { label: '10 Advisory', component: ContactAdvisory },
+    const pages: Record<PageKey, { label: string, component: React.FC, sectionId: string }> = {
+        about: { label: '01 About', component: AboutPhilosophy, sectionId: 'about' },
+        cicd: { label: '02 CI/CD', component: CICDArchitecture, sectionId: 'resume' },
+        cloud: { label: '03 Cloud', component: CloudInfrastructure, sectionId: 'resume' },
+        observability: { label: '04 Observability', component: ObservabilityMonitoring, sectionId: 'resume' },
+        reliability: { label: '05 Reliability', component: ReliabilitySRE, sectionId: 'resume' },
+        incidents: { label: '06 Incidents', component: IncidentResponse, sectionId: 'resume' },
+        cost: { label: '07 Cost', component: CostOptimization, sectionId: 'resume' },
+        tooling: { label: '08 Tooling', component: ToolingEcosystem, sectionId: 'skills' },
+        cases: { label: '09 Case Studies', component: CaseStudies, sectionId: 'projects' },
+        contact: { label: '10 Advisory', component: ContactAdvisory, sectionId: 'contact' },
     };
 
     const ActiveComponent = pages[activePage].component;
@@ -53,14 +51,18 @@ export const Template08Inner: React.FC<Template08InnerProps> = ({ userData }) =>
             <HeaderStrategic name={userData?.name} />
 
             <main>
-                <HeroStrategic />
+                <EditableBlock id="about">
+                    <HeroStrategic sections={sections} />
+                </EditableBlock>
 
                 {/* Profile Introduction Layer */}
-                <section className="py-24 px-8 md:px-16 bg-soft-gray border-y border-black/5">
-                    <div className="max-w-[1600px] mx-auto">
-                        <ProfileCardStrategic userData={userData} metrics={profileMetrics} />
-                    </div>
-                </section>
+                <EditableBlock id="about">
+                    <section className="py-24 px-8 md:px-16 bg-soft-gray border-y border-black/5">
+                        <div className="max-w-[1600px] mx-auto">
+                            <ProfileCardStrategic userData={userData} metrics={profileMetrics} sections={sections} />
+                        </div>
+                    </section>
+                </EditableBlock>
 
                 {/* Control Panel Navigation */}
                 <nav className="sticky top-[80px] bg-white border-b border-black/5 z-40 px-8 md:px-16 overflow-x-auto no-scrollbar">
@@ -81,14 +83,18 @@ export const Template08Inner: React.FC<Template08InnerProps> = ({ userData }) =>
                 </nav>
 
                 {/* Dynamic Content Viewport */}
-                <section className="py-24 md:py-40 px-8 md:px-16 min-h-[60rem]">
-                    <div className="max-w-[1600px] mx-auto">
-                        <ActiveComponent />
-                    </div>
-                </section>
+                <EditableBlock id={pages[activePage].sectionId}>
+                    <section className="py-24 md:py-40 px-8 md:px-16 min-h-[60rem]">
+                        <div className="max-w-[1600px] mx-auto">
+                            <ActiveComponent sections={sections} />
+                        </div>
+                    </section>
+                </EditableBlock>
             </main>
 
-            <FooterStrategic name={userData?.name} socials={userData?.socials} />
+            <EditableBlock id="footer">
+                <FooterStrategic name={userData?.name} socials={userData?.socials} />
+            </EditableBlock>
         </div>
     );
 };

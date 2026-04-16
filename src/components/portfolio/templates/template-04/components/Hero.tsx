@@ -1,8 +1,13 @@
 import React from 'react';
 import { Server, Share2, Mail, Star } from 'lucide-react';
 
-export const Hero: React.FC<{ userData: any; onNavigate: (view: string) => void }> = ({ userData, onNavigate }) => {
-    const headline = userData?.headline || "Building Scalable APIs for Modern Products";
+export const Hero: React.FC<{ aboutData: any; onNavigate: (view: string) => void }> = ({ aboutData, onNavigate }) => {
+    const { headline, bio, tagline } = aboutData;
+
+    // Logic to keep the gradient style for the last few words
+    const words = headline.split(' ');
+    const mainHeadline = words.length > 2 ? words.slice(0, -2).join(' ') + ' ' : headline + ' ';
+    const gradientHeadline = words.length > 2 ? words.slice(-2).join(' ') : '';
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-left-8 duration-1000">
@@ -16,14 +21,16 @@ export const Hero: React.FC<{ userData: any; onNavigate: (view: string) => void 
             </div>
 
             <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-gray-900 dark:text-white">
-                {headline.replace('Modern Products', '')}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400">
-                    Modern Products
-                </span>
+                {mainHeadline}
+                {gradientHeadline && (
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 dark:from-purple-400 dark:to-blue-400">
+                        {gradientHeadline}
+                    </span>
+                )}
             </h1>
 
             <p className="text-lg text-gray-900/80 dark:text-gray-300 max-w-lg leading-relaxed font-sans">
-                Harness the power of robust architecture to handle massive scale, uncover efficiency patterns, and generate reliable data streams for your business innovation.
+                {bio}
             </p>
 
             <div className="glass-panel bg-white/30 dark:bg-slate-800/30 p-2 pl-3 rounded-full flex flex-col sm:flex-row gap-2 max-w-lg items-center relative shadow-lg group">
@@ -42,7 +49,7 @@ export const Hero: React.FC<{ userData: any; onNavigate: (view: string) => void 
                     Connect Now!
                 </button>
                 <div className="absolute -top-8 left-4 text-xs font-semibold text-gray-900/60 dark:text-gray-300 font-sans">
-                    Free Consultation • 5-Minute Response Time
+                    {tagline}
                 </div>
             </div>
 

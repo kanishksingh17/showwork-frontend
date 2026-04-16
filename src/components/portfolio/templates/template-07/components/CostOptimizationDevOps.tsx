@@ -5,7 +5,7 @@ import { TrendingDown } from 'lucide-react';
 export const CostOptimizationDevOps: React.FC = () => {
     return (
         <section id="cost">
-            <div className="section-inner w-[min(1100px,95vw)]">
+            <div className="section-inner w-full max-w-5xl">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}

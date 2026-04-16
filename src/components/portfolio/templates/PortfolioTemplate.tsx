@@ -45,6 +45,26 @@ const themeMap: Record<string, React.FC<PortfolioTemplateProps>> = {
     'cli-portfolio': Template17Inner,
     'cli-tools': Template17Inner,
     'systems-programming': Template18Inner,
+    
+    // Numeric Aliases
+    'template-01': Template01Inner,
+    'template-02': Template02Inner,
+    'template-03': Template03Inner,
+    'template-04': Template04Inner,
+    'template-05': Template05Inner,
+    'template-06': Template06Inner,
+    'template-07': Template07Inner,
+    'template-08': Template08Inner,
+    'template-09': Template09Inner,
+    'template-10': Template10Inner,
+    'template-11': Template11Inner,
+    'template-12': Template12Inner,
+    'template-13': Template13Inner,
+    'template-14': Template14Inner,
+    'template-15': Template15Inner,
+    'template-16': Template16Inner,
+    'template-17': Template17Inner,
+    'template-18': Template18Inner,
 };
 
 /**
@@ -52,12 +72,17 @@ const themeMap: Record<string, React.FC<PortfolioTemplateProps>> = {
  * Exported as PortfolioTemplateInner for compatibility with the editor/previewer.
  */
 // ─── Portfolio Template Inner ─────────────────────
-export const PortfolioTemplateInner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const PortfolioTemplateInner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const selectedTemplateId = usePortfolioSelector(state => state.portfolio.selectedTemplateId) || 'recommended-fullstack';
+    const storeSections = usePortfolioSelector(state => state.portfolio.sections);
     const SpecificTemplate = themeMap[selectedTemplateId] || themeMap['recommended-fullstack'];
 
     return (
-        <SpecificTemplate userData={userData} projects={projects} />
+        <SpecificTemplate 
+            userData={userData} 
+            projects={projects} 
+            sections={sections || storeSections} 
+        />
     );
 };
 

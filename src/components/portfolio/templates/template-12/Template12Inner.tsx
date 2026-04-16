@@ -1,8 +1,20 @@
 import React, { useEffect } from 'react';
 import './template-12.css';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+    // Find custom data for sections
+    const heroSection = sections?.find(s => s.variant === 'HeroBlockchain' || s.id === 'about');
+    const heroData = heroSection?.customData || {};
+    
+    // Stats for the marquee and metrics
+    const marqueeStats = heroData.marqueeStats || [
+        "8+ Years Experience",
+        "$500M+ TVL Secured",
+        "40+ Smart Contracts Deployed",
+        "Zero Critical Vulnerabilities"
+    ];
     useEffect(() => {
         // Add Google Fonts
         const link = document.createElement('link');
@@ -71,18 +83,18 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     <div className="absolute bottom-20 right-40 w-64 h-64 bg-[#FFD700] rounded-full blur-[100px]"></div>
                 </div>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="max-w-4xl">
+                    <EditableBlock id="about" className="max-w-4xl">
                         <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#F7931A]/10 border border-[#F7931A]/20 text-[#F7931A] text-sm font-medium mb-8">
                             <span className="w-2 h-2 rounded-full bg-[#F7931A] animate-pulse"></span>
-                            Available for Smart Contract Audits
+                            {heroData.eyebrow || "Available for Smart Contract Audits"}
                         </div>
                         <h1 className="font-display font-bold text-6xl md:text-8xl tracking-tight mb-8 leading-[1.1] dark:text-white">
-                            Code. <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F7931A] to-[#FFD700]">Consensus.</span> <br />
-                            Cryptography.
+                            {heroData.titleLine1 || "Code."} <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#F7931A] to-[#FFD700]">{heroData.titleLine2 || "Consensus."}</span> <br />
+                            {heroData.titleLine3 || "Cryptography."}
                         </h1>
                         <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 max-w-2xl mb-12 leading-relaxed">
-                            {bio}
+                            {heroData.bio || bio}
                         </p>
                         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <button className="group bg-[#F7931A] hover:bg-orange-600 text-white px-8 py-4 rounded-full font-medium text-lg flex items-center gap-3 transition-all duration-300 shadow-lg shadow-[#F7931A]/25">
@@ -93,7 +105,7 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                 View Audits
                             </a>
                         </div>
-                    </div>
+                    </EditableBlock>
                 </div>
                 <div className="absolute top-1/2 right-0 -translate-y-1/2 translate-x-1/4 w-[600px] h-[600px] hidden lg:block bitcoin-glow opacity-90 pointer-events-none">
                     <div className="relative w-full h-full flex items-center justify-center">
@@ -107,14 +119,9 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <div className="bg-[#16171D] border-y border-gray-800 py-6 overflow-hidden">
                 <div className="scrolling-text-container">
                     <div className="scrolling-text text-gray-400 font-display text-xl uppercase tracking-widest flex items-center gap-12">
-                        <span><span className="text-[#F7931A]">*</span> 8+ Years Experience</span>
-                        <span><span className="text-[#F7931A]">*</span> $500M+ TVL Secured</span>
-                        <span><span className="text-[#F7931A]">*</span> 40+ Smart Contracts Deployed</span>
-                        <span><span className="text-[#F7931A]">*</span> Zero Critical Vulnerabilities</span>
-                        <span><span className="text-[#F7931A]">*</span> 8+ Years Experience</span>
-                        <span><span className="text-[#F7931A]">*</span> $500M+ TVL Secured</span>
-                        <span><span className="text-[#F7931A]">*</span> 40+ Smart Contracts Deployed</span>
-                        <span><span className="text-[#F7931A]">*</span> Zero Critical Vulnerabilities</span>
+                        {marqueeStats.concat(marqueeStats).map((stat: string, i: number) => (
+                            <span key={i}><span className="text-[#F7931A]">*</span> {stat}</span>
+                        ))}
                     </div>
                 </div>
             </div>
@@ -123,43 +130,45 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <section id="about" className="bg-[#0D0E12] text-white py-24 relative overflow-hidden">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center mb-20">
-                        <div>
+                        <EditableBlock id="about">
                             <div className="flex items-center gap-2 text-[#F7931A] font-medium mb-4">
                                 <span className="w-1.5 h-1.5 rounded-full bg-[#F7931A]"></span>
-                                About My Approach
+                                {heroData.aboutEyebrow || "About My Approach"}
                             </div>
                             <h2 className="font-display font-bold text-5xl leading-tight mb-8">
-                                Bring <span className="bg-[#F7931A]/20 text-[#F7931A] px-2 rounded-lg inline-block transform -rotate-1">Trustless</span> Logic<br />
-                                To The Global Economy
+                                {heroData.aboutTitle1 || "Bring"} <span className="bg-[#F7931A]/20 text-[#F7931A] px-2 rounded-lg inline-block transform -rotate-1">{heroData.aboutTitleHighlight || "Trustless"}</span> {heroData.aboutTitle2 || "Logic"}<br />
+                                {heroData.aboutTitle3 || "To The Global Economy"}
                             </h2>
                             <button className="bg-white/10 hover:bg-white/20 text-white border border-white/10 px-6 py-3 rounded-full font-medium flex items-center gap-2 transition-colors">
-                                Become a Client
+                                {heroData.aboutCta || "Become a Client"}
                                 <span className="material-icons text-sm">arrow_forward</span>
                             </button>
-                        </div>
-                        <div>
+                        </EditableBlock>
+                        <EditableBlock id="about">
                             <p className="font-mono text-lg text-gray-400 leading-relaxed">
                                 &gt; Hello, I'm {name.split(' ')[0]}. <br /><br />
-                                &gt; I don't just write code; I engineer digital scarcity and programmable value. My work bridges the gap between theoretical cryptography and production-grade DeFi protocols. <br /><br />
-                                &gt; From optimizing gas costs by 40% to architecting cross-chain bridges, I ensure your protocol is robust, scalable, and immutable.
+                                &gt; {heroData.aboutText1 || "I don't just write code; I engineer digital scarcity and programmable value. My work bridges the gap between theoretical cryptography and production-grade DeFi protocols."} <br /><br />
+                                &gt; {heroData.aboutText2 || "From optimizing gas costs by 40% to architecting cross-chain bridges, I ensure your protocol is robust, scalable, and immutable."}
                             </p>
-                        </div>
+                        </EditableBlock>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-[#F7931A] p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between">
+                        <EditableBlock id="resume" className="bg-[#F7931A] p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-500"></div>
-                            <h3 className="font-display font-bold text-6xl text-white relative z-10">98<span className="text-4xl text-white/80">%</span></h3>
+                            <h3 className="font-display font-bold text-6xl text-white relative z-10">
+                                {heroData.metric1Value || "98"}<span className="text-4xl text-white/80">%</span>
+                            </h3>
                             <div className="relative z-10">
                                 <div className="w-full bg-black/20 h-1.5 rounded-full mb-4 overflow-hidden">
-                                    <div className="bg-white h-full w-[98%]"></div>
+                                    <div className="bg-white h-full" style={{ width: `${heroData.metric1Value || 98}%` }}></div>
                                 </div>
-                                <p className="text-white/90 font-medium">Audit Score Average</p>
-                                <p className="text-white/70 text-sm">Across all deployments</p>
+                                <p className="text-white/90 font-medium">{heroData.metric1Label || "Audit Score Average"}</p>
+                                <p className="text-white/70 text-sm">{heroData.metric1Sublabel || "Across all deployments"}</p>
                             </div>
-                        </div>
-                        <div className="bg-[#16171D] border border-gray-800 p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between hover:border-[#F7931A]/50 transition-colors duration-300">
-                            <h3 className="font-display font-bold text-6xl text-white">12+</h3>
+                        </EditableBlock>
+                        <EditableBlock id="resume" className="bg-[#16171D] border border-gray-800 p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between hover:border-[#F7931A]/50 transition-colors duration-300">
+                            <h3 className="font-display font-bold text-6xl text-white">{heroData.metric2Value || "12+"}</h3>
                             <div className="flex items-end justify-between">
                                 <div className="flex -space-x-3">
                                     <div className="w-10 h-10 rounded-full bg-gray-700 border-2 border-[#16171D]"></div>
@@ -167,24 +176,24 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                     <div className="w-10 h-10 rounded-full bg-gray-500 border-2 border-[#16171D] flex items-center justify-center text-xs font-bold">+9</div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-gray-300 font-medium">Protocols Launched</p>
-                                    <p className="text-gray-500 text-sm">Mainnet Success</p>
+                                    <p className="text-gray-300 font-medium">{heroData.metric2Label || "Protocols Launched"}</p>
+                                    <p className="text-gray-500 text-sm">{heroData.metric2Sublabel || "Mainnet Success"}</p>
                                 </div>
                             </div>
                             <svg className="absolute bottom-0 left-0 w-full h-24 opacity-20 text-[#F7931A] fill-current" preserveAspectRatio="none" viewBox="0 0 100 40">
                                 <path d="M0 40 L0 30 Q 20 10 40 25 T 80 20 L 100 5 L 100 40 Z"></path>
                             </svg>
-                        </div>
-                        <div className="bg-white text-black p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between">
-                            <h3 className="font-display font-bold text-6xl">24/7</h3>
+                        </EditableBlock>
+                        <EditableBlock id="resume" className="bg-white text-black p-8 rounded-3xl relative overflow-hidden group min-h-[240px] flex flex-col justify-between">
+                            <h3 className="font-display font-bold text-6xl">{heroData.metric3Value || "24/7"}</h3>
                             <div className="flex items-end justify-between">
                                 <span className="material-icons text-5xl text-gray-200 group-hover:text-[#F7931A] transition-colors duration-300">security</span>
                                 <div className="text-right">
-                                    <p className="font-bold text-gray-900">Node Monitoring</p>
-                                    <p className="text-gray-500 text-sm">Uptime Guarantee</p>
+                                    <p className="font-bold text-gray-900">{heroData.metric3Label || "Node Monitoring"}</p>
+                                    <p className="text-gray-500 text-sm">{heroData.metric3Sublabel || "Uptime Guarantee"}</p>
                                 </div>
                             </div>
-                        </div>
+                        </EditableBlock>
                     </div>
                 </div>
             </section>
@@ -200,30 +209,32 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     <p className="text-gray-400">Enterprise-grade solutions for the decentralized web.</p>
                 </div>
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-4">
-                    {[
+                    {(heroData.services || [
                         { num: '/01', title: 'Smart Contract Auditing & Security', desc: 'Comprehensive line-by-line analysis to prevent re-entrancy, overflow, and logic errors.', tags: ['Slither Analysis', 'Mythril Testing'] },
                         { num: '/02', title: 'DeFi Protocol Architecture', desc: 'Designing AMMs, lending protocols, and yield aggregators from whitepaper to mainnet.', tags: ['Tokenomics', 'Liquidity Pools'] },
                         { num: '/03', title: 'Zero-Knowledge Proof Implementation', desc: 'Implementing privacy-preserving features using zk-SNARKs and zk-STARKs.', tags: ['Circom', 'Privacy Layer'] }
-                    ].map((svc, i) => (
-                        <div key={i} className="group relative p-8 rounded-2xl bg-[#0D0E12] border border-gray-800 hover:border-[#F7931A]/50 transition-all duration-300">
-                            <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
-                                <div className="font-display font-bold text-3xl text-gray-600 group-hover:text-[#F7931A] transition-colors">{svc.num}</div>
-                                <div className="flex-1">
-                                    <h3 className="text-xl font-bold mb-2 text-white">{svc.title}</h3>
-                                    <p className="text-gray-400 text-sm mb-4">{svc.desc}</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {svc.tags.map(tag => (
-                                            <span key={tag} className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700 flex items-center gap-1">
-                                                <span className="w-1 h-1 bg-green-500 rounded-full"></span> {tag}
-                                            </span>
-                                        ))}
+                    ]).map((svc: any, i: number) => (
+                        <EditableBlock key={i} id="skills">
+                            <div className="group relative p-8 rounded-2xl bg-[#0D0E12] border border-gray-800 hover:border-[#F7931A]/50 transition-all duration-300">
+                                <div className="flex flex-col md:flex-row gap-8 items-start md:items-center">
+                                    <div className="font-display font-bold text-3xl text-gray-600 group-hover:text-[#F7931A] transition-colors">{svc.num}</div>
+                                    <div className="flex-1">
+                                        <h3 className="text-xl font-bold mb-2 text-white">{svc.title}</h3>
+                                        <p className="text-gray-400 text-sm mb-4">{svc.desc}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(svc.tags || []).map((tag: string) => (
+                                                <span key={tag} className="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded border border-gray-700 flex items-center gap-1">
+                                                    <span className="w-1 h-1 bg-green-500 rounded-full"></span> {tag}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
+                                    <button className="md:opacity-0 group-hover:opacity-100 transition-opacity bg-[#F7931A] text-white p-3 rounded-full shadow-lg shadow-[#F7931A]/20">
+                                        <span className="material-icons">arrow_forward</span>
+                                    </button>
                                 </div>
-                                <button className="md:opacity-0 group-hover:opacity-100 transition-opacity bg-[#F7931A] text-white p-3 rounded-full shadow-lg shadow-[#F7931A]/20">
-                                    <span className="material-icons">arrow_forward</span>
-                                </button>
                             </div>
-                        </div>
+                        </EditableBlock>
                     ))}
                     <div className="flex justify-center mt-12">
                         <button className="bg-[#F7931A] hover:bg-orange-600 text-white px-8 py-3 rounded-full font-medium flex items-center gap-2 transition-all shadow-lg shadow-[#F7931A]/25">
@@ -251,28 +262,30 @@ export const Template12Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {displayedProjects.map((project, idx) => (
-                            <div key={idx} className="group relative bg-[#F8F9FA] dark:bg-[#111218] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 hover:border-[#F7931A]/30 transition-all duration-300">
-                                <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                                    <span className="material-icons text-6xl">code</span>
-                                </div>
-                                <div className="relative z-10">
-                                    <div className="text-[#F7931A] font-mono text-xs mb-4">PROJECT_{String(idx + 1).padStart(2, '0')}</div>
-                                    <h3 className="font-display font-bold text-xl mb-4 text-gray-900 dark:text-white">{project.title}</h3>
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
-                                        {project.description}
-                                    </p>
-                                    <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800">
-                                        <div className="flex gap-2">
-                                            {(project.tech || ['Solidity', 'Foundry']).slice(0, 2).map((t: string) => (
-                                                <span key={t} className="px-2 py-1 bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded text-[10px] font-mono">
-                                                    {t}
-                                                </span>
-                                            ))}
+                            <EditableBlock key={idx} id="projects">
+                                <div className="group relative bg-[#F8F9FA] dark:bg-[#111218] border border-gray-200 dark:border-gray-800 rounded-3xl p-8 hover:border-[#F7931A]/30 transition-all duration-300 h-full">
+                                    <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                                        <span className="material-icons text-6xl">code</span>
+                                    </div>
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <div className="text-[#F7931A] font-mono text-xs mb-4">PROJECT_{String(idx + 1).padStart(2, '0')}</div>
+                                        <h3 className="font-display font-bold text-xl mb-4 text-gray-900 dark:text-white">{project.title}</h3>
+                                        <p className="text-gray-600 dark:text-gray-400 text-sm leading-relaxed mb-6 line-clamp-3">
+                                            {project.description}
+                                        </p>
+                                        <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800 mt-auto">
+                                            <div className="flex gap-2">
+                                                {(project.tech || ['Solidity', 'Foundry']).slice(0, 2).map((t: string) => (
+                                                    <span key={t} className="px-2 py-1 bg-white dark:bg-black/20 border border-gray-200 dark:border-gray-700 rounded text-[10px] font-mono">
+                                                        {t}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                            <span className="material-icons text-gray-400 group-hover:text-[#F7931A] transition-colors">open_in_new</span>
                                         </div>
-                                        <span className="material-icons text-gray-400 group-hover:text-[#F7931A] transition-colors">open_in_new</span>
                                     </div>
                                 </div>
-                            </div>
+                            </EditableBlock>
                         ))}
                     </div>
                 </div>

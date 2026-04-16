@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     useEffect(() => {
         // Add Google Fonts
         const link = document.createElement('link');
@@ -21,15 +22,25 @@ export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         };
     }, []);
 
-    const name = userData?.name || 'Nyra';
-    const avatar = userData?.avatar || userData?.profileImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAk91kj1XgGawihTjPTOBxWR4kUGY3mnbJxOi5ludmI1GfDv4gHHnKILZUloJXdvfAn0KgmoebfwUgaizit1MSjYgzPm_SN_q_Nf-uv233UXl1Mr8Qinv0nypslUGuvlPJWF-m0JVYfnbeQjTwj4L2OE0lrEkLb-Jnk-WyPD-99l8hb_R6Iq-59at84Dloonv5NqEMt457yuHFBJYiOLAzFy2sk9ilPU2O2D-bTM739I1pKHAlqVANqx_j2YPIgW3cDqRLmgVjnkc4';
-    const bio = userData?.bio || 'I create intelligent solutions with AI, machine learning, and data science to drive the future forward.';
-    const email = userData?.email || 'contact@nyra-mlops.ai';
+    // ── Bind to Redux Sections for real-time editing ───────────────────────
+    console.log('Template13 Rendering:', { userData: !!userData, projects: projects?.length, sections: sections?.length });
+    
+    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
+    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
+    const mlopsSection = sections?.find(s => s.variant === 'CapabilitiesMLOps' || s.id === 'resume')?.customData || {};
+
+    const name = String(aboutSection.name || userData?.name || 'Nyra');
+    const avatar = String(userData?.avatar || userData?.profileImage || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAk91kj1XgGawihTjPTOBxWR4kUGY3mnbJxOi5ludmI1GfDv4gHHnKILZUloJXdvfAn0KgmoebfwUgaizit1MSjYgzPm_SN_q_Nf-uv233UXl1Mr8Qinv0nypslUGuvlPJWF-m0JVYfnbeQjTwj4L2OE0lrEkLb-Jnk-WyPD-99l8hb_R6Iq-59at84Dloonv5NqEMt457yuHFBJYiOLAzFy2sk9ilPU2O2D-bTM739I1pKHAlqVANqx_j2YPIgW3cDqRLmgVjnkc4');
+    const bio = String(aboutSection.bio || userData?.bio || 'I create intelligent solutions with AI, machine learning, and data science to drive the future forward.');
+    const headline = String(aboutSection.headline || userData?.professionalHeadline || userData?.title || "Empowering Innovation Through AI & Data Science");
+    const tagline = String(aboutSection.tagline || 'Building tools for developers...');
+    const email = aboutSection.email || userData?.email || 'contact@nyra-mlops.ai';
     const socialLinks = userData?.socialLinks || {};
 
-    const skills = (userData?.skills && userData.skills.length > 0) ? userData.skills : ['Python', 'PyTorch', 'Kubernetes', 'Docker', 'MLflow', 'Ray', 'CUDA', 'AWS', 'TensorFlow', 'Apache Spark'];
+    const skills = skillsSection.techSlugs || ((userData?.skills && userData.skills.length > 0) ? userData.skills : ['Python', 'PyTorch', 'Kubernetes', 'Docker', 'MLflow', 'Ray', 'CUDA', 'AWS', 'TensorFlow', 'Apache Spark']);
 
     const getSkillIcon = (skill: string) => {
+        if (!skill || typeof skill !== 'string') return null;
         const lowerSkill = skill.toLowerCase();
         const iconMap: Record<string, string> = {
             python: 'python/python-original.svg',
@@ -109,12 +120,11 @@ export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
             {/* Hero Section */}
             <section id="about" className="bg-[#FFD147] pt-16 pb-32 px-6 md:px-12 lg:px-24 rounded-b-[3rem] relative z-10">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                <EditableBlock id="about" className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                     <div className="lg:col-span-7">
+                        <span className="text-[#1A1A1A]/60 font-medium tracking-wider uppercase text-xs mb-3 block">{tagline}</span>
                         <h1 className="font-['Space_Grotesk'] text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.1] tracking-tight text-[#1A1A1A] mb-8">
-                            Empowering Innovation <br />
-                            Through AI & Data <br />
-                            Science
+                            {headline}
                         </h1>
                     </div>
                     <div className="lg:col-span-5 flex flex-col justify-start lg:pt-4">
@@ -125,39 +135,41 @@ export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             Explore Portfolio
                         </button>
                     </div>
-                </div>
-                <div className="mt-16 relative w-full h-[400px] md:h-[500px] rounded-3xl overflow-hidden shadow-2xl group">
+                </EditableBlock>
+                <EditableBlock id="about" className="mt-16 relative w-full h-[400px] md:h-[500px] rounded-3xl overflow-hidden shadow-2xl group">
                     <img alt="Profile" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" src={avatar} />
-                </div>
+                </EditableBlock>
             </section>
 
             {/* Tech Stack Section (Replacing Logoipsum) */}
             <div className="bg-white dark:bg-[#121212] py-20 border-b border-gray-100 dark:border-gray-800">
                 <div className="max-w-7xl mx-auto px-6 md:px-12">
-                    <div className="flex flex-col items-center justify-center mb-10 text-center">
+                    <EditableBlock id="skills" className="flex flex-col items-center justify-center mb-10 text-center">
                         <span className="text-[#6B46C1] font-semibold tracking-wider uppercase text-xs mb-3 block">Technology Stack</span>
                         <h2 className="font-['Space_Grotesk'] text-3xl font-bold text-[#1A1A1A] dark:text-white">Engineering Toolkit</h2>
-                    </div>
+                    </EditableBlock>
                     <div className="flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-80">
                         {skills.map((skill: string, idx: number) => {
                             const iconUrl = getSkillIcon(skill);
                             return (
-                                <div key={idx} className="flex flex-col items-center gap-3 transition-all transform hover:scale-110 group cursor-default">
-                                    <div className="w-16 h-16 flex items-center justify-center bg-gray-50 dark:bg-white/5 rounded-2xl group-hover:bg-[#FFD147]/10 transition-all border border-transparent group-hover:border-[#FFD147]/20">
-                                        <div className="w-10 h-10 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all">
-                                            {iconUrl ? (
-                                                <img src={iconUrl} alt={skill} className="w-full h-full object-contain" />
-                                            ) : (
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg ${idx % 2 === 0 ? 'bg-[#FFD147]' : 'bg-[#6B46C1]'}`}>
-                                                    {skill.charAt(0)}
-                                                </div>
-                                            )}
+                                <EditableBlock key={idx} id="skills">
+                                    <div className="flex flex-col items-center gap-3 transition-all transform hover:scale-110 group cursor-default">
+                                        <div className="w-16 h-16 flex items-center justify-center bg-gray-50 dark:bg-white/5 rounded-2xl group-hover:bg-[#FFD147]/10 transition-all border border-transparent group-hover:border-[#FFD147]/20">
+                                            <div className="w-10 h-10 flex items-center justify-center grayscale group-hover:grayscale-0 transition-all">
+                                                {iconUrl ? (
+                                                    <img src={iconUrl} alt={skill} className="w-full h-full object-contain" />
+                                                ) : (
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg ${idx % 2 === 0 ? 'bg-[#FFD147]' : 'bg-[#6B46C1]'}`}>
+                                                        {String(skill || '?').charAt(0)}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+                                        <span className="font-['Space_Grotesk'] font-bold text-[10px] md:text-xs tracking-wider text-[#1A1A1A]/60 dark:text-gray-400 group-hover:text-[#6B46C1] uppercase">
+                                            {String(skill)}
+                                        </span>
                                     </div>
-                                    <span className="font-['Space_Grotesk'] font-bold text-[10px] md:text-xs tracking-wider text-[#1A1A1A]/60 dark:text-gray-400 group-hover:text-[#6B46C1] uppercase">
-                                        {skill}
-                                    </span>
-                                </div>
+                                </EditableBlock>
                             );
                         })}
                     </div>
@@ -179,21 +191,28 @@ export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                         </p>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-24">
-                        {displayedProjects.map((project: any, idx: number) => (
-                            <div key={idx} className="group bg-white dark:bg-[#1E1E1E] p-8 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300">
-                                <div className={`w-12 h-12 ${idx % 2 === 0 ? 'bg-purple-100 dark:bg-purple-900/30 text-[#6B46C1]' : 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                                    <span className="material-icons-outlined text-2xl">{project.icon || 'star'}</span>
+                        {(mlopsSection.capabilities || [
+                            { title: 'Automated Training Pipelines', description: 'End-to-end orchestration of model training workflows, ensuring reproducibility and efficiency at scale.', icon: 'model_training' },
+                            { title: 'CI/CD for ML', description: 'Seamless integration and delivery pipelines tailored for machine learning artifacts and code.', icon: 'integration_instructions' },
+                            { title: 'Real-Time Inference', description: 'High-performance serving infrastructure designed for low-latency predictions in production environments.', icon: 'bolt' },
+                            { title: 'Monitoring & Drift Detection', description: 'Proactive surveillance of model performance and data quality to maintain system integrity.', icon: 'troubleshoot' }
+                        ]).map((cap: any, idx: number) => (
+                            <EditableBlock key={idx} id="resume">
+                                <div className="group bg-white dark:bg-[#1E1E1E] p-8 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all duration-300 h-full">
+                                    <div className={`w-12 h-12 ${idx % 2 === 0 ? 'bg-purple-100 dark:bg-purple-900/30 text-[#6B46C1]' : 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                                        <span className="material-icons-outlined text-2xl">{cap.icon || 'star'}</span>
+                                    </div>
+                                    <h3 className="font-['Space_Grotesk'] text-xl font-bold text-[#1A1A1A] dark:text-white mb-3">{String(cap.title || 'Capability')}</h3>
+                                    <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                                        {String(cap.description || '')}
+                                    </p>
                                 </div>
-                                <h3 className="font-['Space_Grotesk'] text-xl font-bold text-[#1A1A1A] dark:text-white mb-3">{project.title}</h3>
-                                <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
-                                    {project.description}
-                                </p>
-                            </div>
+                            </EditableBlock>
                         ))}
                     </div>
 
                     {/* Performance Metrics */}
-                    <div className="bg-[#1A1A1A] dark:bg-black rounded-3xl p-8 md:p-12 lg:p-16 text-white relative overflow-hidden mb-24">
+                    <EditableBlock id="resume" className="bg-[#1A1A1A] dark:bg-black rounded-3xl p-8 md:p-12 lg:p-16 text-white relative overflow-hidden mb-24">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-[#FFD147] rounded-full blur-[100px] opacity-10 translate-x-1/2 -translate-y-1/2"></div>
                         <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#6B46C1] rounded-full blur-[100px] opacity-20 -translate-x-1/2 translate-y-1/2"></div>
                         <div className="relative z-10">
@@ -203,50 +222,52 @@ export const Template13Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-12 divide-y md:divide-y-0 md:divide-x divide-white/10">
                                 <div className="flex flex-col gap-2 pt-8 md:pt-0 md:pl-0">
-                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">99.9%</span>
-                                    <span className="text-gray-400 text-lg font-medium">System Uptime</span>
-                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">Ensuring critical ML services are available when needed most.</p>
+                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">{String(mlopsSection.metric1Value || "99.9%")}</span>
+                                    <span className="text-gray-400 text-lg font-medium">{String(mlopsSection.metric1Label || "System Uptime")}</span>
+                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">{String(mlopsSection.metric1Sublabel || "Ensuring critical ML services are available when needed most.")}</p>
                                 </div>
                                 <div className="flex flex-col gap-2 pt-8 md:pt-0 md:pl-12">
-                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">120<span className="text-3xl text-[#FFD147] align-baseline ml-1">ms</span></span>
-                                    <span className="text-gray-400 text-lg font-medium">Inference Latency</span>
-                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">Optimized serving layers for lightning-fast predictions.</p>
+                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">{String(mlopsSection.metric2Value || "120")}<span className="text-3xl text-[#FFD147] align-baseline ml-1">ms</span></span>
+                                    <span className="text-gray-400 text-lg font-medium">{String(mlopsSection.metric2Label || "Inference Latency")}</span>
+                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">{String(mlopsSection.metric2Sublabel || "Optimized serving layers for lightning-fast predictions.")}</p>
                                 </div>
                                 <div className="flex flex-col gap-2 pt-8 md:pt-0 md:pl-12">
-                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">20+</span>
-                                    <span className="text-gray-400 text-lg font-medium">Deployed Models</span>
-                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">Successfully managing a diverse portfolio of production models.</p>
+                                    <span className="font-['Space_Grotesk'] text-5xl md:text-6xl font-bold text-white tracking-tighter">{String(mlopsSection.metric3Value || "20+")}</span>
+                                    <span className="text-gray-400 text-lg font-medium">{String(mlopsSection.metric3Label || "Deployed Models")}</span>
+                                    <p className="text-gray-500 text-sm mt-2 max-w-xs">{String(mlopsSection.metric3Sublabel || "Successfully managing a diverse portfolio of production models.")}</p>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </EditableBlock>
 
                     {/* Timeline / Experience Section */}
                     <div id="experience" className="max-w-4xl mx-auto">
-                        <div className="flex items-center gap-3 mb-12">
+                        <EditableBlock id="resume" className="flex items-center gap-3 mb-12">
                             <div className="h-px w-8 bg-[#6B46C1]"></div>
                             <h3 className="text-[#6B46C1] font-medium tracking-wide uppercase text-sm">Professional Timeline</h3>
-                        </div>
+                        </EditableBlock>
                         <div className="space-y-12">
                             {experience.map((exp: any, idx: number) => (
-                                <div key={idx} className="relative pl-8 md:pl-0">
-                                    <div className="md:grid md:grid-cols-12 md:gap-12">
-                                        <div className="md:col-span-3 mb-2 md:mb-0">
-                                            <span className="text-[#1A1A1A] dark:text-gray-400 font-bold font-['Space_Grotesk']">{exp.period}</span>
-                                        </div>
-                                        <div className="md:col-span-9 relative">
-                                            <div className="absolute -left-10 md:-left-16 top-1.5 w-4 h-4 rounded-full bg-[#FFD147] border-4 border-white dark:border-[#121212] z-10"></div>
-                                            {idx !== experience.length - 1 && (
-                                                <div className="absolute -left-8 md:-left-[3.7rem] top-4 w-px h-[calc(100%+3rem)] bg-gray-200 dark:bg-gray-800"></div>
-                                            )}
-                                            <h4 className="text-xl font-bold text-[#1A1A1A] dark:text-white mb-1">{exp.title}</h4>
-                                            <p className="text-[#6B46C1] font-medium mb-3">{exp.company}</p>
-                                            <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
-                                                {exp.description}
-                                            </p>
+                                <EditableBlock key={idx} id="resume">
+                                    <div className="relative pl-8 md:pl-0">
+                                        <div className="md:grid md:grid-cols-12 md:gap-12">
+                                            <div className="md:col-span-3 mb-2 md:mb-0">
+                                                <span className="text-[#1A1A1A] dark:text-gray-400 font-bold font-['Space_Grotesk']">{exp.period}</span>
+                                            </div>
+                                            <div className="md:col-span-9 relative">
+                                                <div className="absolute -left-10 md:-left-16 top-1.5 w-4 h-4 rounded-full bg-[#FFD147] border-4 border-white dark:border-[#121212] z-10"></div>
+                                                {idx !== experience.length - 1 && (
+                                                    <div className="absolute -left-8 md:-left-[3.7rem] top-4 w-px h-[calc(100%+3rem)] bg-gray-200 dark:bg-gray-800"></div>
+                                                )}
+                                                <h4 className="text-xl font-bold text-[#1A1A1A] dark:text-white mb-1">{exp.title}</h4>
+                                                <p className="text-[#6B46C1] font-medium mb-3">{exp.company}</p>
+                                                <p className="text-gray-500 dark:text-gray-400 leading-relaxed">
+                                                    {exp.description}
+                                                </p>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </EditableBlock>
                             ))}
                         </div>
                     </div>

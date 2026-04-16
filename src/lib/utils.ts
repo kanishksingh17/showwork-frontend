@@ -19,6 +19,11 @@ export function formatDate(
   format: "short" | "long" | "relative" = "short",
 ): string {
   const d = new Date(date);
+  
+  // If the date is invalid, return the original string as-is
+  if (isNaN(d.getTime())) {
+    return typeof date === 'string' ? date : '';
+  }
 
   switch (format) {
     case "short":

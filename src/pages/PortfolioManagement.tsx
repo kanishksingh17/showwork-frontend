@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { apiJson } from '@/lib/apiClient';
 import { useNavigate } from 'react-router-dom';
 import { UnifiedLayout } from '@/components/UnifiedLayout';
 import { Button } from '@/components/ui/button';
@@ -27,31 +28,33 @@ export default function PortfolioManagement() {
     const navigate = useNavigate();
 
     // Mock Data
-    const [portfolios] = useState<ManagedPortfolio[]>([
-        {
-            id: '1',
-            name: 'Senior Frontend Dev Portfolio',
-            templateId: 'modern-dark',
-            templateName: 'Modern Dark Theme',
-            status: 'active',
-            isPrimary: true,
-            lastModified: new Date('2024-02-08'),
-            publishedUrl: 'https://showwork.in/p/senior-dev',
-            linkedResumes: ['resume-1'],
-            thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop'
-        },
-        {
-            id: '2',
-            name: 'Freelance Designer Portfolio',
-            templateId: 'creative-minimal',
-            templateName: 'Creative Minimal',
-            status: 'draft',
-            isPrimary: false,
-            lastModified: new Date('2024-02-05'),
-            linkedResumes: ['resume-2'],
-            thumbnail: 'https://images.unsplash.com/photo-1545239351-ef35f43d514b?q=80&w=2574&auto=format&fit=crop'
-        }
-    ]);
+    const [portfolios, setPortfolios] = useState<ManagedPortfolio[]>([]);
+
+    useEffect(() => {
+        const fetchPortfolios = async () => {
+            try {
+                const response = await apiJson('/api/portfolios', { method: 'GET' });
+                if (response.success && response.data) {
+                    const mapped = response.data.map((p: any) => ({
+                        id: p.id,
+                        name: (p.job_role ? JSON.parse(p.job_role) : p.template_id) || 'Untitled Portfolio',
+                        templateId: p.template_id,
+                        templateName: p.template_id.replace(/-/g, ' '),
+                        status: p.is_published ? 'active' : 'draft',
+                        isPrimary: true, // For now
+                        lastModified: new Date(p.updated_at),
+                        publishedUrl: p.url,
+                        linkedResumes: [],
+                        thumbnail: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop'
+                    }));
+                    setPortfolios(mapped);
+                }
+            } catch (error) {
+                console.error('Failed to fetch portfolios:', error);
+            }
+        };
+        fetchPortfolios();
+    }, []);
 
     const [resumes, setResumes] = useState<ResumeVersion[]>([
         {
@@ -440,7 +443,12 @@ export default function PortfolioManagement() {
                                                         <span className={`text-[10px] px-1.5 py-0.5 rounded border uppercase tracking-wider font-medium ${portfolio.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 'bg-amber-50 text-amber-600 border-amber-100'}`}>
                                                             {portfolio.status}
                                                         </span>
-                                                        <button className="text-[10px] font-semibold text-blue-600 hover:underline group-hover:opacity-100 opacity-0 transition-opacity">Edit</button>
+                                                        <button 
+                                                            onClick={() => navigate(`/portfolio-builder?id=${portfolio.id}`)}
+                                                            className="text-[10px] font-semibold text-blue-600 hover:underline group-hover:opacity-100 opacity-0 transition-opacity"
+                                                        >
+                                                            Edit
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>

@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import {
   Sparkles,
@@ -14,6 +15,11 @@ import { UnifiedLayout } from "../components/UnifiedLayout";
 import { useAuth } from "@/contexts/useAuth";
 import { ResumeModern } from "@/components/portfolio/templates/resume/ResumeModern";
 import { ResumeMinimal } from "@/components/portfolio/templates/resume/ResumeMinimal";
+import { LoginModal } from "@/components/auth/LoginModal";
+import { ResumeTemplatesPanel } from "@/components/portfolio/editor/panels/ResumeTemplatesPanel";
+import { BlockSettingsPanel } from "@/components/portfolio/editor/panels/BlockSettingsPanel";
+import { useEffect } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type ResumeStep = "landing" | "preparation" | "editor" | "preview";
 
@@ -54,18 +60,30 @@ const RESUME_TEMPLATES: ResumeTemplate[] = [
   }
 ];
 
-export default function ResumeBuilder() {
-  const { user } = useAuth();
+export default function ResumeBuilder({ isDemo = false }: { isDemo?: boolean }) {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  
+  // Auto-redirect from demo to main route if already logged in
+  useEffect(() => {
+    if (isDemo && isAuthenticated) {
+      navigate("/resume", { replace: true });
+    }
+  }, [isDemo, isAuthenticated, navigate]);
+
   const [currentStep, setCurrentStep] = useState<ResumeStep>("landing");
   const [selectedTemplate, setSelectedTemplate] = useState<string>("modern");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [preparationProgress, setPreparationProgress] = useState(0);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"sections" | "templates">("sections");
 
-  // Mock user data for the resume
+  // Mock user data for the resume - Use generic defaults if NOT authenticated
   const [userData] = useState<any>({
-    name: user?.name || "Raj Singh",
-    email: user?.email || "raj@example.com",
-    title: "Software Developer",
+    name: isAuthenticated ? (user?.name || "Kanishk Singh") : "Demo User",
+    email: isAuthenticated ? (user?.email || "kanishk@example.com") : "demo@showwork.ai",
+    title: isAuthenticated ? (user?.title || "Software Developer") : "Full-stack Developer",
     bio: "Full-stack developer with experience in modern web technologies including React, Node.js, and TypeScript.",
     techStack: ["JavaScript", "React", "Node.js", "TypeScript", "MongoDB"],
     experience: [
@@ -185,32 +203,34 @@ export default function ResumeBuilder() {
         </p>
       </header>
 
-      {/* Detected Job Role Card (EXACT MATCH) */}
-      <div className="max-w-3xl mx-auto mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-        <div className="flex items-start gap-3">
-          <svg className="h-5 w-5 text-green-700 dark:text-green-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <div className="flex-1">
-            <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
-              Detected Job Role
-            </h3>
-            <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
-              {userData.title}
-            </p>
-            <p className="text-xs text-green-700 dark:text-green-300 mb-2">
-              Full-stack developer with experience in modern web technologies
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {userData.techStack.map((tech: string) => (
-                <span key={tech} className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded">
-                  {tech}
-                </span>
-              ))}
+      {/* Detected Job Role Card (EXACT MATCH) - Only show if authenticated */}
+      {isAuthenticated && (
+        <div className="max-w-3xl mx-auto mb-8 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+          <div className="flex items-start gap-3">
+            <svg className="h-5 w-5 text-green-700 dark:text-green-300 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <div className="flex-1">
+              <h3 className="text-sm font-semibold text-green-800 dark:text-green-200 mb-1">
+                Detected Job Role
+              </h3>
+              <p className="text-sm font-medium text-green-900 dark:text-green-100 mb-1">
+                {userData.title}
+              </p>
+              <p className="text-xs text-green-700 dark:text-green-300 mb-2">
+                Full-stack developer with experience in modern web technologies
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {userData.techStack.map((tech: string) => (
+                  <span key={tech} className="text-xs px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 rounded">
+                    {tech}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Domain Tabs (EXACT MATCH) */}
       <div className="mb-12">
@@ -236,7 +256,14 @@ export default function ResumeBuilder() {
         {/* Template Grid (EXACT MATCH) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full">
            {/* Blank Canvas */}
-           <div className="group flex flex-col gap-3 cursor-pointer">
+           <div className="group flex flex-col gap-3 cursor-pointer"
+                onClick={() => {
+                  if (!isAuthenticated) {
+                    setShowLoginModal(true);
+                    return;
+                  }
+                  // Start blank canvas logic if any
+                }}>
             <div className="text-center">
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white">Blank Canvas</h3>
                 <p className="text-sm text-slate-500 dark:text-slate-400">Start from scratch with a clean slate</p>
@@ -250,7 +277,14 @@ export default function ResumeBuilder() {
 
           {filteredTemplates.map((template) => (
             <div key={template.id} className="group flex flex-col gap-3 cursor-pointer" 
-                 onClick={() => { setSelectedTemplate(template.id); handleStartBuilding(); }}>
+                 onClick={() => { 
+                   if (!isAuthenticated) {
+                     setShowLoginModal(true);
+                     return;
+                   }
+                   setSelectedTemplate(template.id); 
+                   handleStartBuilding(); 
+                 }}>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-2 mb-0.5">
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white">{template.name}</h3>
@@ -325,41 +359,106 @@ export default function ResumeBuilder() {
   const renderEditor = () => (
     <div className="flex h-full bg-slate-50 dark:bg-slate-950">
       {/* Control Panel */}
-      <aside className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shadow-sm z-10">
+      <aside className="w-80 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shadow-sm z-10 transition-all duration-300">
         <div className="p-6 border-b border-slate-100 dark:border-slate-800">
           <Button variant="ghost" size="sm" onClick={() => setCurrentStep("landing")} className="gap-2 -ml-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-200">
-              <ArrowLeft size={16} /> Back to Styles
+              <ArrowLeft size={16} /> Styles
           </Button>
-          <h3 className="text-xl font-bold text-slate-900 dark:text-white mt-4">Resume Editor</h3>
+          <div className="flex items-center justify-between mt-4">
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Editor</h3>
+            <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+                <button 
+                  onClick={() => setActiveTab("sections")}
+                  className={`p-1.5 rounded-md transition-all ${activeTab === "sections" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600" : "text-slate-500"}`}
+                  title="Edit Sections"
+                >
+                  <FileText className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setActiveTab("templates")}
+                  className={`p-1.5 rounded-md transition-all ${activeTab === "templates" ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600" : "text-slate-500"}`}
+                  title="Switch Template"
+                >
+                  <Sparkles className="w-4 h-4" />
+                </button>
+            </div>
+          </div>
         </div>
         
-        <div className="flex-1 overflow-y-auto p-6 space-y-8 no-scrollbar">
-          <div className="space-y-3">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">AI Tools</h4>
-              <Button className="w-full justify-start gap-3 bg-blue-600 text-white hover:bg-blue-700 border-0 shadow-lg shadow-blue-500/20 h-12 rounded-xl">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm">Bullet Point Optimizer</span>
-              </Button>
-              <Button variant="outline" className="w-full justify-start gap-3 border-slate-200 dark:border-slate-800 h-12 rounded-xl">
-                  <Zap className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm">Job Description Match</span>
-              </Button>
-          </div>
+        <div className="flex-1 overflow-y-auto p-4 space-y-6 no-scrollbar">
+          {activeTab === "sections" ? (
+            <>
+              {activeSection ? (
+                <div className="animate-in slide-in-from-right-4 duration-300">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setActiveSection(null)} 
+                    className="mb-4 text-xs text-blue-600 font-bold hover:text-blue-700 p-0 h-auto"
+                  >
+                    <ArrowLeft className="w-3 h-3 mr-1" /> BACK TO ALL SECTIONS
+                  </Button>
+                  <BlockSettingsPanel 
+                    activeSection={{
+                        id: activeSection,
+                        type: activeSection === 'PersonalInfo' ? 'about' : (activeSection === 'SkillsResume' ? 'skills' : 'resume'),
+                        variant: activeSection,
+                        customData: {
+                          ...userData,
+                          experiences: userData.experience,
+                          educations: userData.education
+                        }
+                    }} 
+                  />
+                  <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+                    <p className="text-[10px] text-blue-600 dark:text-blue-400 font-medium leading-relaxed">
+                      AI is monitoring your changes to ensure ATS compatibility and professional tone.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6 animate-in fade-in duration-500">
+                  <div className="space-y-3">
+                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Quick Tools</h4>
+                      <Button className="w-full justify-start gap-3 bg-indigo-600 text-white hover:bg-indigo-700 border-0 shadow-lg shadow-indigo-500/20 h-11 rounded-xl">
+                          <Zap className="w-4 h-4" />
+                          <span className="text-xs">Enhance with AI</span>
+                      </Button>
+                  </div>
 
-          <div className="space-y-4">
-              <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Resume Sections</h4>
-              {["Personal Info", "Experience", "Education", "Expertise", "Key Projects"].map(section => (
-                   <div key={section} className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-500/50 hover:shadow-md transition-all cursor-pointer group">
-                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{section}</span>
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 group-hover:scale-110 transition-transform" />
-                   </div>
-              ))}
-          </div>
+                  <div className="space-y-3">
+                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-1">Resume Sections</h4>
+                      {[
+                        { id: "PersonalInfo", label: "Personal Info" },
+                        { id: "ExperienceResume", label: "Experience" },
+                        { id: "EducationResume", label: "Education" },
+                        { id: "SkillsResume", label: "Skills & Expertise" }
+                      ].map(section => (
+                           <div 
+                            key={section.id} 
+                            onClick={() => setActiveSection(section.id)}
+                            className="flex items-center justify-between p-4 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-blue-500/50 hover:shadow-md transition-all cursor-pointer group"
+                          >
+                              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{section.label}</span>
+                              <div className="w-7 h-7 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-50 dark:group-hover:bg-blue-900/30 transition-colors">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-500 transition-all" />
+                              </div>
+                           </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="animate-in slide-in-from-left-4 duration-300">
+              <ResumeTemplatesPanel />
+            </div>
+          )}
         </div>
 
         <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50">
-          <Button className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-xl h-14 font-bold gap-3 shadow-xl">
-              <Download className="w-5 h-5" />
+          <Button className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 rounded-xl h-14 font-bold gap-3 shadow-xl group">
+              <Download className="w-5 h-5 group-hover:bounce" />
               Download PDF
           </Button>
         </div>
@@ -405,10 +504,16 @@ export default function ResumeBuilder() {
   };
 
   return (
-    <UnifiedLayout activePage="resume">
+    <UnifiedLayout activePage="resume" isDemo={isDemo}>
       <div className="flex-1 h-full overflow-hidden flex flex-col">
         {renderStep()}
       </div>
+      <LoginModal 
+        isOpen={showLoginModal} 
+        onClose={() => setShowLoginModal(false)}
+        title="Ready to build your Resume?"
+        description="Join thousands of developers who have landed their dream jobs. Log in or create an account to start building with any of our professional templates."
+      />
     </UnifiedLayout>
   );
 }

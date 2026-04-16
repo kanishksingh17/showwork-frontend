@@ -31,8 +31,22 @@ const ScrambleText: React.FC<{ text: string; delay?: number }> = ({ text, delay 
     return <span>{displayText}</span>;
 };
 
-export const HeroDevOps: React.FC<{ userData: any }> = ({ userData }) => {
+export const HeroDevOps: React.FC<{ userData: any; sections?: any[] }> = ({ userData, sections }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    // Find custom data for this section
+    const section = sections?.find(s => s.variant === 'HeroDevOps' || s.id === 'about');
+    const data = section?.customData || {};
+
+    const getIcon = (iconName: string) => {
+        switch (iconName) {
+            case 'shield': return <ShieldCheck size={14} />;
+            case 'zap': return <Zap size={14} />;
+            case 'clock': return <History size={14} />;
+            case 'cloud': return <Cloud size={14} />;
+            default: return <ShieldCheck size={14} />;
+        }
+    };
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -145,7 +159,7 @@ export const HeroDevOps: React.FC<{ userData: any }> = ({ userData }) => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="card hero-card w-[min(1100px,94vw)] py-12 px-10 lg:py-16 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+                className="card hero-card w-full max-w-5xl py-12 px-10 lg:py-16 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
             >
                 <div className="hero-left">
                     <div className="hero-eyebrow flex items-center gap-3 mb-6">
@@ -153,16 +167,16 @@ export const HeroDevOps: React.FC<{ userData: any }> = ({ userData }) => {
                             <Terminal size={14} />
                         </div>
                         <span className="eyebrow-text font-mono text-[11px] text-[var(--t07-text-muted)] tracking-[0.12em] uppercase">
-                            Senior DevOps Engineer
+                            {data.eyebrow || "Senior DevOps Engineer"}
                         </span>
                     </div>
                     <h1 className="hero-h1 mb-2">
-                        <span className="block"><ScrambleText text="Infrastructure" /></span>
-                        <span className="block"><ScrambleText text="at Scale." delay={500} /></span>
+                        <span className="block"><ScrambleText text={data.headlineLine1 || "Infrastructure"} /></span>
+                        <span className="block"><ScrambleText text={data.headlineLine2 || "at Scale."} delay={500} /></span>
                     </h1>
-                    <span className="hero-subtitle-serif block mb-5">Built to survive production.</span>
+                    <span className="hero-subtitle-serif block mb-5">{data.subtitle || "Built to survive production."}</span>
                     <p className="text-[14px] leading-[1.7] text-[var(--t07-text-secondary)] max-w-[340px] mb-10">
-                        {userData?.bio || "I design and operate infrastructure that supports millions of requests per day — from GitOps pipelines to multi-cloud architectures."}
+                        {data.bio || userData?.bio || "I design and operate infrastructure that supports millions of requests per day — from GitOps pipelines to multi-cloud architectures."}
                     </p>
                     <div className="flex flex-col gap-3 w-[220px]">
                         <a href="#cicd" className="btn-primary">View CI/CD Architecture →</a>
@@ -177,15 +191,15 @@ export const HeroDevOps: React.FC<{ userData: any }> = ({ userData }) => {
                         <canvas ref={canvasRef} id="hero-canvas-3d" className="w-full h-full" />
                     </div>
                     <div className="hero-stats grid grid-cols-2 gap-4 w-full">
-                        {[
-                            { val: "99.97%", label: "Uptime SLO", icon: <ShieldCheck size={14} /> },
-                            { val: "<4min", label: "Avg Deploy Time", icon: <Zap size={14} /> },
-                            { val: "8yrs", label: "Experience", icon: <History size={14} /> },
-                            { val: "3 CSPs", label: "AWS · GCP · Azure", icon: <Cloud size={14} /> }
-                        ].map((stat, i) => (
+                        {(data.stats || [
+                            { val: "99.97%", label: "Uptime SLO", icon: "shield" },
+                            { val: "<4min", label: "Avg Deploy Time", icon: "zap" },
+                            { val: "8yrs", label: "Experience", icon: "clock" },
+                            { val: "3 CSPs", label: "AWS · GCP · Azure", icon: "cloud" }
+                        ]).map((stat: any, i: number) => (
                             <div key={i} className="stat-chip bg-white/5 border border-[var(--t07-border-subtle)] rounded-lg p-4 flex flex-col gap-2 relative overflow-hidden group hover:border-[var(--t07-purple-bright)]/30 transition-colors">
                                 <div className="absolute top-2 right-2 text-[var(--t07-purple-bright)] opacity-40 group-hover:opacity-100 transition-opacity">
-                                    {stat.icon}
+                                    {getIcon(stat.icon)}
                                 </div>
                                 <span className="stat-value font-mono text-2xl text-[var(--t07-purple-bright)] block">{stat.val}</span>
                                 <span className="stat-label text-[11px] text-[var(--t07-text-muted)] tracking-wider uppercase mt-1">{stat.label}</span>

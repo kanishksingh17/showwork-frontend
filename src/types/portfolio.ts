@@ -59,6 +59,8 @@ export interface PortfolioSection {
   | "contact"
   | "resume"
   | "footer"
+  | "blogs"
+  | "activity"
   | "testimonials";
   title: string;
   content: string;

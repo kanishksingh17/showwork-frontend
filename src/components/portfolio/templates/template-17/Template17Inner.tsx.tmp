@@ -1,0 +1,36 @@
+import React, { useEffect, useRef } from 'react';
+import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
+
+export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+    const rootRef = useRef<HTMLDivElement>(null);
+    const outRef = useRef<HTMLDivElement>(null);
+    const inpRef = useRef<HTMLInputElement>(null);
+    const bootRef = useRef<HTMLDivElement>(null);
+    const termRef = useRef<HTMLDivElement>(null);
+    const psPathRef = useRef<HTMLSpanElement>(null);
+    const tbLabelRef = useRef<HTMLSpanElement>(null);
+    const hasBooted = useRef(false);
+    const isBooting = useRef(false);
+    const nameRef = useRef('');
+    const bootMsgRef = useRef('');
+    const S = useRef<{ cwd: string; hist: string[]; hIdx: number } | null>(null);
+
+    // ── Bind to Redux Sections for real-time editing ───────────────────────
+    const h = (str: any) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
+    const resumeSection = sections?.find(s => s.id === 'resume')?.customData || {};
+    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
+    const cliData = sections?.find(s => s.variant === 'HeroCLI' || s.id === 'about')?.customData || {};
+
+    // ── derive user info ────────────────────────────────────────────────────
+    const name = aboutSection.name || userData?.name || 'developer';
+    const slug = cliData.userSlug || name.toLowerCase().replace(/\s+/g, '');
+    const host = cliData.hostname || 'system';
+
+    // Sync refs for the boot effect
+    nameRef.current = name;
+    bootMsgRef.current = cliData.bootMessage || "Portfolio v1.0";
+
+    const email = aboutSection.email || userData?.email || `${slug}@dev.io`;

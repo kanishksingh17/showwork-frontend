@@ -115,6 +115,7 @@ export const UnifiedSidebar: React.FC<UnifiedSidebarProps> = ({
           if (item.id === 'showcase') return { ...item, path: "/demo-showcase" };
           if (item.id === 'content') return { ...item, path: "/demo-content" };
           if (item.id === 'analytics') return { ...item, path: "/demo-analytics" };
+          if (item.id === 'resume') return { ...item, path: "/demo-resume" };
           return item;
         })
     })).filter(group => group.items.length > 0)

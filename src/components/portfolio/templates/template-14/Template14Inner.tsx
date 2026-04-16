@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     useEffect(() => {
         // Add Inter font if not present
         const link = document.createElement('link');
@@ -13,20 +14,31 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         };
     }, []);
 
+    // Bind to Redux Sections for real-time editing
+    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
+    const resumeSection = sections?.find(s => s.id === 'resume')?.customData || {};
+    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
+
     const name = userData?.name || 'Alex Chen';
     const handle = userData?.username || userData?.name?.toLowerCase().replace(/\s+/g, '') || 'alexchen';
     const avatar = userData?.avatar || userData?.profileImage || 'https://github.com/github.png';
-    const bio = userData?.bio || 'Open Source Maintainer · Building tools for the developer community since 2015';
-    const tagline = userData?.tagline || bio;
-    const location = userData?.location || 'San Francisco, CA';
-    const website = userData?.website || userData?.portfolioUrl || 'alexchen.dev';
+    
+    // Bio and Tagline from customData or userData
+    const headline = aboutSection.headline || userData?.headline || 'Creative Developer';
+    const bio = aboutSection.bio || userData?.bio || 'Open Source Maintainer · Building tools for the developer community since 2015';
+    const tagline = aboutSection.tagline || userData?.tagline || bio;
+    
+    const location = aboutSection.location || userData?.location || 'San Francisco, CA';
+    const website = aboutSection.website || userData?.website || userData?.portfolioUrl || 'alexchen.dev';
     const twitter = userData?.twitter || (userData?.socialLinks?.twitter as string) || '@alexchen_oss';
-    const company = userData?.company || 'OSS Foundation / Independent';
+    const company = aboutSection.company || userData?.company || 'OSS Foundation / Independent';
 
-    const skills = userData?.skills || ['JavaScript', 'TypeScript', 'Python', 'Go', 'Java'];
-    const followers = userData?.followersCount || '2.4k';
-    const following = userData?.followingCount || '318';
-    const stars = userData?.starsCount || '15.2k';
+    const skills = skillsSection.techSlugs || userData?.skills || ['JavaScript', 'TypeScript', 'Python', 'Go', 'Java'];
+    
+    // Metrics from resume section customData
+    const followers = resumeSection.metrics?.find((m: any) => m.label.toLowerCase().includes('follower'))?.value || '2.4k';
+    const following = resumeSection.metrics?.find((m: any) => m.label.toLowerCase().includes('following'))?.value || '318';
+    const stars = resumeSection.metrics?.find((m: any) => m.label.toLowerCase().includes('star'))?.value || '15.2k';
 
     // GitHub Language Colors (simplified)
     const langColors: Record<string, string> = {
@@ -284,66 +296,76 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <div className="template-14-layout">
                 {/* SIDEBAR */}
                 <aside className="template-14-sidebar">
-                    <div className="template-14-avatar-wrap">
-                        <div className="template-14-avatar">
-                            {avatar ? <img src={avatar} alt={name} /> : '🧑💻'}
+                    <EditableBlock id="about">
+                        <div className="template-14-avatar-wrap">
+                            <div className="template-14-avatar">
+                                {avatar ? <img src={avatar} alt={name} /> : '🧑💻'}
+                            </div>
+                            <div className="template-14-status-badge">
+                                <span className="template-14-status-dot"></span>
+                                Open to collaborate
+                            </div>
                         </div>
-                        <div className="template-14-status-badge">
-                            <span className="template-14-status-dot"></span>
-                            Open to collaborate
-                        </div>
-                    </div>
 
-                    <div className="template-14-profile-name">{name}</div>
-                    <div className="template-14-profile-handle">{handle}</div>
-                    <div className="template-14-profile-tagline">{bio}</div>
+                        <div className="template-14-profile-name">{name}</div>
+                        <div className="template-14-profile-handle">{handle}</div>
+                        <div className="template-14-profile-tagline">{bio}</div>
+                    </EditableBlock>
 
                     <button className="template-14-btn-green">♥ Sponsor</button>
                     <button className="template-14-btn-outline">👥 Follow</button>
 
-                    <div className="template-14-follow-stats">
-                        <span><a>{followers}</a> followers</span>
-                        <span>·</span>
-                        <span><a>{following}</a> following</span>
-                        <span>·</span>
-                        <span>⭐ <strong>{stars}</strong></span>
-                    </div>
-
-                    <hr className="template-14-sidebar-divider" />
-
-                    <div className="template-14-sidebar-section">
-                        <div className="template-14-sidebar-item"><span>🏢</span> {company}</div>
-                        <div className="template-14-sidebar-item"><span>📍</span> {location}</div>
-                        <div className="template-14-sidebar-item"><span>🔗</span> <a href={`https://${website}`}>{website}</a></div>
-                        {twitter && <div className="template-14-sidebar-item"><span>𝕏</span> <a href="#">{twitter}</a></div>}
-                    </div>
-
-                    <hr className="template-14-sidebar-divider" />
-
-                    <div className="template-14-sidebar-section">
-                        <div className="template-14-sidebar-label">Achievements</div>
-                        <div className="flex gap-2 flex-wrap">
-                            <span className="text-xl" title="Arctic Code Vault">🧊</span>
-                            <span className="text-xl" title="Pull Shark">🦈</span>
-                            <span className="text-xl" title="Starstruck">⭐</span>
-                            <span className="text-xl" title="Pair Extraordinaire">👥</span>
-                            <span className="text-xl" title="YOLO">🎉</span>
+                    <EditableBlock id="resume">
+                        <div className="template-14-follow-stats">
+                            <span><a>{followers}</a> followers</span>
+                            <span>·</span>
+                            <span><a>{following}</a> following</span>
+                            <span>·</span>
+                            <span>⭐ <strong>{stars}</strong></span>
                         </div>
-                    </div>
+                    </EditableBlock>
 
                     <hr className="template-14-sidebar-divider" />
 
-                    <div className="template-14-sidebar-section">
-                        <div className="template-14-sidebar-label">Primary Languages</div>
-                        <div className="flex flex-wrap gap-2 mt-2">
-                            {skills.map((skill: string) => (
-                                <span key={skill} className="flex items-center gap-1.5 px-2.5 py-1 border border-[#30363D] rounded-full text-[11px] bg-[#1C2128]">
-                                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getLangColor(skill) }}></span>
-                                    {skill}
-                                </span>
-                            ))}
+                    <EditableBlock id="about">
+                        <div className="template-14-sidebar-section">
+                            <div className="template-14-sidebar-item"><span>🏢</span> {company}</div>
+                            <div className="template-14-sidebar-item"><span>📍</span> {location}</div>
+                            <div className="template-14-sidebar-item"><span>🔗</span> <a href={`https://${website}`}>{website}</a></div>
+                            {twitter && <div className="template-14-sidebar-item"><span>𝕏</span> <a href="#">{twitter}</a></div>}
                         </div>
-                    </div>
+                    </EditableBlock>
+
+                    <hr className="template-14-sidebar-divider" />
+
+                    <EditableBlock id="resume">
+                        <div className="template-14-sidebar-section">
+                            <div className="template-14-sidebar-label">Achievements</div>
+                            <div className="flex gap-2 flex-wrap">
+                                <span className="text-xl" title="Arctic Code Vault">🧊</span>
+                                <span className="text-xl" title="Pull Shark">🦈</span>
+                                <span className="text-xl" title="Starstruck">⭐</span>
+                                <span className="text-xl" title="Pair Extraordinaire">👥</span>
+                                <span className="text-xl" title="YOLO">🎉</span>
+                            </div>
+                        </div>
+                    </EditableBlock>
+
+                    <hr className="template-14-sidebar-divider" />
+
+                    <EditableBlock id="skills">
+                        <div className="template-14-sidebar-section">
+                            <div className="template-14-sidebar-label">Primary Languages</div>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                {skills.map((skill: string) => (
+                                    <span key={skill} className="flex items-center gap-1.5 px-2.5 py-1 border border-[#30363D] rounded-full text-[11px] bg-[#1C2128]">
+                                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: getLangColor(skill) }}></span>
+                                        {skill}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    </EditableBlock>
                 </aside>
 
                 {/* MAIN */}
@@ -358,9 +380,9 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     </nav>
 
                     {/* HERO BIO */}
-                    <div className="template-14-hero-bio">
-                        <div className="text-xs text-[#8B949E] mb-1">Hi, I'm {name.split(' ')[0]} 👋</div>
-                        <h1 className="template-14-hero-title">Maintaining Tools Used<br />by Thousands of Developers</h1>
+                    <EditableBlock id="about" className="template-14-hero-bio">
+                        <div className="text-xs text-[#8B949E] mb-1">Hi, I me {name.split(' ')[0]} 👋</div>
+                        <h1 className="template-14-hero-title">{headline}</h1>
 
                         <div className="template-14-hero-cta-row">
                             <button className="template-14-hero-btn-primary">📁 View Repositories</button>
@@ -371,27 +393,22 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                         <div className="text-sm leading-relaxed text-[#8B949E] border-t border-[#21262D] pt-4">
                             <p>{tagline}</p>
                         </div>
-                    </div>
+                    </EditableBlock>
 
                     {/* METRICS */}
-                    <div className="template-14-metrics-strip">
-                        <div className="template-14-metric-card">
-                            <span className="template-14-metric-val"><span className="accent">{stars}</span></span>
-                            <span className="text-[11px] text-[#8B949E]">Stars across repos</span>
-                        </div>
-                        <div className="template-14-metric-card">
-                            <span className="template-14-metric-val"><span className="accent">1.2M</span></span>
-                            <span className="text-[11px] text-[#8B949E]">Weekly downloads</span>
-                        </div>
-                        <div className="template-14-metric-card">
-                            <span className="template-14-metric-val"><span className="accent">3k+</span></span>
-                            <span className="text-[11px] text-[#8B949E]">Issues resolved</span>
-                        </div>
-                        <div className="template-14-metric-card">
-                            <span className="template-14-metric-val"><span className="accent">200+</span></span>
-                            <span className="text-[11px] text-[#8B949E]">Contributors</span>
-                        </div>
-                    </div>
+                    <EditableBlock id="resume" className="template-14-metrics-strip" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+                        {(resumeSection.metrics || [
+                            { label: 'Stars across repos', value: stars },
+                            { label: 'Weekly downloads', value: '1.2M' },
+                            { label: 'Issues resolved', value: '3k+' },
+                            { label: 'Contributors', value: '200+' }
+                        ]).slice(0, 4).map((metric: any, idx: number) => (
+                            <div key={idx} className="template-14-metric-card">
+                                <span className="template-14-metric-val"><span className="accent">{metric.value}</span></span>
+                                <span className="text-[11px] text-[#8B949E]">{metric.label}</span>
+                            </div>
+                        ))}
+                    </EditableBlock>
 
                     {/* PINNED REPOS */}
                     <div className="flex items-center justify-between mb-3">
@@ -405,25 +422,27 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             { title: 'schema-forge', description: 'Runtime schema validation with TypeScript inference.', stars: '5.1k', tech: 'TypeScript' },
                             { title: 'clide', description: 'Ergonomic CLI framework for Node.js with help generation.', stars: '1.9k', tech: 'JavaScript' }
                         ]).slice(0, 4).map((project: any, i: number) => (
-                            <div key={i} className="template-14-repo-card">
-                                <div className="flex items-center gap-2">
-                                    <span className="material-icons-outlined text-[#8B949E]" style={{ fontSize: '14px' }}>inventory_2</span>
-                                    <span className="template-14-repo-name truncate">{project.title}</span>
+                            <EditableBlock key={i} id="projects">
+                                <div className="template-14-repo-card h-full">
+                                    <div className="flex items-center gap-2">
+                                        <span className="material-icons-outlined text-[#8B949E]" style={{ fontSize: '14px' }}>inventory_2</span>
+                                        <span className="template-14-repo-name truncate">{project.title}</span>
+                                    </div>
+                                    <p className="text-xs text-[#8B949E] line-clamp-2 flex-grow">{project.description}</p>
+                                    <div className="flex items-center gap-4 text-xs text-[#8B949E] mt-auto">
+                                        <span className="flex items-center gap-1">
+                                            <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getLangColor(project.tech || 'TypeScript') }}></span>
+                                            {project.tech || 'TypeScript'}
+                                        </span>
+                                        <span className="flex items-center gap-1">⭐ {project.stars || '0'}</span>
+                                    </div>
                                 </div>
-                                <p className="text-xs text-[#8B949E] line-clamp-2 flex-grow">{project.description}</p>
-                                <div className="flex items-center gap-4 text-xs text-[#8B949E]">
-                                    <span className="flex items-center gap-1">
-                                        <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getLangColor(project.tech || 'TypeScript') }}></span>
-                                        {project.tech || 'TypeScript'}
-                                    </span>
-                                    <span className="flex items-center gap-1">⭐ {project.stars || '0'}</span>
-                                </div>
-                            </div>
+                            </EditableBlock>
                         ))}
                     </div>
 
                     {/* CONTRIBUTION GRAPH */}
-                    <div className="template-14-contrib-section">
+                    <EditableBlock id="resume" className="template-14-contrib-section">
                         <div className="flex justify-between items-center mb-4 text-sm text-[#C9D1D9]">
                             <span><span className="font-semibold">2,847 contributions</span> in the last year</span>
                             <a className="text-xs">Contribution settings</a>
@@ -452,7 +471,7 @@ export const Template14Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="template-14-contrib-day l4" />
                             More
                         </div>
-                    </div>
+                    </EditableBlock>
 
                     {/* ACTIVITY GRID */}
                     <div className="template-14-activity-grid">

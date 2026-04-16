@@ -10,6 +10,7 @@ import { ProjectsPage } from './components/ProjectsPage';
 import { AboutPage } from './components/AboutPage';
 import { APIPage } from './components/APIPage';
 import { ContactPage } from './components/ContactPage';
+import { EditableBlock } from '../../editor/EditableBlock';
 import './template-05.css';
 
 /**
@@ -60,37 +61,67 @@ export const Template05Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <main>
                 {activePage === 'home' && (
                     <>
-                        <AsyncyHero />
-                        <PlatformPillars />
-                        <Philosophy />
-                        <LaptopSection />
-                        <JourneyRoadmap />
-                        <CloudPartnerLogos />
+                        <EditableBlock id="about">
+                            <AsyncyHero />
+                        </EditableBlock>
+                        <EditableBlock id="skills">
+                            <PlatformPillars />
+                        </EditableBlock>
+                        <EditableBlock id="about">
+                            <Philosophy />
+                        </EditableBlock>
+                        <EditableBlock id="resume">
+                            <LaptopSection />
+                        </EditableBlock>
+                        <EditableBlock id="resume">
+                            <JourneyRoadmap />
+                        </EditableBlock>
+                        <EditableBlock id="about">
+                            <CloudPartnerLogos />
+                        </EditableBlock>
                     </>
                 )}
 
-                {activePage === 'about' && <AboutPage userData={userData} />}
-                {activePage === 'projects' && <ProjectsPage projects={projects} />}
-                {activePage === 'api' && <APIPage />}
-                {activePage === 'contact' && <ContactPage userData={userData} />}
+                {activePage === 'about' && (
+                    <EditableBlock id="about">
+                        <AboutPage userData={userData} />
+                    </EditableBlock>
+                )}
+                {activePage === 'projects' && (
+                    <EditableBlock id="projects">
+                        <ProjectsPage projects={projects} />
+                    </EditableBlock>
+                )}
+                {activePage === 'api' && (
+                    <EditableBlock id="resume">
+                        <APIPage />
+                    </EditableBlock>
+                )}
+                {activePage === 'contact' && (
+                    <EditableBlock id="contact">
+                        <ContactPage userData={userData} />
+                    </EditableBlock>
+                )}
             </main>
 
             {/* Simple Technical Footer */}
-            <footer className="py-12 border-t border-[var(--t05-line)] bg-white/40">
-                <div className="max-w-[1400px] mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex flex-col gap-1">
-                        <span className="text-[var(--t05-ink)] font-bold font-mono text-[10px] uppercase tracking-widest">Architect.io</span>
-                        <span className="text-[var(--t05-ink)]/40 font-mono text-[9px] uppercase tracking-[0.2em]">© 2026 Core Infrastructure Systems</span>
+            <EditableBlock id="footer">
+                <footer className="py-12 border-t border-[var(--t05-line)] bg-white/40">
+                    <div className="max-w-[1400px] mx-auto px-10 flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[var(--t05-ink)] font-bold font-mono text-[10px] uppercase tracking-widest">Architect.io</span>
+                            <span className="text-[var(--t05-ink)]/40 font-mono text-[9px] uppercase tracking-[0.2em]">© 2026 Core Infrastructure Systems</span>
+                        </div>
+                        <div className="flex gap-10">
+                            {['Network', 'Security', 'Compliance'].map(item => (
+                                <span key={item} className="text-[var(--t05-ink)]/40 font-mono text-[9px] uppercase tracking-widest hover:text-[var(--t05-accent)] cursor-pointer transition-colors">
+                                    {item}
+                                </span>
+                            ))}
+                        </div>
                     </div>
-                    <div className="flex gap-10">
-                        {['Network', 'Security', 'Compliance'].map(item => (
-                            <span key={item} className="text-[var(--t05-ink)]/40 font-mono text-[9px] uppercase tracking-widest hover:text-[var(--t05-accent)] cursor-pointer transition-colors">
-                                {item}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-            </footer>
+                </footer>
+            </EditableBlock>
         </div>
     );
 };

@@ -1,27 +1,36 @@
 import React, { useEffect, useRef } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const radialRef = useRef<SVGGElement>(null);
     const heroSectionRef = useRef<HTMLElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
 
-    const displayName = userData?.name || 'Research Engineer';
+    // ── Bind to Redux Sections for real-time editing ───────────────────────
+    const aboutSection = sections.find(s => s.id === 'about')?.customData || {};
+    const resumeSection = sections.find(s => s.id === 'resume')?.customData || {};
+    const skillsSection = sections.find(s => s.id === 'skills')?.customData || {};
+    const researchData = sections.find(s => s.variant === 'HeroResearch' || s.id === 'about')?.customData || {};
+
+    const displayName = aboutSection.name || userData?.name || 'Research Engineer';
     void displayName; // referenced via userData fallbacks below
-    const role = userData?.role || 'ML Research Engineer';
+    const role = aboutSection.headline || userData?.role || 'ML Research Engineer';
     const bio =
+        aboutSection.bio ||
         userData?.tagline ||
         userData?.bio ||
         'ML research engineer focused on reproducing, scaling, and deploying state-of-the-art models. Founded on rigorous empiricism, led by measurable results.';
-    const email = userData?.email || 'research@ml.dev';
-    const location = userData?.location || 'Bengaluru, IN';
+    const email = aboutSection.email || userData?.email || 'research@ml.dev';
+    const location = aboutSection.location || userData?.location || 'Bengaluru, IN';
 
-    const papersReproduced = userData?.metadata?.papersReproduced || '12';
-    const modelsDeployed = userData?.metadata?.modelsDeployed || '4';
-    const reproductionAccuracy = userData?.metadata?.reproductionAccuracy || '95';
-    const conferenceSubmissions = userData?.metadata?.conferenceSubmissions || '3';
+    const metricsFromStore = researchData.metrics || resumeSection.metrics || [];
+    const papersReproduced = researchData.metric1Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('paper'))?.value || '12';
+    const modelsDeployed = researchData.metric2Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('model'))?.value || '4';
+    const reproductionAccuracy = researchData.metric3Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('accuracy'))?.value || '95';
+    const conferenceSubmissions = researchData.metric4Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('conference'))?.value || '3';
 
-    const skills: string[] = userData?.skills || ['PyTorch', 'TensorFlow', 'JAX', 'Hugging Face', 'CUDA'];
+    const skills: string[] = skillsSection.techSlugs || userData?.skills || ['PyTorch', 'TensorFlow', 'JAX', 'Hugging Face', 'CUDA'];
 
     const stackIcons: Record<string, string> = {
         PyTorch: '🔥', TensorFlow: '🌊', JAX: '⚡', 'Hugging Face': '🤗', CUDA: '🖥️',
@@ -540,12 +549,15 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     ))}
                 </div>
 
-                <div className="t16-hero-title t16-reveal t16-d1">
-                    Research-Driven<br />Machine Learning<br />Systems
-                </div>
-                <div className="t16-hero-loc t16-reveal t16-d2">
-                    {location} /<br />Ready to Work
-                </div>
+                <EditableBlock id="about">
+                    <div className="t16-hero-title t16-reveal t16-d1">
+                        {researchData.title?.split('\n').map((line: string, i: number) => <React.Fragment key={i}>{line}<br /></React.Fragment>) || 
+                         <>Research-Driven<br />Machine Learning<br />Systems</>}
+                    </div>
+                    <div className="t16-hero-loc t16-reveal t16-d2">
+                        {researchData.location || location} /<br />{researchData.status || "Ready to Work"}
+                    </div>
+                </EditableBlock>
             </section>
 
             {/* ══ SECTION 2 — ABOUT + PROJECT GRID ══ */}
@@ -565,24 +577,26 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
                 <div className="t16-project-grid">
                     {dispProjects.map((p: any, i: number) => (
-                        <div key={i} className={`t16-project-card t16-reveal t16-d${i + 1}`}>
-                            <div className="t16-card-meta">
-                                <span className="t16-card-tag">{(p.tags || ['ML', 'RESEARCH']).join(' · ')}</span>
-                                <span className="t16-card-year">{p.year || '2024'}</span>
-                                <span style={{ fontSize: '12px', color: '#7A7A7A' }}>↳</span>
-                            </div>
-                            <div className="t16-card-preview">
-                                <div className="t16-preview-dark">
-                                    <span className="t16-cmt"># {p.title || 'Research Project'}</span><br />
-                                    <span className="t16-kw">model</span> = <span className="t16-str">"{role}"</span><br />
-                                    <span className="t16-cmt">{'# ' + (p.description || '').slice(0, 60) + '...'}</span><br />
-                                    <br />
-                                    status: <span className="t16-fn">REPRODUCED</span><br />
-                                    year: <span className="t16-num">{p.year || '2024'}</span><span className="t16-cursor"></span>
-                                    <div className="t16-metric-line">{p.metric || '✓ Verified'}</div>
+                        <EditableBlock key={i} id="projects">
+                            <div className={`t16-project-card h-full t16-reveal t16-d${i + 1}`}>
+                                <div className="t16-card-meta">
+                                    <span className="t16-card-tag">{(p.tags || ['ML', 'RESEARCH']).join(' · ')}</span>
+                                    <span className="t16-card-year">{p.year || '2024'}</span>
+                                    <span style={{ fontSize: '12px', color: '#7A7A7A' }}>↳</span>
+                                </div>
+                                <div className="t16-card-preview">
+                                    <div className="t16-preview-dark">
+                                        <span className="t16-cmt"># {p.title || 'Research Project'}</span><br />
+                                        <span className="t16-kw">model</span> = <span className="t16-str">"{role}"</span><br />
+                                        <span className="t16-cmt">{'# ' + (p.description || '').slice(0, 60) + '...'}</span><br />
+                                        <br />
+                                        status: <span className="t16-fn">REPRODUCED</span><br />
+                                        year: <span className="t16-num">{p.year || '2024'}</span><span className="t16-cursor"></span>
+                                        <div className="t16-metric-line">{p.metric || '✓ Verified'}</div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </EditableBlock>
                     ))}
                 </div>
 
@@ -594,19 +608,23 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
             {/* ══ SECTION 3 — BIG STATEMENT ══ */}
             <section id="t16-statement" className="t16-section" style={{ padding: '80px 32px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <p className="t16-statement-text t16-reveal">
-                    I reproduce landmark ML papers and scale
-                    them to production. Rigorous benchmarking,
-                    clean ablations, and reproducible code.{' '}
-                    <span className="t16-dim">Research without deployment
-                        is just theory. Theory without rigor
-                        isn't research at all.</span>
-                </p>
+                <EditableBlock id="about" className="t16-statement-text t16-reveal">
+                    {researchData.statement || (
+                        <>
+                            I reproduce landmark ML papers and scale
+                            them to production. Rigorous benchmarking,
+                            clean ablations, and reproducible code.{' '}
+                            <span className="t16-dim">Research without deployment
+                                is just theory. Theory without rigor
+                                isn't research at all.</span>
+                        </>
+                    )}
+                </EditableBlock>
 
-                <div className="t16-stat-block t16-reveal t16-d2">
+                <EditableBlock id="resume" className="t16-stat-block t16-reveal t16-d2">
                     <div className="t16-stat-num" data-target={papersReproduced}>0</div>
                     <div className="t16-stat-label">Papers Reproduced</div>
-                </div>
+                </EditableBlock>
             </section>
 
             {/* ══ SECTION 4 — RIGOR ══ */}
@@ -715,13 +733,13 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
             {/* ══ SECTION 7 — METRICS ══ */}
             <section id="t16-metrics" className="t16-section" style={{ background: '#EDECEA', padding: '80px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <p className="t16-metrics-statement t16-reveal">
+                <EditableBlock id="resume" className="t16-metrics-statement t16-reveal">
                     {papersReproduced} papers reproduced with verified accuracy.
                     {modelsDeployed} models deployed to production. {reproductionAccuracy}% best-in-class
                     reproduction fidelity. <span className="t16-dim">{conferenceSubmissions} conference
                         submissions accepted. Research spanning foundational models,
                         diffusion systems, and alignment.</span>
-                </p>
+                </EditableBlock>
 
                 <div className="t16-metrics-row">
                     {[
@@ -730,26 +748,28 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                         { target: reproductionAccuracy, suffix: '%', label: 'Best Accuracy\nReproduction', delay: 't16-d3' },
                         { target: conferenceSubmissions, label: 'Conference\nSubmissions', delay: 't16-d4' },
                     ].map((m, i) => (
-                        <div key={i} className={`t16-metric-cell t16-reveal ${m.delay}`}>
+                        <EditableBlock key={i} id="resume" className={`t16-metric-cell t16-reveal ${m.delay}`}>
                             <div className="t16-metric-big" data-target={m.target} data-suffix={m.suffix || ''}>0{m.suffix || ''}</div>
                             <div className="t16-metric-caption">{m.label.split('\n').map((l, j) => <React.Fragment key={j}>{l}{j === 0 && <br />}</React.Fragment>)}</div>
-                        </div>
+                        </EditableBlock>
                     ))}
                 </div>
             </section>
 
             {/* ══ SECTION 8 — STACK ══ */}
             <section id="t16-stack" className="t16-section">
-                <h2 className="t16-stack-heading t16-reveal">
+                <EditableBlock id="skills" className="t16-stack-heading t16-reveal">
                     The frameworks<br />that make it real.
-                </h2>
+                </EditableBlock>
 
                 <div className="t16-stack-grid">
                     {(skills.length >= 5 ? skills.slice(0, 5) : ['PyTorch', 'TensorFlow', 'JAX', 'Hugging Face', 'CUDA']).map((s: string, i: number) => (
-                        <div key={i} className="t16-stack-cell">
-                            <div className="t16-stack-icon">{stackIcons[s] || '🔬'}</div>
-                            <div className="t16-stack-name">{s}</div>
-                        </div>
+                        <EditableBlock key={i} id="skills">
+                            <div className="t16-stack-cell h-full">
+                                <div className="t16-stack-icon">{stackIcons[s] || '🔬'}</div>
+                                <div className="t16-stack-name">{s}</div>
+                            </div>
+                        </EditableBlock>
                     ))}
                 </div>
             </section>

@@ -39,6 +39,13 @@ const getTechIcon = (tags: string[], title: string = "") => {
 };
 
 export function ProjectCard({ project, titleAs }: { project: any, titleAs?: keyof JSX.IntrinsicElements }) {
+    const [imageFailed, setImageFailed] = React.useState(false);
+
+    // Reset failure state when the image URL changes
+    React.useEffect(() => {
+        setImageFailed(false);
+    }, [project.logo, project.imageUrl]);
+
     let Component = titleAs ?? 'h2';
     const displayDescription = smartTrim(project.description || project.description_short || "", ProjectCardContract);
     const tags = project.tags || (project.technologies?.map((t: any) => t.name || t)) || [];

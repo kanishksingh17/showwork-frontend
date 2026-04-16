@@ -9,8 +9,9 @@ import { Testimonials } from './components/Testimonials';
 import { Contact } from './components/Contact';
 import { Footer } from './components/Footer';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
+import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const defaultData = {
         personalInfo: {
             fullName: 'Marcus Chen',
@@ -21,6 +22,7 @@ export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
     const portfolioData = userData || defaultData;
     const name = portfolioData.personalInfo?.fullName || 'Marcus Chen';
+    const mobileHeroData = sections.find(s => s.variant === 'HeroMobile' || s.id === 'about')?.customData || {};
 
     // Intersection Observer for fade-in animations
     const containerRef = useRef<HTMLDivElement>(null);
@@ -55,15 +57,31 @@ export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     return (
         <div className="template-10" ref={containerRef}>
             <div className="page-frame">
-                <Hero name={name} />
-                <TechStack />
-                <Apps />
-                <Metrics />
-                <Process />
-                <Testimonials />
-                <Contact />
+                <EditableBlock id="about">
+                    <Hero name={name} mobileData={mobileHeroData} />
+                </EditableBlock>
+                <EditableBlock id="skills">
+                    <TechStack />
+                </EditableBlock>
+                <EditableBlock id="projects">
+                    <Apps />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <Metrics />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <Process />
+                </EditableBlock>
+                <EditableBlock id="about">
+                    <Testimonials />
+                </EditableBlock>
+                <EditableBlock id="contact">
+                    <Contact />
+                </EditableBlock>
             </div>
-            <Footer name={name} />
+            <EditableBlock id="footer">
+                <Footer name={name} />
+            </EditableBlock>
         </div>
     );
 };

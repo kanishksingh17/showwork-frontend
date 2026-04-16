@@ -5,7 +5,7 @@ import { Layers, Container, ShieldCheck, Globe } from 'lucide-react';
 export const CloudDiagramDevOps: React.FC = () => {
     return (
         <section id="cloud">
-            <div className="section-inner w-[min(1100px,95vw)] grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
+            <div className="section-inner w-full max-w-5xl grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     whileInView={{ opacity: 1, x: 0 }}

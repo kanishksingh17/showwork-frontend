@@ -31,7 +31,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
     const showSkills = sections.find(s => s.type === 'skills')?.isVisible ?? true;
     const showProjects = sections.find(s => s.type === 'projects')?.isVisible ?? true;
     const showResume = sections.find(s => s.type === 'resume')?.isVisible ?? true;
-    const showBlogs = sections.find(s => s.type === 'header')?.isVisible ?? true;
+    const showBlogs = sections.find(s => s.type === 'blogs')?.isVisible ?? true;
     const showActivity = sections.find(s => s.type === 'contact')?.isVisible ?? true;
     const showFooter = sections.find(s => s.type === 'footer')?.isVisible ?? true;
 
@@ -195,7 +195,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
         ? skillsSection.customData.techSlugs
         : isPreviewMode ? combinedSlugs : userTechSlugs;
 
-    const blogsSection = sections.find(s => s.type === 'header');
+    const blogsSection = sections.find(s => s.type === 'blogs');
 
     // Real github repos, or fallback in preview
     const realGithubProjects = allProjects.filter((p: any) => p.isGithubRepo || p.githubUrl);
@@ -239,7 +239,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                 </div>
             ) : (
                 <EmptySectionCard
-                    sectionId="header"
+                    sectionId="blogs"
                     icon={<BookOpen className="w-6 h-6" />}
                     title="No blog posts linked"
                     description="Paste URLs of your Medium, Hashnode, or Dev.to articles in the block settings."
@@ -419,7 +419,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                             {/* left column - blogs */}
                             {showBlogs && (
                                 <div className="lg:pr-8">
-                                    <EditableBlock id="header" className="flex flex-col gap-6">
+                                    <EditableBlock id="blogs" className="flex flex-col gap-6">
                                         {renderBlogsCore()}
                                     </EditableBlock>
                                 </div>

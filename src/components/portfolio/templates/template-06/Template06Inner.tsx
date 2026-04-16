@@ -10,9 +10,10 @@ import { SecuritySection } from './components/SecuritySection';
 import { ToolingSection } from './components/ToolingSection';
 import { ThoughtLeadershipSection } from './components/ThoughtLeadershipSection';
 import { AdvisorySection } from './components/AdvisorySection';
+import { EditableBlock } from '../../editor/EditableBlock';
 import './template-06.css';
 
-export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
     const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
     const [isHovering, setIsHovering] = useState(false);
     const [activeSection, setActiveSection] = useState('hero');
@@ -71,6 +72,8 @@ export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         };
     }, []);
 
+    const architectHeroData = sections.find(s => s.variant === 'HeroArchitectural' || s.id === 'about')?.customData || {};
+
     return (
         <div className="template-06 selection:bg-[var(--t06-accent)] selection:text-white cursor-none">
             {/* Architectural Custom Cursor */}
@@ -115,33 +118,53 @@ export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             </div>
 
             <main className="flex flex-col gap-24">
-                <HeroPrincipal userData={userData} onScrollTo={scrollTo} />
-                <PhilosophySection />
-                <CaseStudiesSection projects={projects} />
-                <PatternsSection />
-                <ScalabilitySection />
-                <SecuritySection />
-                <ToolingSection />
-                <ThoughtLeadershipSection />
-                <AdvisorySection />
+                <EditableBlock id="about">
+                    <HeroPrincipal userData={userData} heroData={architectHeroData} onScrollTo={scrollTo} />
+                </EditableBlock>
+                <EditableBlock id="about">
+                    <PhilosophySection />
+                </EditableBlock>
+                <EditableBlock id="projects">
+                    <CaseStudiesSection projects={projects} />
+                </EditableBlock>
+                <EditableBlock id="skills">
+                    <PatternsSection />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <ScalabilitySection />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <SecuritySection />
+                </EditableBlock>
+                <EditableBlock id="resume">
+                    <ToolingSection />
+                </EditableBlock>
+                <EditableBlock id="blogs">
+                    <ThoughtLeadershipSection />
+                </EditableBlock>
+                <EditableBlock id="contact">
+                    <AdvisorySection />
+                </EditableBlock>
             </main>
 
-            <footer className="py-10 bg-[#f7f6f4] border-t border-[var(--t06-line)]">
-                <div className="max-w-[1360px] mx-auto px-14 flex justify-between items-center">
-                    <div className="font-mono text-[10px] tracking-widest text-[var(--t06-mid)]">© 2025 {userData?.name || 'Rustam Mamedov'} — Principal Cloud Architect</div>
-                    <div className="flex gap-8">
-                        {['LinkedIn', 'GitHub', 'Writing'].map(link => (
-                            <button
-                                key={link}
-                                onClick={link === 'Writing' ? () => scrollTo('writing') : undefined}
-                                className="font-mono text-[10px] uppercase tracking-widest text-[var(--t06-mid)] hover:text-[var(--t06-accent)] transition-colors cursor-pointer"
-                            >
-                                {link}
-                            </button>
-                        ))}
+            <EditableBlock id="footer">
+                <footer className="py-10 bg-[#f7f6f4] border-t border-[var(--t06-line)]">
+                    <div className="max-w-[1360px] mx-auto px-14 flex justify-between items-center">
+                        <div className="font-mono text-[10px] tracking-widest text-[var(--t06-mid)]">© 2025 {userData?.name || 'Rustam Mamedov'} — Principal Cloud Architect</div>
+                        <div className="flex gap-8">
+                            {['LinkedIn', 'GitHub', 'Writing'].map(link => (
+                                <button
+                                    key={link}
+                                    onClick={link === 'Writing' ? () => scrollTo('writing') : undefined}
+                                    className="font-mono text-[10px] uppercase tracking-widest text-[var(--t06-mid)] hover:text-[var(--t06-accent)] transition-colors cursor-pointer"
+                                >
+                                    {link}
+                                </button>
+                            ))}
+                        </div>
                     </div>
-                </div>
-            </footer>
+                </footer>
+            </EditableBlock>
         </div>
     );
 };
