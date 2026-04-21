@@ -152,7 +152,7 @@ const ShowcaseDashboard = ({
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [githubRepos, setGithubRepos] = useState<Project[]>([]);
-  const fetchGitHubReposRef = useRef<(existingProjects?: Project[]) => Promise<void>>(async () => {});
+  const fetchGitHubReposRef = useRef<(existingProjects?: Project[]) => Promise<void>>(async () => { });
 
   // Parallelize status check and project loading for faster initialization
   const fetchStatus = useCallback(async () => {
@@ -1313,26 +1313,42 @@ const ShowcaseDashboard = ({
                         <Package className="w-8 h-8 text-blue-600 dark:text-blue-400" />
                       </div>
                       <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                        Get started with your showcase
+                        {isGitHubConnected ? "GitHub Connected" : "Get started with your showcase"}
                       </h3>
                       <p className="text-gray-500 dark:text-gray-400 max-w-sm mb-8">
-                        Your professional portfolio is currently empty. Connect your GitHub account to import projects automatically or add your best work manually.
+                        {isGitHubConnected 
+                          ? "Your GitHub account is connected, but no projects have been imported yet. Sync your repositories to get started."
+                          : "Your professional portfolio is currently empty. Connect your GitHub account to import projects automatically or add your best work manually."}
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4">
-                        <Button
-                          onClick={() => {
-                            if (isDemo) {
-                              setIsLoginModalOpen(true);
-                              return;
-                            }
-                            // Trigger GitHub connect - navigate to integrations or directly to auth
-                            window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/github/connect`;
-                          }}
-                          className="bg-gray-900 hover:bg-black text-white px-8 h-11"
-                        >
-                          <Github className="w-4 h-4 mr-2" />
-                          Connect GitHub
-                        </Button>
+                        {isGitHubConnected ? (
+                          <Button
+                            onClick={() => fetchGitHubRepos()}
+                            disabled={isFetchingGithub}
+                            className={cn(
+                              "bg-blue-600 hover:bg-blue-700 text-white px-8 h-11 transition-all",
+                              isFetchingGithub && "opacity-80"
+                            )}
+                          >
+                            <RefreshCw className={cn("w-4 h-4 mr-2", isFetchingGithub && "animate-spin")} />
+                            {isFetchingGithub ? "Syncing Repositories..." : "Sync Repositories"}
+                          </Button>
+                        ) : (
+                          <Button
+                            onClick={() => {
+                              if (isDemo) {
+                                setIsLoginModalOpen(true);
+                                return;
+                              }
+                              // Trigger GitHub connect - navigate to integrations or directly to auth
+                              window.location.href = `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/auth/github/connect`;
+                            }}
+                            className="bg-gray-900 hover:bg-black text-white px-8 h-11"
+                          >
+                            <Github className="w-4 h-4 mr-2" />
+                            Connect GitHub
+                          </Button>
+                        )}
                         <Button
                           variant="outline"
                           onClick={() => {

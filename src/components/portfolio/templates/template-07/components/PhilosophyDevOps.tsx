@@ -2,7 +2,19 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { HardDrive, ShieldAlert, Eye } from 'lucide-react';
 
-export const PhilosophyDevOps: React.FC = () => {
+export const PhilosophyDevOps: React.FC<{ data?: any }> = ({ data }) => {
+    const philData = {
+        num: data?.num || "01 / Philosophy",
+        h2: data?.h2 || "Infrastructure is an engineering discipline.",
+        sub: data?.sub || "Not a cost center. Not an afterthought.",
+        body: data?.body || "I operate from a set of hard-won principles: that toil is a systems failure, that runbooks are technical debt in disguise, and that every manual operation is an automation waiting to be written.",
+        principles: data?.principles || [
+            { id: "P-01", icon: <HardDrive size={16} />, title: "Immutable by default, mutable by exception.", desc: "Infrastructure state is declared, versioned, and applied — never mutated in-place." },
+            { id: "P-02", icon: <ShieldAlert size={16} />, title: "Failure is a design input, not an edge case.", desc: "Chaos engineering is practiced quarterly. Blast radius is a first-class design constraint." },
+            { id: "P-03", icon: <Eye size={16} />, title: "Observability before instrumentation.", desc: "You cannot alert on what you cannot observe. I instrument at the boundary layer first." }
+        ]
+    };
+
     return (
         <section id="philosophy">
             <div className="section-inner w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -13,24 +25,20 @@ export const PhilosophyDevOps: React.FC = () => {
                     className="reveal"
                 >
                     <div className="section-header mb-14">
-                        <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">01 / Philosophy</span>
-                        <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4">Infrastructure is<br />an engineering discipline.</h2>
-                        <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">Not a cost center. Not an afterthought.</p>
+                        <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">{philData.num}</span>
+                        <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4" dangerouslySetInnerHTML={{ __html: philData.h2.replace(/\n/g, '<br />') }} />
+                        <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">{philData.sub}</p>
                         <p className="section-body text-[14px] leading-[1.75] text-[var(--t07-text-secondary)] max-w-[680px]">
-                            I operate from a set of hard-won principles: that toil is a systems failure, that runbooks are technical debt in disguise, and that every manual operation is an automation waiting to be written. The systems I build assume the operator is unavailable at 3AM.
+                            {philData.body}
                         </p>
                     </div>
 
                     <div className="principles-list flex flex-col gap-6">
-                        {[
-                            { id: "P-01", icon: <HardDrive size={16} />, title: "Immutable by default, mutable by exception.", desc: "Infrastructure state is declared, versioned, and applied — never mutated in-place. Every environment is a reproducible artifact." },
-                            { id: "P-02", icon: <ShieldAlert size={16} />, title: "Failure is a design input, not an edge case.", desc: "Chaos engineering is practiced quarterly. Blast radius is a first-class design constraint. Every service has a defined degraded-mode behavior." },
-                            { id: "P-03", icon: <Eye size={16} />, title: "Observability before instrumentation.", desc: "You cannot alert on what you cannot observe. I instrument at the boundary layer first — ingress, service mesh, data plane." }
-                        ].map((principle, i) => (
+                        {philData.principles.map((principle: any, i: number) => (
                             <div key={i} className="principle-item p-6 border-l-2 border-[var(--t07-purple-mid)] bg-white/2 rounded-r-lg hover:border-[var(--t07-purple-bright)] hover:bg-[var(--t07-purple-bright)]/[0.06] transition-all group">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="principle-num font-mono text-[10px] text-[var(--t07-purple-mid)]">{principle.id}</span>
-                                    <span className="text-[var(--t07-purple-mid)]">{principle.icon}</span>
+                                    <span className="text-[var(--t07-purple-mid)]">{principle.icon || <HardDrive size={16} />}</span>
                                 </div>
                                 <div className="principle-title text-[15px] font-bold mb-2">{principle.title}</div>
                                 <p className="principle-desc text-[13px] leading-[1.65] text-[var(--t07-text-secondary)]">{principle.desc}</p>

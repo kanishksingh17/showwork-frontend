@@ -21,8 +21,22 @@ import { ContactAdvisory } from './pages/ContactAdvisory';
 
 type PageKey = 'about' | 'cicd' | 'cloud' | 'observability' | 'reliability' | 'incidents' | 'cost' | 'tooling' | 'cases' | 'contact';
 
-export const Template08Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+export const Template08Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
     const [activePage, setActivePage] = useState<PageKey>('about');
+
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
 
     const pages: Record<PageKey, { label: string, component: React.FC, sectionId: string }> = {
         about: { label: '01 About', component: AboutPhilosophy, sectionId: 'about' },
@@ -51,18 +65,22 @@ export const Template08Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <HeaderStrategic name={userData?.name} />
 
             <main>
-                <EditableBlock id="about">
-                    <HeroStrategic sections={sections} />
-                </EditableBlock>
+                {showHero && (
+                    <>
+                        <EditableBlock id="about">
+                            <HeroStrategic sections={sections} />
+                        </EditableBlock>
 
-                {/* Profile Introduction Layer */}
-                <EditableBlock id="about">
-                    <section className="py-24 px-8 md:px-16 bg-soft-gray border-y border-black/5">
-                        <div className="max-w-[1600px] mx-auto">
-                            <ProfileCardStrategic userData={userData} metrics={profileMetrics} sections={sections} />
-                        </div>
-                    </section>
-                </EditableBlock>
+                        {/* Profile Introduction Layer */}
+                        <EditableBlock id="about">
+                            <section className="py-24 px-8 md:px-16 bg-soft-gray border-y border-black/5">
+                                <div className="max-w-[1600px] mx-auto">
+                                    <ProfileCardStrategic userData={userData} metrics={profileMetrics} sections={sections} />
+                                </div>
+                            </section>
+                        </EditableBlock>
+                    </>
+                )}
 
                 {/* Control Panel Navigation */}
                 <nav className="sticky top-[80px] bg-white border-b border-black/5 z-40 px-8 md:px-16 overflow-x-auto no-scrollbar">
@@ -83,13 +101,19 @@ export const Template08Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                 </nav>
 
                 {/* Dynamic Content Viewport */}
-                <EditableBlock id={pages[activePage].sectionId}>
-                    <section className="py-24 md:py-40 px-8 md:px-16 min-h-[60rem]">
-                        <div className="max-w-[1600px] mx-auto">
-                            <ActiveComponent sections={sections} />
-                        </div>
-                    </section>
-                </EditableBlock>
+                {((activePage === 'about' && showHero) || 
+                  (pages[activePage].sectionId === 'resume' && showResume) ||
+                  (pages[activePage].sectionId === 'skills' && showSkills) ||
+                  (pages[activePage].sectionId === 'projects' && showProjects) ||
+                  (pages[activePage].sectionId === 'contact' && showContact)) && (
+                    <EditableBlock id={pages[activePage].sectionId}>
+                        <section className="py-24 md:py-40 px-8 md:px-16 min-h-[60rem]">
+                            <div className="max-w-[1600px] mx-auto">
+                                <ActiveComponent sections={sections} />
+                            </div>
+                        </section>
+                    </EditableBlock>
+                )}
             </main>
 
             <EditableBlock id="footer">

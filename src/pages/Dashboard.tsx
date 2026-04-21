@@ -204,16 +204,16 @@ export default function Dashboard() {
 
   const resolvedUserProfile = user
     ? {
-        name: user.name as string | undefined,
-        email: user.email as string | undefined,
-        avatar: (user.avatar || user.image) as string | undefined,
-        username: user.username as string | undefined,
-        bio: user.bio as string | undefined,
-        techStack: user.techStack as string[] | undefined,
-        platformPreferences: user.platformPreferences as string[] | undefined,
-        createdAt: user.createdAt as string | undefined,
-        profileCompleted: user.profileCompleted as boolean | undefined,
-      }
+      name: user.name as string | undefined,
+      email: user.email as string | undefined,
+      avatar: (user.avatar || user.image) as string | undefined,
+      username: user.username as string | undefined,
+      bio: user.bio as string | undefined,
+      techStack: user.techStack as string[] | undefined,
+      platformPreferences: user.platformPreferences as string[] | undefined,
+      createdAt: user.createdAt as string | undefined,
+      profileCompleted: user.profileCompleted as boolean | undefined,
+    }
     : userProfile;
 
   const fetchDashboardProjects = useCallback(async () => {
@@ -249,11 +249,14 @@ export default function Dashboard() {
     }
 
     const data = await response.json();
-    if (!data.success || !data.data?.projects) {
-      throw new Error('Invalid projects response from server');
+    if (!data.success) {
+      throw new Error(data.message || 'Invalid projects response from server');
     }
-
-    const apiProjects: ProjectItem[] = data.data.projects.map((project: ProjectData) => ({
+    
+    // Ensure projects is at least an empty array
+    const rawProjects = data.data?.projects || data.projects || [];
+    
+    const apiProjects: ProjectItem[] = rawProjects.map((project: ProjectData) => ({
       id: project.id || project._id?.toString() || '',
       name: project.name || project.title || 'Untitled Project',
       description: project.description || '',

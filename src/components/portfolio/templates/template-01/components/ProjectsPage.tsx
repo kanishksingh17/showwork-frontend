@@ -7,8 +7,10 @@ export const ProjectsPage: React.FC<{ userData: any; projects: any[] }> = ({ pro
     // Use projects from props or fall back to high-fidelity mock data from reference
     const allProjects = projects?.length > 0 ? projects.map(p => ({
         ...p,
+        title: p.title || p.name || "Untitled Project",
+        image: p.imageUrl || p.image || p.thumbnail,
         type: p.category?.toLowerCase()?.includes('client') ? 'Client' : 'Open Source',
-        techs: p.techs || p.techStack || []
+        techs: p.techs || p.techStack || p.technologies || []
     })) : [
         {
             title: "RapidShop Core",

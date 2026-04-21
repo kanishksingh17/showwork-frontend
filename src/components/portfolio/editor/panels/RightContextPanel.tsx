@@ -13,7 +13,8 @@ export const RightContextPanel: React.FC = () => {
     const activeSectionId = usePortfolioSelector(state => state.portfolio.activeSection);
     const sections = usePortfolioSelector(state => state.portfolio.sections);
 
-    const activeSection = sections.find(s => s.id === activeSectionId);
+    const activeSection = sections.find(s => s.id?.toLowerCase() === activeSectionId?.toLowerCase()) || 
+                          sections.find(s => s.type?.toString().toLowerCase() === activeSectionId?.toLowerCase());
 
     const handleClose = () => {
         dispatch(setRightPanelOpen(false));
@@ -38,7 +39,7 @@ export const RightContextPanel: React.FC = () => {
                             <div>
                                 <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Content Editor</h3>
                                 <p className="text-[10px] text-gray-500 uppercase tracking-widest font-semibold">
-                                    {activeSection?.type || 'Section'} Settings
+                                    {activeSection?.title || activeSection?.type || 'Section'} Settings
                                 </p>
                             </div>
                         </div>

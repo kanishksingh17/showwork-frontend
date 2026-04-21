@@ -18,9 +18,21 @@ import './template-05.css';
  * 
  * Re-authored for Template 05 after relocation.
  */
-export const Template05Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects }) => {
+export const Template05Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
     const [isReady, setIsReady] = useState(false);
     const [activePage, setActivePage] = useState('home'); // home, about, projects, api, contact
+
+    const heroSection = sections.find(s => s.id === 'about');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
 
     useEffect(() => {
         setIsReady(true);
@@ -61,24 +73,36 @@ export const Template05Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <main>
                 {activePage === 'home' && (
                     <>
-                        <EditableBlock id="about">
-                            <AsyncyHero />
-                        </EditableBlock>
-                        <EditableBlock id="skills">
-                            <PlatformPillars />
-                        </EditableBlock>
-                        <EditableBlock id="about">
-                            <Philosophy />
-                        </EditableBlock>
-                        <EditableBlock id="resume">
-                            <LaptopSection />
-                        </EditableBlock>
-                        <EditableBlock id="resume">
-                            <JourneyRoadmap />
-                        </EditableBlock>
-                        <EditableBlock id="about">
-                            <CloudPartnerLogos />
-                        </EditableBlock>
+                        {showHero && (
+                            <EditableBlock id="about">
+                                <AsyncyHero customData={heroSection?.customData} />
+                            </EditableBlock>
+                        )}
+                        {showSkills && (
+                            <EditableBlock id="skills">
+                                <PlatformPillars />
+                            </EditableBlock>
+                        )}
+                        {showHero && (
+                            <EditableBlock id="about">
+                                <Philosophy />
+                            </EditableBlock>
+                        )}
+                        {showResume && (
+                            <EditableBlock id="resume">
+                                <LaptopSection />
+                            </EditableBlock>
+                        )}
+                        {showResume && (
+                            <EditableBlock id="resume">
+                                <JourneyRoadmap />
+                            </EditableBlock>
+                        )}
+                        {showHero && (
+                            <EditableBlock id="about">
+                                <CloudPartnerLogos />
+                            </EditableBlock>
+                        )}
                     </>
                 )}
 

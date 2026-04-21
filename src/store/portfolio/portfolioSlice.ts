@@ -288,12 +288,12 @@ const portfolioSlice = createSlice({
                     content: '', 
                     isRequired: true,
                     customData: {
-                        headline: 'Creative Developer & Problem Solver',
-                        bio: 'I build high-performance web applications with a focus on user experience and scalability.',
-                        tagline: 'Transforming ideas into digital reality',
-                        location: 'San Francisco, CA',
-                        company: 'ShowWork Inc.',
-                        website: 'yourname.dev'
+                        headline: '',
+                        bio: '',
+                        tagline: '',
+                        location: '',
+                        company: '',
+                        website: ''
                     }
                 },
                 { 
@@ -306,7 +306,7 @@ const portfolioSlice = createSlice({
                     content: '', 
                     isRequired: true,
                     customData: {
-                        techSlugs: ['react', 'typescript', 'nextdotjs', 'tailwindcss', 'nodejs']
+                        techSlugs: []
                     }
                 },
                 { 
@@ -334,14 +334,10 @@ const portfolioSlice = createSlice({
                     customData: {
                         experiences: [],
                         educations: [],
-                        metrics: [
-                            { label: 'GitHub Stars', value: '500+' },
-                            { label: 'Weekly Users', value: '1.2k' },
-                            { label: 'Pull Requests', value: '150+' }
-                        ]
+                        metrics: []
                     }
                 },
-                { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5, title: 'Contact', content: '', isRequired: true },
+                { id: 'contact', type: 'contact', variant: 'ContactMain', isVisible: true, order: 5, title: 'Contact', content: '', isRequired: true, customData: { forwardEmail: '' } },
                 { 
                     id: 'footer', 
                     type: 'footer', 
@@ -352,7 +348,7 @@ const portfolioSlice = createSlice({
                     content: '', 
                     isRequired: true,
                     customData: {
-                        copyright: `© ${new Date().getFullYear()} ShowWork Portfolio`
+                        copyright: ''
                     }
                 },
             ];
@@ -374,8 +370,8 @@ const portfolioSlice = createSlice({
         loadPortfolio: (state, action: PayloadAction<any>) => {
             const p = action.payload;
             state.id = p.id || p.ID;
-            state.selectedTemplateId = p.template_id || p.TemplateID;
-            state.detectedJobRole = p.job_role || p.JobRole;
+            state.selectedTemplateId = p.templateId || p.TemplateID || p.template_id;
+            state.detectedJobRole = p.jobRole || p.JobRole || p.job_role;
             state.theme = p.customizations || p.Customizations || initialState.theme;
             state.sections = p.sections || p.Sections || [];
             

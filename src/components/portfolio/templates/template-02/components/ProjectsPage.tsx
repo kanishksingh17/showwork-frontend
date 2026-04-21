@@ -1,55 +1,35 @@
 import React from 'react';
 import { ExternalLink, Code } from 'lucide-react';
 
-export const ProjectsPage: React.FC<{ userData: any }> = () => {
-    const featuredProjects = [
+export const ProjectsPage: React.FC<{ userData: any; projects: any[] }> = ({ projects = [] }) => {
+    // Filter projects for showcasing
+    const showcasedProjects = projects.filter(p => p.showcase || p.isFeatured || p.is_featured);
+    const resolvedProjects = (showcasedProjects.length > 0 ? showcasedProjects : projects).map(p => ({
+        title: p.title || p.name || "Untitled Project",
+        description: p.description || p.summary || "No description provided.",
+        tags: p.technologies || p.tech || p.tags || ["Development"],
+        image: p.imageUrl || p.image || p.thumbnail || "https://images.unsplash.com/photo-1557821552-17105176677c?w=800",
+        tagColors: "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-900/30",
+        liveUrl: p.liveUrl || p.url,
+        githubUrl: p.githubUrl
+    }));
+
+    // Split into featured and normal for the layout
+    const featuredList = resolvedProjects.slice(0, 2).map((p, idx) => ({ ...p, reversed: idx % 2 !== 0 }));
+    const normalList = resolvedProjects.slice(2);
+
+    // Fallback for empty state
+    const featuredProjects = featuredList.length > 0 ? featuredList : [
         {
             title: "Neo-SaaS Dashboard",
             description: "A modern, dark-mode-first dashboard template designed for SaaS applications. It features real-time data visualization, customizable widgets, and a buttery smooth animation system powered by Framer Motion. Built to be accessible and highly performant.",
             tags: ["Next.js", "Tailwind CSS", "Framer Motion"],
             image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDc5RrXmwM0GwdQtJFpt2PkJY0zG9pJ8fz-OCWI8G7A5qz_h9NsS7a1mV62DQL0ICKTz9WOFJuE3tWf36jKasoaHUt-ppJh5GpMzh-MW59XjjC_AmzwzlVL4vbEabEiv2SorvTSgQCNRkHMSmAH0ac64ZSszwZlh50YgnBGL_OFDgnf0t1k5_ppmCOq4V3S7RyvZHB6-yDOc47a36vx9631gs1lZqAqqewNTF5XHgGI7p_eXKtt9g5Iri6139G6b5JD6SVeCuS5i2GQ",
             tagColors: "bg-blue-50 text-blue-700 border-blue-100 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-900/30"
-        },
-        {
-            title: "DevConf 2025",
-            description: "The official companion app for the largest regional developer conference. Attendees could build schedules, chat with speakers, and participate in live Q&A sessions. Handled 5k+ concurrent users flawlessly.",
-            tags: ["Vue 3", "Supabase", "TypeScript"],
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDo9blbiDNbAKH-KJOUwYas6kpSXRHmEZOoZOZ_JTkQ6M-79Lx-_-PlzvSCLncDJeR3BsbJkYpdqbSubM-udoQIsR_ANNporgcFAzMobfkdH-cG4t0Hfp6YkThSUPppvEaDaaefACjnIg7MF2b9OZqbwAKsr3NaDOi95KJzGpudQZPw19YO0Z1wmaB8q4qKw-LrfUedShjdqW7gECZVqAb3BuJ3b73mbsvX8ETbjLbA-gP3ISJMswsZw4gvNHYguzRa5CnjevxHK3dJ",
-            tagColors: "bg-green-50 text-green-700 border-green-100 dark:bg-green-900/20 dark:text-green-300 dark:border-green-900/30",
-            reversed: true
         }
     ];
 
-    const normalProjects = [
-        {
-            title: "Prisma Syntax",
-            description: "A lightweight browser extension that automatically detects and highlights code blocks on any webpage with your custom theme. Designed for developers who read documentation all day.",
-            tags: ["JavaScript", "Prism.js"],
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCCtQTDpyg-720rQxsqbdCZyDU-QjRAob2Ztz7gqu0XrAKFuYrQBrS9s0Td-t4oUj1fCFcMW7R1U927MVEBWg8eFlwePG2wzzN7st_aVneilAxM1qRsQWKzDADs_yshxy0Vg7yWZRapgvMtxyejFHOe4LnMfng7M_kRpOW-lQ3TOHEnL9VI1Z0f6To0L4uxkP_5lFplai-9-rdr97vsF_ZCLNswyy22Ux8QEgga5JSdEs7KpgpRtgYosSQOXP1g2SFa0-OO54AuH_Ft",
-            tagColors: "bg-yellow-50 text-yellow-700 border-yellow-100 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-900/30"
-        },
-        {
-            title: "Fluid UI Kit",
-            description: "An open-source React component library focusing on fluid typography and spacing. It solves the issue of responsive scaling by using clamped values.",
-            tags: ["React", "Storybook"],
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCZ06KlpDJTouo5WRdRwEFtJ_o9Ggofr9f9JrZ8CKybZfXyCL_Z5kwHpkKtfbXmKh6MOeHH9OJh70aEutMKNiQ0sECx7DXzOkHhc9w0r_UkPAIGS8kKCsS70lMh9J7CPwvHrISYvz_FNUyzS56-gt1538HVqAlr4EkTLsvcbLJMY6HbqEgcyJIxaBQHzX1DP7DqAaH2eZg8q7kkbxeNi-S9CzczskAUhgHLasY7ZXJnoy0G4u5TDXtmroYWPUnR61CE9fywCVPwbynV",
-            tagColors: "bg-pink-50 text-pink-700 border-pink-100 dark:bg-pink-900/20 dark:text-pink-300 dark:border-pink-900/30"
-        },
-        {
-            title: "Network Graph",
-            description: "An interactive data visualization tool to explore relationships between tech communities. Uses force-directed graphs for layout.",
-            tags: ["D3.js", "GraphQL"],
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuCNny2JXQ-HC5grj7wXeaio_BU56nVcyFMBiqBuEhbKEc5JO05gjmnXrWNfw64RPJ-uiU7qfi3n42BBFj2QzSIn7AgZaCi3dS2YeJxflkvxPQXt4hw-xCrUsc3tM9zhfogGDDGcxsrZo59qSJzAFW0kFLORhvN6nqje1ORkLbCnhPbr8eMAol_zKJsyLDJKN_2CJMOxNh4JzIM4AhWiZKxNU-FljokJJF-BFiXo5J0WbqIrtHZpeyW1P1CAc-ixGPg2pSr77N_TIgUF",
-            tagColors: "bg-red-50 text-red-700 border-red-100 dark:bg-red-900/20 dark:text-red-300 dark:border-red-900/30"
-        },
-        {
-            title: "Sonic Waves",
-            description: "A browser-based audio visualizer that reacts to microphone input. Created as an experiment to learn low-level audio processing in the browser.",
-            tags: ["Web Audio API", "Canvas"],
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuBkTQgU192N6MjXfCH3QO2cZyS3QZe5rmbTNN_oEHXVwCuROaekUN7o4WLMCs7MtuFyBAUfxweFbC7P20IIMEQ9EevTyF1_e1kOgV1sBJANYwd8E4z-7QT-Zwe9tOpvDTR8J329sOfKM-bT7w5eOhc-tnmtjesYkdn3olJCDCuf9c4a5HJV8LiuMBN76mPTC0dVk2QRcSznVo_Nxsr5jdJejgLaSvNJAcChtYla8USSvU3_VOwSqsSjNaZGhACuX9h72_RgcWsPsSfI",
-            tagColors: "bg-teal-50 text-teal-700 border-teal-100 dark:bg-teal-900/20 dark:text-teal-300 dark:border-teal-900/30"
-        }
-    ];
+    const normalProjects = normalList;
 
     return (
         <div className="animate-in fade-in slide-in-from-bottom-4 duration-700 pb-32">
@@ -70,7 +50,7 @@ export const ProjectsPage: React.FC<{ userData: any }> = () => {
                                 <div className="flex flex-wrap gap-2 mb-6">
                                     {project.tags.map((tag, tIdx) => (
                                         <span key={tIdx} className={`px-3 py-1 text-xs font-semibold tracking-wide rounded-full border ${project.tagColors}`}>
-                                            {tag}
+                                            {tag.name || tag.label || (typeof tag === 'string' ? tag : 'Tech')}
                                         </span>
                                     ))}
                                 </div>
@@ -104,7 +84,7 @@ export const ProjectsPage: React.FC<{ userData: any }> = () => {
                                 <div className="flex flex-wrap gap-2 mb-4">
                                     {project.tags.map((tag, tIdx) => (
                                         <span key={tIdx} className={`px-3 py-1 text-xs font-semibold tracking-wide rounded-full border ${project.tagColors}`}>
-                                            {tag}
+                                            {tag.name || tag.label || (typeof tag === 'string' ? tag : 'Tech')}
                                         </span>
                                     ))}
                                 </div>

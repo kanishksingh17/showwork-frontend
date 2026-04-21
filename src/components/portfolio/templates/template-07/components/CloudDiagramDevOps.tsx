@@ -2,7 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Layers, Container, ShieldCheck, Globe } from 'lucide-react';
 
-export const CloudDiagramDevOps: React.FC = () => {
+export const CloudDiagramDevOps: React.FC<{ data?: any }> = ({ data }) => {
+    const cloudData = {
+        num: data?.num || "03 / Cloud Architecture",
+        h2: data?.h2 || "Multi-cloud. Multi-region.\nZero single points.",
+        sub: data?.sub || "Infrastructure that survives an AZ going dark.",
+        body: data?.body || "I architect for active-active, not active-passive. Every stateful system has replication lag monitored as an SLO. Every region is a complete system, not a failover target.",
+        capabilities: data?.capabilities || [
+            { icon: <Layers size={18} />, title: "Terraform at Scale", desc: "Modular IaC with remote state locking, Atlantis for PR-driven plans, and sentinel policies." },
+            { icon: <Container size={18} />, title: "Kubernetes Operations", desc: "Fleet management across EKS, GKE, AKS. KEDA autoscaling and Karpenter provisioning." },
+            { icon: <ShieldCheck size={18} />, title: "Zero-Trust Networking", desc: "Service mesh via Istio with mTLS everywhere. Secrets injected at runtime via Vault." },
+            { icon: <Globe size={18} />, title: "Global Traffic Management", desc: "Anycast routing, weighted traffic splitting, and automated health-check failover." }
+        ]
+    };
+
     return (
         <section id="cloud">
             <div className="section-inner w-full max-w-5xl grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-16 items-start">
@@ -116,24 +129,19 @@ export const CloudDiagramDevOps: React.FC = () => {
                     className="cloud-right"
                 >
                     <div className="section-header mb-10">
-                        <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">03 / Cloud Architecture</span>
-                        <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4">Multi-cloud. Multi-region. Zero single points.</h2>
-                        <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">Infrastructure that survives an AZ going dark.</p>
+                        <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">{cloudData.num}</span>
+                        <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4" dangerouslySetInnerHTML={{ __html: cloudData.h2.replace(/\n/g, '<br />') }} />
+                        <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">{cloudData.sub}</p>
                         <p className="section-body text-[14px] leading-[1.75] text-[var(--t07-text-secondary)]">
-                            I architect for active-active, not active-passive. Every stateful system has replication lag monitored as an SLO. Every region is a complete system, not a failover target.
+                            {cloudData.body}
                         </p>
                     </div>
 
                     <div className="cloud-capabilities flex flex-col gap-4">
-                        {[
-                            { icon: <Layers size={18} />, title: "Terraform at Scale", desc: "Modular IaC with remote state locking, Atlantis for PR-driven plans, and sentinel policies." },
-                            { icon: <Container size={18} />, title: "Kubernetes Operations", desc: "Fleet management across EKS, GKE, AKS. KEDA autoscaling and Karpenter provisioning." },
-                            { icon: <ShieldCheck size={18} />, title: "Zero-Trust Networking", desc: "Service mesh via Istio with mTLS everywhere. Secrets injected at runtime via Vault." },
-                            { icon: <Globe size={18} />, title: "Global Traffic Management", desc: "Anycast routing, weighted traffic splitting, and automated health-check failover." }
-                        ].map((cap, i) => (
+                        {cloudData.capabilities.map((cap: any, i: number) => (
                             <div key={i} className="cap-item flex gap-4 items-start p-5 border border-[var(--t07-border-subtle)] rounded-xl bg-white/2 hover:border-[var(--t07-border-glow)] transition-all">
                                 <div className="cap-icon w-9 h-9 rounded-lg bg-[var(--t07-purple-mid)]/20 flex-shrink-0 flex items-center justify-center text-lg">
-                                    {cap.icon}
+                                    {cap.icon || <Layers size={18} />}
                                 </div>
                                 <div>
                                     <div className="cap-title text-[14px] font-semibold mb-1">{cap.title}</div>

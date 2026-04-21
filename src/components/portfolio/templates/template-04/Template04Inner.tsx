@@ -21,11 +21,25 @@ export const Template04Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
     };
 
     // ── Bind to Redux Sections for real-time editing ───────────────────────
-    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
+    const heroSection = sections?.find(s => s.id === 'about');
+    const projectsSection = sections?.find(s => s.id === 'projects');
+    const resumeSection = sections?.find(s => s.id === 'resume');
+    const contactSection = sections?.find(s => s.id === 'contact');
+    const blogsSection = sections?.find(s => s.id === 'blogs');
+    const footerSection = sections?.find(s => s.id === 'footer');
+
+    // Visibility toggles
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showStats = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showBlogs = blogsSection?.isVisible ?? true;
+    const showAboutPage = sections?.find(s => s.id === 'about')?.isVisible ?? true; // Re-use about for simplicity for now
+
     const aboutData = {
-        headline: aboutSection.headline || userData?.headline || "Building Scalable APIs for Modern Products",
-        bio: aboutSection.bio || userData?.bio || "Harness the power of robust architecture to handle massive scale, uncover efficiency patterns, and generate reliable data streams for your business innovation.",
-        tagline: aboutSection.tagline || userData?.tagline || "Free Consultation • 5-Minute Response Time"
+        headline: heroSection?.customData?.headline || userData?.professionalHeadline || userData?.headline || "Building Scalable APIs for Modern Products",
+        bio: heroSection?.customData?.bio || userData?.professionalBio || userData?.bio || "Harness the power of robust architecture to handle massive scale, uncover efficiency patterns, and generate reliable data streams for your business innovation.",
+        tagline: heroSection?.customData?.tagline || userData?.tagline || "Free Consultation • 5-Minute Response Time"
     };
 
     // Determine if we should show the high-fidelity neon styling (Home, Contact, CaseStudy, Blog, or About)
@@ -78,44 +92,62 @@ export const Template04Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                 {currentView === 'home' ? (
                     <>
                         <div className="grid lg:grid-cols-2 gap-12 lg:gap-8 items-center mt-8 mb-4 px-2 lg:px-0">
-                            <EditableBlock id="about" className="h-full">
-                                <Hero aboutData={aboutData} onNavigate={handleNavigate} />
-                            </EditableBlock>
+                            {showHero && (
+                                <EditableBlock id="about" className="h-full">
+                                    <Hero aboutData={aboutData} onNavigate={handleNavigate} />
+                                </EditableBlock>
+                            )}
 
-                            <EditableBlock id="resume" className="h-full">
-                                <Stats />
-                            </EditableBlock>
+                            {showStats && (
+                                <EditableBlock id="resume" className="h-full">
+                                    <Stats />
+                                </EditableBlock>
+                            )}
                         </div>
                         <div className="mb-0">
-                            <EditableBlock id="about">
-                                <Logos />
-                            </EditableBlock>
+                            {showHero && (
+                                <EditableBlock id="about">
+                                    <Logos />
+                                </EditableBlock>
+                            )}
                         </div>
                     </>
                 ) : currentView === 'contact' ? (
-                    <EditableBlock id="contact">
-                        <ContactPage />
-                    </EditableBlock>
+                    showContact && (
+                        <EditableBlock id="contact">
+                            <ContactPage />
+                        </EditableBlock>
+                    )
                 ) : currentView === 'projects' ? (
-                    <EditableBlock id="projects">
-                        <ProjectsPage projects={projects} onBack={() => handleNavigate('home')} />
-                    </EditableBlock>
+                    showProjects && (
+                        <EditableBlock id="projects">
+                            <ProjectsPage projects={projects} onBack={() => handleNavigate('home')} />
+                        </EditableBlock>
+                    )
                 ) : currentView === 'casestudy' ? (
-                    <EditableBlock id="projects">
-                        <CaseStudyPage onBack={() => handleNavigate('home')} />
-                    </EditableBlock>
+                    showProjects && (
+                        <EditableBlock id="projects">
+                            <CaseStudyPage onBack={() => handleNavigate('home')} />
+                        </EditableBlock>
+                    )
                 ) : currentView === 'blog' ? (
-                    <EditableBlock id="blogs">
-                        <BlogPage onBack={() => handleNavigate('home')} />
-                    </EditableBlock>
+                    showBlogs && (
+                        <EditableBlock id="blogs">
+                            <BlogPage onBack={() => handleNavigate('home')} />
+                        </EditableBlock>
+                    )
                 ) : currentView === 'about' ? (
-                    <EditableBlock id="about">
-                        <AboutPage onBack={() => handleNavigate('home')} />
-                    </EditableBlock>
+                    showAboutPage && (
+                        <EditableBlock id="about">
+                            <AboutPage onBack={() => handleNavigate('home')} />
+                        </EditableBlock>
+                    )
                 ) : currentView === 'api' ? (
-                    <EditableBlock id="resume">
-                        <APIPage onBack={() => handleNavigate('home')} />
-                    </EditableBlock>
+                    showStats && (
+                        <EditableBlock id="resume" title="API Status">
+                            <APIPage onBack={() => handleNavigate('home')} />
+                        </EditableBlock>
+                    )
                 ) : (
                     <div className="flex flex-col items-center justify-center py-40 animate-in fade-in duration-700">
                         <h2 className="text-3xl font-bold mb-4 opacity-50 uppercase tracking-widest font-display">{currentView} Block Coming Soon</h2>

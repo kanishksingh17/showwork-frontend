@@ -1,15 +1,27 @@
 import React from 'react';
 import { Linkedin, Twitter, Github, Mail, FileText, Download } from 'lucide-react';
 
-export const SocialBlocks: React.FC<{ userData: any }> = ({ userData }) => {
+export const SocialBlocks: React.FC<{ userData: any; customData?: any }> = ({ userData, customData }) => {
     const socials = userData?.socialLinks || userData?.socials || {};
 
-    const links = [
+    const defaultLinks = [
         { id: 'linkedin', label: 'LinkedIn', icon: <Linkedin size={20} className="text-blue-600 dark:text-blue-400" />, href: socials.linkedin || "#", color: "hover:bg-blue-50 dark:hover:bg-blue-900/20" },
         { id: 'twitter', label: 'Twitter', icon: <Twitter size={20} className="text-sky-500" />, href: socials.twitter || socials.x || "#", color: "hover:bg-sky-50 dark:hover:bg-sky-900/20" },
         { id: 'github', label: 'Github', icon: <Github size={20} className="text-gray-800 dark:text-white" />, href: socials.github || "#", color: "hover:bg-gray-100 dark:hover:bg-gray-700" },
         { id: 'email', label: 'Email', icon: <Mail size={20} className="text-red-500" />, href: `mailto:${userData?.email || "#"}`, color: "hover:bg-red-50 dark:hover:bg-red-900/20" }
     ];
+
+    const ctaTitle = customData?.ctaTitle || "Need a printed document?";
+    const ctaSubtitle = customData?.ctaSubtitle || "Hover to download resume";
+    
+    // Mapping customData socials if they exist
+    const links = customData?.socials ? customData.socials.map((s: any) => ({
+        id: s.platform.toLowerCase(),
+        label: s.label || s.platform,
+        icon: s.platform.toLowerCase().includes('git') ? <Github size={20} /> : s.platform.toLowerCase().includes('link') ? <Linkedin size={20} /> : <Globe size={20} />,
+        href: s.url,
+        color: "hover:bg-indigo-50 dark:hover:bg-indigo-900/20"
+    })) : defaultLinks;
 
     return (
         <section className="grid grid-cols-1 md:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-200">
@@ -32,10 +44,10 @@ export const SocialBlocks: React.FC<{ userData: any }> = ({ userData }) => {
 
             <div className="md:col-span-8 flex items-center justify-between bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-3xl p-8 relative overflow-hidden group hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 shadow-sm">
                 <div className="z-10 relative">
-                    <h3 className="font-bold text-gray-900 dark:text-white text-xl mb-2">Need a printed document?</h3>
+                    <h3 className="font-bold text-gray-900 dark:text-white text-xl mb-2">{ctaTitle}</h3>
                     <p className="text-sm text-gray-400 dark:text-gray-500 flex items-center gap-2">
                         <Download size={14} className="text-indigo-500" />
-                        Hover to download resume
+                        {ctaSubtitle}
                     </p>
                 </div>
 

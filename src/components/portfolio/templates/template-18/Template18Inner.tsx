@@ -1,31 +1,63 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 import { EditableBlock } from '../../editor/EditableBlock';
+import { usePortfolioDispatch } from '@/store/portfolio/hooks';
+import { updateSectionCustomData } from '@/store/portfolio/portfolioSlice';
 
 export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+    const dispatch = usePortfolioDispatch();
     const rootRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [timeStr, setTimeStr] = useState('—');
 
     // ── Bind to Redux Sections for real-time editing ───────────────────────
-    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
-    const resumeSection = sections?.find(s => s.id === 'resume')?.customData || {};
-    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
-    const osHeroData = sections?.find(s => s.variant === 'HeroOS' || s.id === 'about')?.customData || {};
+    const heroSection = sections?.find(s => s.id === 'about');
+    const projectsSection = sections?.find(s => s.id === 'projects');
+    const skillsSection = sections?.find(s => s.id === 'skills');
+    const resumeSection = sections?.find(s => s.id === 'resume');
+    const contactSection = sections?.find(s => s.id === 'contact');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+
+    const aboutData = heroSection?.customData || {};
+    const resumeData = resumeSection?.customData || {};
+    const skillData = skillsSection?.customData || {};
+    const osHeroData = heroSection?.customData || {};
+    
+    // Consolidate appearance data into the reliable 'about' section
+    const wallpaperUrl = aboutData.wallpaperUrl;
+    const wallpaperMode = aboutData.wallpaperMode || 'preset';
+
+    const defaultWallpaper = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80';
 
     // ── derive user info ────────────────────────────────────────────────────
-    const name = osHeroData.name || aboutSection.name || userData?.name || 'Kanishk Mehta';
-    const email = userData?.email || 'kanishk@example.dev';
-    const location = osHeroData.location || aboutSection.location || userData?.location || 'Bengaluru, India';
-    const bioStr = osHeroData.bio || aboutSection.bio || userData?.bio || 'Principal Systems Engineer';
-    const role = osHeroData.headline || aboutSection.headline || userData?.title || 'Principal Systems Engineer';
-    const github = userData?.socialLinks?.github || 'github.com/kanishkmehta';
-    const linkedin = userData?.socialLinks?.linkedin || 'linkedin.com/in/kanishkmehta';
+    const name = osHeroData.name || aboutData.name || userData?.name || 'Kanishk Mehta';
+    const email = aboutData.email || userData?.email || 'kanishk@example.dev';
+    const location = osHeroData.location || aboutData.location || userData?.location || 'Bengaluru, India';
+    const bioStr = osHeroData.bio || aboutData.bio || userData?.bio || 'Principal Systems Engineer';
+    const role = osHeroData.headline || aboutData.headline || userData?.professionalHeadline || userData?.title || 'Principal Systems Engineer';
+    
+    // Combine social links
+    const mappedSocialLinks = {
+        ...(userData?.socialLinks || {}),
+        ...(userData?.socials || {}),
+        ...(heroSection?.customData?.socialLinks || {})
+    };
+    const github = mappedSocialLinks.github || 'github.com/kanishkmehta';
+    const linkedin = mappedSocialLinks.linkedin || 'linkedin.com/in/kanishkmehta';
 
-    const skills = skillsSection.techSlugs || userData?.skills || ['C', 'eBPF / XDP', 'Rust', 'Linux Kernel', 'Distributed Systems'];
-    const expList = resumeSection.experiences || userData?.experience || [
+    const profileSkills = (userData?.skills && userData?.skills.length > 0) ? userData.skills : userData?.techStack;
+    const skills = (skillData.techSlugs && skillData.techSlugs.length > 0) 
+        ? skillData.techSlugs 
+        : ((profileSkills && profileSkills.length > 0) ? profileSkills : ['C', 'eBPF / XDP', 'Rust', 'Linux Kernel', 'Distributed Systems']);
+    const expList = resumeData.experiences || userData?.experience || [
         { period: '2023 – Present', company: 'Razorpay', title: 'Principal Systems Engineer', description: 'Zero-copy payment pipeline, eBPF observability' }
     ];
-    const projList = (projects || []).slice(0, 4);
+    const projList = (projectsSection?.customData?.manualProjects || projects || []).slice(0, 4);
     if (projList.length === 0) {
         projList.push({ name: 'example', title: 'Linux Patch', description: 'Sample kernel patch', tech: 'C, Kernel' });
     }
@@ -69,9 +101,15 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
 .t18-bg {
   position:absolute; inset:0; z-index:0; pointer-events:none;
-  background:
-    radial-gradient(ellipse 120% 80% at 60% 30%, rgba(255,255,255,0.12) 0%, transparent 60%),
-    radial-gradient(ellipse at 0% 100%, rgba(0,0,0,0.06) 0%, transparent 50%);
+  background-image: url("${wallpaperUrl || defaultWallpaper}");
+  background-size: cover;
+  background-position: center;
+  ${wallpaperUrl ? 'filter: saturate(1.1) brightness(0.95);' : ''}
+}
+.t18-overlay {
+  position:absolute; inset:0; z-index:1; pointer-events:none;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.1) 100%);
+  mix-blend-mode: overlay;
 }
 
 /* MENUBAR */
@@ -99,8 +137,8 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 .di:active { transform:scale(0.96); }
 .di-face { width:46px; height:46px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:25px; box-shadow:0 1px 3px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.55); flex-shrink:0; position:relative; }
 .di-face::before { content:''; position:absolute; inset:1px; bottom:50%; border-radius:10px 10px 0 0; background:linear-gradient(to bottom, rgba(255,255,255,0.35), transparent); pointer-events:none; }
-.di-label { font-size:11px; font-weight:400; text-align:center; line-height:1.25; text-shadow:0 1px 2px rgba(255,255,255,0.7); }
-.di.selected .di-label { color:var(--accent); font-weight:500; }
+.di-label { font-size:11px; font-weight:500; color:#fff; text-align:center; line-height:1.25; text-shadow:0 1px 2px rgba(0,0,0,0.8), 0 0 1px rgba(0,0,0,0.5); padding:1px 4px; border-radius:3px; transition:background 0.1s; }
+.di.selected .di-label { background:var(--accent); text-shadow:none; }
 .ic-a { background:linear-gradient(145deg,#E4DFD6,#C8C3B8); }
 .ic-p { background:linear-gradient(145deg,#4E9DE8,#2B7ACC); }
 .ic-e { background:linear-gradient(145deg,#E8855A,#C45C2A); }
@@ -232,13 +270,40 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         experience: { x: 90, y: 110, w: 420, h: 490 },
         skills: { x: 280, y: 80, w: 386, h: 468 },
         contact: { x: 350, y: 150, w: 330, h: 334 },
+        settings: { x: 400, y: 30, w: 420, h: 480 },
     };
+
+    const WALLPAPER_PRESETS = [
+        { name: 'Original', url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop' },
+        { name: 'Deep Space', url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=100&h=100&fit=crop' },
+        { name: 'Soft Nordic', url: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=100&h=100&fit=crop' },
+        { name: 'Minimal Dark', url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=100&h=100&fit=crop' },
+        { name: 'Glassy Gradient', url: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=100&h=100&fit=crop' }
+    ];
 
     // refs to DOM elements to bypass React state arrays for fast dragging
     const winRefs = useRef<Record<string, HTMLDivElement | null>>({});
     const [openSet, setOpenSet] = useState<Set<string>>(new Set(['about', 'projects']));
     const [activeWin, setActiveWin] = useState<string>('projects');
     const [selProjIdx, setSelProjIdx] = useState(0);
+
+    const handleChange = (key: string, value: any) => {
+        // Force target 'about' section for all appearance data to guarantee reliability
+        dispatch(updateSectionCustomData({ id: heroSection?.id || 'about', data: { [key]: value } }));
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const result = event.target?.result as string;
+            handleChange('wallpaperUrl', result);
+            handleChange('wallpaperMode', 'custom');
+        };
+        reader.readAsDataURL(file);
+    };
 
     const bringFront = (id: string) => {
         const w = winRefs.current[id];
@@ -429,6 +494,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         }}>
             <style>{css}</style>
             <div className="t18-bg" />
+            <div className="t18-overlay" />
 
             {/* Menubar */}
             <div className="mb">
@@ -444,17 +510,18 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             {/* Desktop Icons */}
             <div className="desk">
                 <div className="shelf">
-                    {['about', 'projects', 'experience', 'skills', 'contact'].map((id, i) => {
-                        const icons = ['📄', '🗂', '📋', '🔧', '✉️'];
-                        const cls = ['ic-a', 'ic-p', 'ic-e', 'ic-s', 'ic-c'];
-                        const labels = ['About.txt', 'Projects', 'Experience', 'Skills', 'Contact'];
-                        return (
-                            <div key={id} className={`di ${activeWin === id ? 'selected' : ''}`} onDoubleClick={() => openWin(id)} onClick={(e) => { e.stopPropagation(); setActiveWin(id); }}>
-                                <div className={`di-face ${cls[i]}`}>{icons[i]}</div>
-                                <div className="di-label">{labels[i]}</div>
-                            </div>
-                        );
-                    })}
+                    {([
+                        showHero ? { id: 'about', icon: '📄', cls: 'ic-a', label: 'About.txt' } : null,
+                        showProjects ? { id: 'projects', icon: '🗂', cls: 'ic-p', label: 'Projects' } : null,
+                        showResume ? { id: 'experience', icon: '📋', cls: 'ic-e', label: 'Experience' } : null,
+                        showSkills ? { id: 'skills', icon: '🔧', cls: 'ic-s', label: 'Skills' } : null,
+                        showContact ? { id: 'contact', icon: '✉️', cls: 'ic-c', label: 'Contact' } : null,
+                    ].filter(Boolean) as any[]).map((win) => (
+                        <div key={win.id} className={`di ${activeWin === win.id ? 'selected' : ''}`} onDoubleClick={() => openWin(win.id)} onClick={(e) => { e.stopPropagation(); setActiveWin(win.id); }}>
+                            <div className={`di-face ${win.cls}`}>{win.icon}</div>
+                            <div className="di-label">{win.label}</div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* Window: About */}
@@ -487,7 +554,11 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                     <div className="sir"><div className="sir-k">Email</div><div className="sir-v">{email}</div></div>
                                 </div>
                                 <div className="a-tg">
-                                    {skills.slice(0, 5).map((s: string) => <span key={s} className="atag hi">{s}</span>)}
+                                    {skills.slice(0, 5).map((s: any, i: number) => (
+                                        <span key={i} className="atag hi">
+                                            {typeof s === 'string' ? s : (s.name || String(s))}
+                                        </span>
+                                    ))}
                                 </div>
                             </EditableBlock>
                         </div>
@@ -524,7 +595,11 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                             <div className="pj-n">{p.title || p.name}</div>
                                             <div className="pj-s">{p.category || 'Engineering'}</div>
                                             <div className="pj-b">
-                                                {tArr.map((t: string) => <span key={t} className="pbdg">{t}</span>)}
+                                                {tArr.map((t: any, i: number) => (
+                                                    <span key={i} className="pbdg">
+                                                        {typeof t === 'string' ? t : (t.name || String(t))}
+                                                    </span>
+                                                ))}
                                             </div>
                                             <div style={{ marginTop: 12 }}>
                                                 <div className="slbl">Description</div>
@@ -562,8 +637,8 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                             <div className="tli-d" />
                                             <div className="tli-b">
                                                 <div className="tli-p">{String(exp.period || exp.date || 'Present')}</div>
-                                                <div className="tli-c">{String(exp.company || exp.employer)}</div>
-                                                <div className="tli-r">{String(exp.role || exp.position)}</div>
+                                                <div className="tli-c">{String(exp.company || exp.employer || exp.companyName)}</div>
+                                                <div className="tli-r">{String(exp.role || exp.position || exp.title)}</div>
                                                 <div className="tli-l">{String(exp.description || (exp.bullets && exp.bullets.join('\n')) || '')}</div>
                                             </div>
                                         </div>
@@ -592,8 +667,13 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                                 <div className="sk-g">
                                     {skills.map((s: any, i: number) => (
                                         <div key={i} className="sk-i">
-                                            <div className="sk-n">{String(s || '')}</div>
-                                            <div className="sk-b"><div className="sk-f" style={{ width: `${Math.min(100, 95 - (i * 5))}%` }} /></div>
+                                            <div className="sk-n">{typeof s === 'string' ? s : (s.name || String(s))}</div>
+                                            <div className="sk-b">
+                                                <div 
+                                                    className="sk-f" 
+                                                    style={{ width: `${Math.min(100, s.percentage || (95 - (i * 5)))}%` }} 
+                                                />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -615,7 +695,7 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                             <div className="wbar-title">Contact</div>
                         </div>
                         <div className="wbody wscroll">
-                            <EditableBlock id="about" className="c-in">
+                            <EditableBlock id="contact" className="c-in">
                                 <div className="ct-l">Get in touch.</div>
                                 <div className="ct-s">Open to conversations regarding new opportunities.</div>
                                 <div className="ct-lst">
@@ -642,22 +722,103 @@ export const Template18Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                         <div className="wresize" id="wr-contact" />
                     </div>
                 )}
+
+                {/* Window: Settings */}
+                {openSet.has('settings') && (
+                    <div className={`win ${activeWin !== 'settings' ? 'inactive' : ''}`} id="win-settings" ref={el => winRefs.current.settings = el} onMouseDown={() => bringFront('settings')} style={{ width: 420, height: 450 }}>
+                        <div className="wbar" id="wbar-settings">
+                            <div className="tl-grp">
+                                <div className="tl tl-red" onClick={() => closeWin('settings')} />
+                                <div className="tl tl-yel" onClick={() => miniWin('settings')} />
+                                <div className="tl tl-grn" />
+                            </div>
+                            <div className="wbar-title">System Settings</div>
+                        </div>
+                        <div className="wbody wscroll" style={{ padding: 20 }}>
+                            <div style={{ marginBottom: 20 }}>
+                                <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 4 }}>Display Settings</h2>
+                                <p style={{ fontSize: 12, opacity: 0.6 }}>Customize your OS appearance and environment.</p>
+                            </div>
+
+                            <div style={{ marginBottom: 24 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                                    <h3 style={{ fontSize: 13, fontWeight: 600 }}>Wallpaper</h3>
+                                    <button 
+                                        onClick={() => fileInputRef.current?.click()}
+                                        style={{ 
+                                            background: 'var(--accent)', 
+                                            color: '#fff', 
+                                            border: 'none', 
+                                            borderRadius: '5px', 
+                                            padding: '4px 10px', 
+                                            fontSize: '11px', 
+                                            fontWeight: 600,
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        Upload Custom
+                                    </button>
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        onChange={handleImageUpload} 
+                                        style={{ display: 'none' }} 
+                                        accept="image/*" 
+                                    />
+                                </div>
+                                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                                    {WALLPAPER_PRESETS.map((wp) => (
+                                        <div 
+                                            key={wp.name} 
+                                            onClick={() => {
+                                                handleChange('wallpaperUrl', wp.url);
+                                                handleChange('wallpaperMode', 'preset');
+                                            }}
+                                            style={{ 
+                                                cursor: 'pointer',
+                                                border: `2px solid ${(wallpaperUrl || defaultWallpaper) === wp.url ? 'var(--accent)' : 'transparent'}`,
+                                                borderRadius: 8,
+                                                overflow: 'hidden',
+                                                transition: '0.2s',
+                                                background: 'var(--win2)'
+                                            }}
+                                        >
+                                            <div style={{ position: 'relative', width: '100%', paddingTop: '65%' }}>
+                                                <img src={wp.thumb} alt={wp.name} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            </div>
+                                            <div style={{ padding: '6px 8px', fontSize: 10, fontWeight: 500, textAlign: 'center' }}>
+                                                {wp.name}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="wresize" id="wr-settings" />
+                    </div>
+                )}
             </div>
 
             {/* Dock */}
             <div className="dock">
-                {['about', 'projects', 'experience', 'skills', 'contact'].map((id, i) => {
-                    const icons = ['📄', '🗂', '📋', '🔧', '✉️'];
-                    const cls = ['ic-a', 'ic-p', 'ic-e', 'ic-s', 'ic-c'];
-                    const labels = ['About', 'Projects', 'Experience', 'Skills', 'Contact'];
-                    return (
-                        <div key={id} className={`dk-item ${openSet.has(id) ? 'open' : ''}`} onClick={() => openWin(id)}>
-                            <div className={`dk-face ${cls[i]}`}>{icons[i]}</div>
-                            <div className="dk-tip">{labels[i]}</div>
-                            <div className="dk-dot" />
-                        </div>
-                    );
-                })}
+                {([
+                    showHero ? { id: 'about', icon: '📄', cls: 'ic-a', label: 'About' } : null,
+                    showProjects ? { id: 'projects', icon: '🗂', cls: 'ic-p', label: 'Projects' } : null,
+                    showResume ? { id: 'resume', icon: '📋', cls: 'ic-e', label: 'Experience' } : null,
+                    showSkills ? { id: 'skills', icon: '🔧', cls: 'ic-s', label: 'Skills' } : null,
+                    showContact ? { id: 'contact', icon: '✉️', cls: 'ic-c', label: 'Contact' } : null,
+                    { id: 'settings', icon: '⚙️', cls: 'ic-settings', label: 'Settings' },
+                ].filter(Boolean) as any[]).map((win) => (
+                    <div 
+                        key={win.id} 
+                        className={`dk-item ${openSet.has(win.id) ? 'open' : ''}`} 
+                        onClick={() => openWin(win.id)}
+                    >
+                        <div className={`dk-face ${win.cls}`}>{win.icon}</div>
+                        <div className="dk-tip">{win.label}</div>
+                        <div className="dk-dot" />
+                    </div>
+                ))}
             </div>
         </div>
     );

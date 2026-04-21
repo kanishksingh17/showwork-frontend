@@ -31,6 +31,8 @@ import {
     togglePreviewMode,
     setEditorMode,
     resetPortfolio,
+    setActiveSection,
+    setRightPanelOpen,
     savePortfolioDraft // Import the new thunk
 } from '@/store/portfolio/portfolioSlice';
 
@@ -41,6 +43,7 @@ import { ThemePanel } from './editor/panels/ThemePanel';
 import { SectionVariantsPanel } from './editor/panels/SectionVariantsPanel';
 import { SettingsPanel } from './editor/panels/SettingsPanel';
 import { cn } from '@/lib/utils';
+import { getTemplate } from './templates/TemplateRegistry';
 
 interface ModernPortfolioEditorProps {
     template: PortfolioTemplate;
@@ -70,15 +73,15 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     const portfolioId = usePortfolioSelector(state => state.portfolio.id);
     const storeUserData = usePortfolioSelector(state => state.portfolio.userData);
     const isPreviewMode = usePortfolioSelector(state => state.portfolio.isPreviewMode);
+    const isRightPanelOpen = usePortfolioSelector(state => state.portfolio.isRightPanelOpen);
     const editorMode = usePortfolioSelector(state => state.portfolio.editorMode);
+    const activeSectionId = usePortfolioSelector(state => state.portfolio.activeSection);
     const detectedJobRole = usePortfolioSelector(state => state.portfolio.detectedJobRole);
 
     useEffect(() => {
         if (template) {
             dispatch(selectTemplate(template.id));
-            if (template.sections && (!sections || sections.length === 0)) {
-                dispatch(setSections(template.sections));
-            }
+            
             if (template.theme) {
                 dispatch(updateTheme({
                     primaryColor: template.theme.primary,
@@ -91,8 +94,131 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
         if (jobRole) {
             dispatch(setJobRole(jobRole.id));
         }
+    }, [template?.id, dispatch]);
 
-        // --- AUTO-PILOT SYNC ---
+    // --- HARD SYNC: Ensure template sections exist and match registry Exactly ---
+    const freshRegistrySet = getTemplate(template?.id)?.sections || {};
+    const sectionSyncKey = template ? Object.entries(freshRegistrySet)
+        .map(([id, variant]) => {
+            const s = sections.find(sec => sec.id?.toLowerCase() === id.toLowerCase() || sec.type?.toString().toLowerCase() === id.toLowerCase());
+            return `${id}:${s?.variant || 'missing'}`;
+        }).join('|') : '';
+
+    useEffect(() => {
+        if (template) {
+            // Get the ground-truth configuration from the registry as a safety net
+            // --- STABLE HEALING LOOP ---
+            const masterSections = freshRegistrySet;
+            const templateSectionEntries = Object.entries(masterSections);
+            const currentSections = [...sections];
+            let hasChanges = false;
+
+            const finalizedSections = templateSectionEntries.map(([id, variant], index) => {
+                if (!isNaN(Number(id))) return null;
+
+                // Case-insensitive lookup
+                const existing = currentSections.find(s => 
+                    s.id?.toLowerCase() === id.toLowerCase() || 
+                    s.type?.toString().toLowerCase() === id.toLowerCase() ||
+                    s.variant?.toLowerCase() === variant?.toLowerCase()
+                );
+                
+                const isDevOps = template?.category?.toLowerCase().includes('devops') || 
+                                 template?.id?.toLowerCase().includes('infra') || 
+                                 template?.id?.toLowerCase().includes('reliability');
+
+                const labels = isDevOps ? {
+                    about: 'Engineering Hero',
+                    philosophy: 'Core Philosophy',
+                    automation: 'CI/CD & Automation',
+                    architecture: 'Cloud Architecture',
+                    observability: 'Observability',
+                    reliability: 'SRE & Reliability',
+                    efficiency: 'Cost Efficiency',
+                    tooling: 'Engineered Stack',
+                    inventory: 'Service Inventory',
+                    contact: 'Expert Advisory',
+                    projects: 'Repositories',
+                    resume: 'Activity',
+                    skills: 'Technical Arsenal',
+                } : {
+                    hero: 'Introduction & About',
+                    featured_projects: 'Project Highlights',
+                    social_blocks: 'Social Connect',
+                    experience: 'Career History',
+                    testimonials: 'Client Praise',
+                    projects_list: 'Technical Gallery',
+                    about: 'Introduction',
+                    projects: 'Full Portfolio',
+                    resume: 'Experience',
+                    contact: 'Get in Touch'
+                } as Record<string, string>;
+
+                if (!existing) {
+                    hasChanges = true;
+                    return {
+                        id,
+                        type: id as any,
+                        variant: variant as string,
+                        isVisible: true,
+                        order: index,
+                        title: labels[id] || (id.replace(/_/g, ' ').charAt(0).toUpperCase() + id.replace(/_/g, ' ').slice(1)),
+                        content: '',
+                        isRequired: true,
+                        customData: {}
+                    };
+                }
+
+                // If ID, Variant, or Order mismatch (Case-Insensitive Check)
+                const isIdMismatch = existing.id?.toLowerCase() !== id.toLowerCase();
+                const isTypeMismatch = existing.type?.toString().toLowerCase() !== id.toLowerCase();
+                const isVariantMismatch = existing.variant?.toLowerCase() !== variant?.toLowerCase();
+                const isOrderMismatch = existing.order !== index;
+
+                if (isIdMismatch || isTypeMismatch || isVariantMismatch || isOrderMismatch) {
+                    hasChanges = true;
+                    return {
+                        ...existing,
+                        id, // Force strict lowercase mapping
+                        type: id as any,
+                        variant: variant as string,
+                        order: index,
+                        title: existing.title && isNaN(Number(existing.title)) ? existing.title : (labels[id] || existing.title)
+                    };
+                }
+
+                return existing;
+            }).filter(Boolean) as SectionConfig[];
+
+            // Only dispatch if something ACTUALLY changed to avoid infinite loop
+            if (hasChanges && finalizedSections.length > 0) {
+                dispatch(setSections(finalizedSections));
+            }
+
+            // --- SELF-HEALING SELECTION POINTER ---
+            if (activeSectionId) {
+                const normalizedId = activeSectionId.toLowerCase();
+                const exactMatch = finalizedSections.find(s => s.id === activeSectionId);
+                
+                if (!exactMatch) {
+                    // Optimized Recovery: Match by normalized ID, Type, or Variant
+                    const recovery = finalizedSections.find(s => 
+                        s.id?.toLowerCase() === normalizedId || 
+                        s.type?.toString().toLowerCase() === normalizedId ||
+                        (normalizedId.startsWith(s.id?.toLowerCase() || '') && s.id?.length > 2) // Match "hero01" to "hero"
+                    );
+
+                    if (recovery) {
+                        dispatch(setActiveSection(recovery.id));
+                        dispatch(setRightPanelOpen(true));
+                    }
+                }
+            }
+        }
+    }, [template?.id, sectionSyncKey, dispatch, activeSectionId]);
+
+    // --- AUTO-PILOT SYNC ---
+    useEffect(() => {
         // Only run if we have data and we haven't already customized these sections
         if (sections.length > 0) {
             // 0. Migration: Ensure 'blogs' section has the correct type (for legacy portfolios)
@@ -105,29 +231,31 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
             }
 
             // 1. Sync About/Bio
-            const aboutSec = sections.find(s => s.type === 'about');
+            const aboutSec = sections.find(s => s.type === 'about' || s.id === 'about');
             if (aboutSec && aboutSec.customData?.isAutoSynced !== true && (userData?.resumeBio || userData?.professionalBio || userData?.bio)) {
                 dispatch(updateSectionCustomData({
                     id: aboutSec.id,
                     data: {
                         ...aboutSec.customData,
-                        headline: userData.professionalHeadline || userData.title || "Software Developer",
-                        bio: userData.resumeBio || userData.professionalBio || userData.bio,
-                        socialLinks: userData.socialLinks || {},
+                        name: userData.name || aboutSec.customData?.name || "",
+                        headline: userData.professionalHeadline || userData.title || aboutSec.customData?.headline || "Software Developer",
+                        bio: userData.resumeBio || userData.professionalBio || userData.bio || aboutSec.customData?.bio || "",
+                        location: userData.location || aboutSec.customData?.location || "",
+                        socialLinks: { ...userData.socialLinks, ...userData.socials, ...aboutSec.customData?.socialLinks },
                         isAutoSynced: true
                     }
                 }));
             }
 
-            // 2. Sync Projects from GitHub
-            const projectsSec = sections.find(s => s.type === 'projects');
+            // 2. Sync Projects
+            const projectsSec = sections.find(s => s.type === 'projects' || s.id === 'projects');
             const hasProjects = projects?.length > 0;
             const availableGHUser = userData?.githubUsername || userData?.username || "";
 
             if (projectsSec && projectsSec.customData?.isAutoSynced !== true && (hasProjects || availableGHUser)) {
                 const mappedProjects = (projects || []).slice(0, 6).map((p: any) => ({
-                    name: p.name,
-                    description: p.description || "Open source project on GitHub",
+                    name: p.name || p.title,
+                    description: p.description || p.summary || "Open source project on GitHub",
                     link: { href: p.htmlUrl || p.githubUrl || p.liveUrl || "#", label: "View Source" },
                     logo: p.logo || `https://www.google.com/s2/favicons?domain=${p.liveUrl || 'github.com'}&sz=128`,
                     tags: p.language ? [p.language] : (p.topics || []),
@@ -148,56 +276,49 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
             }
 
             // 3. Sync Resume (Experience & Education)
-            const resumeSec = sections.find(s => s.type === 'resume');
+            const resumeSec = sections.find(s => s.type === 'resume' || s.id === 'resume');
             const hasRealExp = userData?.experience && userData.experience.length > 0;
             const hasRealEdu = userData?.education && userData.education.length > 0;
 
-            if (resumeSec && (hasRealExp || hasRealEdu)) {
-                const currentExp = resumeSec.customData?.experiences || [];
-                const currentEdu = resumeSec.customData?.educations || [];
-
-                // Construct mapped data for comparison
+            if (resumeSec && (hasRealExp || hasRealEdu) && resumeSec.customData?.isAutoSynced !== true) {
                 const mappedExp = (userData?.experience || []).map((e: any) => ({
                     company: e.companyName || e.company,
-                    title: e.title,
-                    start: e.startDate || e.start,
-                    end: e.endDate || e.end || "Present"
+                    title: e.role || e.title,
+                    period: e.period || `${e.startDate || e.start} - ${e.endDate || e.end || 'Present'}`,
+                    description: e.description || (e.bullets ? e.bullets.join('\n') : "")
                 }));
                 const mappedEdu = (userData?.education || []).map((e: any) => ({
                     school: e.schoolName || e.school,
-                    major: e.degreeName || e.major,
-                    start: e.startDate || e.start,
-                    end: e.endDate || e.end
+                    degree: e.degreeName || e.major || e.degree,
+                    period: e.period || `${e.startDate || e.start} - ${e.endDate || e.end || 'Present'}`
                 }));
 
-                // Only sync if the current length is 0 (first time)
-                // OR if we have real items and we haven't flagged this as "real data" yet
-                const isPlaceholder = resumeSec.customData?.isAutoSynced !== true;
-
-                if (isPlaceholder && (mappedExp.length > 0 || mappedEdu.length > 0)) {
-                    dispatch(updateSectionCustomData({
-                        id: resumeSec.id,
-                        data: {
-                            ...resumeSec.customData,
-                            experiences: mappedExp.length > 0 ? mappedExp : currentExp,
-                            educations: mappedEdu.length > 0 ? mappedEdu : currentEdu,
-                            isAutoSynced: true // Guard against loops
-                        }
-                    }));
-                }
+                dispatch(updateSectionCustomData({
+                    id: resumeSec.id,
+                    data: {
+                        ...resumeSec.customData,
+                        experiences: mappedExp.length > 0 ? mappedExp : (resumeSec.customData?.experiences || []),
+                        educations: mappedEdu.length > 0 ? mappedEdu : (resumeSec.customData?.educations || []),
+                        isAutoSynced: true
+                    }
+                }));
             }
 
-            // 4. Sync Skills from Project Stack
-            const skillsSec = sections.find(s => s.type === 'skills');
-            if (skillsSec && skillsSec.customData?.isAutoSynced !== true && projects?.length > 0) {
-                const languages = projects.map((p: any) => p.language?.toLowerCase()).filter(Boolean);
-                const uniqueLangs = Array.from(new Set(languages)).slice(0, 15);
-                if (uniqueLangs.length > 0) {
+            // 4. Sync Skills
+            const skillsSec = sections.find(s => s.type === 'skills' || s.id === 'skills');
+            if (skillsSec && skillsSec.customData?.isAutoSynced !== true && (userData?.skills?.length > 0 || projects?.length > 0)) {
+                let tech = userData?.skills || [];
+                if (tech.length === 0 && projects?.length > 0) {
+                    const languages = projects.map((p: any) => p.language?.toLowerCase()).filter(Boolean);
+                    tech = Array.from(new Set(languages)).slice(0, 15);
+                }
+                
+                if (tech.length > 0) {
                     dispatch(updateSectionCustomData({
                         id: skillsSec.id,
                         data: {
                             ...skillsSec.customData,
-                            techSlugs: uniqueLangs,
+                            techSlugs: tech,
                             isAutoSynced: true
                         }
                     }));
@@ -212,7 +333,7 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
                 profileImage: userData.avatarUrl || userData.profilePicture || ''
             }));
         }
-    }, [template, jobRole, dispatch, userData, storeUserData?.name, sections, projects]);
+    }, [template, sections, dispatch, userData, storeUserData?.name, projects]);
 
     // --- AUTO-SAVE REGISTRY ---
     useEffect(() => {
@@ -248,11 +369,11 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
     };
 
     return (
-        <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950 overflow-hidden font-sans">
+        <div className="flex h-full bg-zinc-50 dark:bg-zinc-950 overflow-hidden font-sans">
             {/* Left Sidebar - Hidden in Preview */}
             {!isPreviewMode && (
-                <div className="w-80 flex-none border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shadow-xl z-20 overflow-y-auto scrollbar-hide">
-                    <div className="p-6 border-b border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between">
+                <div className="w-80 flex-none border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col shadow-xl z-20 overflow-hidden">
+                    <div className="p-6 flex-none border-b border-zinc-100 dark:border-zinc-800/50 flex items-center justify-between">
                         <span className="text-xs font-black uppercase tracking-widest text-zinc-400">Workspace</span>
                     </div>
 
@@ -327,7 +448,10 @@ export const ModernPortfolioEditor: React.FC<ModernPortfolioEditorProps> = ({
             )}
 
             {/* Main Content Component */}
-            <div className="flex-1 flex flex-col min-w-0 bg-zinc-50 dark:bg-zinc-950 relative">
+            <div className={cn(
+                "flex-1 flex flex-col min-w-0 bg-zinc-50 dark:bg-zinc-950 relative transition-all duration-500 ease-in-out",
+                (isRightPanelOpen && !isPreviewMode) ? "pr-[380px]" : "pr-0"
+            )}>
                 {/* Fixed Top Bar */}
                 <div className="h-16 flex-none bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-8 z-30">
                     <div className="flex items-center gap-6">

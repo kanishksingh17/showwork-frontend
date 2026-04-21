@@ -72,7 +72,23 @@ export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         };
     }, []);
 
-    const architectHeroData = sections.find(s => s.variant === 'HeroArchitectural' || s.id === 'about')?.customData || {};
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const blogsSection = sections.find(s => s.id === 'blogs');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showBlogs = blogsSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
+
+    const architectHeroData = heroSection?.customData || {};
 
     return (
         <div className="template-06 selection:bg-[var(--t06-accent)] selection:text-white cursor-none">
@@ -118,33 +134,51 @@ export const Template06Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             </div>
 
             <main className="flex flex-col gap-24">
-                <EditableBlock id="about">
-                    <HeroPrincipal userData={userData} heroData={architectHeroData} onScrollTo={scrollTo} />
-                </EditableBlock>
-                <EditableBlock id="about">
-                    <PhilosophySection />
-                </EditableBlock>
-                <EditableBlock id="projects">
-                    <CaseStudiesSection projects={projects} />
-                </EditableBlock>
-                <EditableBlock id="skills">
-                    <PatternsSection />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <ScalabilitySection />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <SecuritySection />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <ToolingSection />
-                </EditableBlock>
-                <EditableBlock id="blogs">
-                    <ThoughtLeadershipSection />
-                </EditableBlock>
-                <EditableBlock id="contact">
-                    <AdvisorySection />
-                </EditableBlock>
+                {showHero && (
+                    <EditableBlock id="about">
+                        <HeroPrincipal userData={userData} heroData={architectHeroData} onScrollTo={scrollTo} />
+                    </EditableBlock>
+                )}
+                {showHero && (
+                    <EditableBlock id="about">
+                        <PhilosophySection />
+                    </EditableBlock>
+                )}
+                {showProjects && (
+                    <EditableBlock id="projects">
+                        <CaseStudiesSection projects={projectsSection?.customData?.manualProjects || projects} />
+                    </EditableBlock>
+                )}
+                {showSkills && (
+                    <EditableBlock id="skills">
+                        <PatternsSection />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <ScalabilitySection />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <SecuritySection />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <ToolingSection />
+                    </EditableBlock>
+                )}
+                {showBlogs && (
+                    <EditableBlock id="blogs">
+                        <ThoughtLeadershipSection />
+                    </EditableBlock>
+                )}
+                {showContact && (
+                    <EditableBlock id="contact">
+                        <AdvisorySection />
+                    </EditableBlock>
+                )}
             </main>
 
             <EditableBlock id="footer">

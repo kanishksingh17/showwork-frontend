@@ -14,9 +14,27 @@ import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData }) => {
+export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
     const [currentView, setCurrentView] = React.useState<'home' | 'about' | 'blog' | 'speaking' | 'toolbox' | 'projects'>('home');
     const nameToDisplay = userData?.name || 'Braydon';
+
+    const aboutSection = sections.find(s => s.id === 'about');
+    const blogSection = sections.find(s => s.id === 'blogs');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const projectList = (projectsSection?.customData?.manualProjects?.length > 0) 
+        ? projectsSection.customData.manualProjects 
+        : (projectsSection?.customData?.projectItems || projects);
+
+    const showAbout = aboutSection?.isVisible ?? true;
+    const showBlogs = blogSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
 
     const handleNavigate = (view: 'home' | 'about' | 'blog' | 'speaking' | 'toolbox' | 'projects') => {
         setCurrentView(view);
@@ -31,25 +49,45 @@ export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData }) 
                 <main className="min-h-[60vh]">
                     {currentView === 'home' && (
                         <div className="animate-in fade-in duration-700">
-                            <EditableBlock id="about">
-                                <Hero userData={userData} nameToDisplay={nameToDisplay} />
-                            </EditableBlock>
+                            {showAbout && (
+                                <EditableBlock id="about">
+                                    <Hero 
+                                        userData={userData} 
+                                        nameToDisplay={nameToDisplay} 
+                                        customData={aboutSection?.customData}
+                                    />
+                                </EditableBlock>
+                            )}
 
-                            <EditableBlock id="about">
-                                <About
-                                    userData={userData}
-                                    onLearnMore={() => handleNavigate('about')}
-                                    onViewToolbox={() => handleNavigate('toolbox')}
-                                />
-                            </EditableBlock>
+                            {showAbout && (
+                                <EditableBlock id="about">
+                                    <About
+                                        userData={userData}
+                                        customData={aboutSection?.customData}
+                                        onLearnMore={() => handleNavigate('about')}
+                                        onViewToolbox={() => handleNavigate('toolbox')}
+                                    />
+                                </EditableBlock>
+                            )}
 
-                            <EditableBlock id="blogs">
-                                <Blog userData={userData} onViewAll={() => handleNavigate('blog')} />
-                            </EditableBlock>
+                            {showBlogs && (
+                                <EditableBlock id="blogs">
+                                    <Blog 
+                                        userData={userData} 
+                                        customData={blogSection?.customData}
+                                        onViewAll={() => handleNavigate('blog')} 
+                                    />
+                                </EditableBlock>
+                            )}
 
-                            <EditableBlock id="contact">
-                                <Community userData={userData} />
-                            </EditableBlock>
+                            {showContact && (
+                                <EditableBlock id="contact">
+                                    <Community 
+                                        userData={userData} 
+                                        customData={contactSection?.customData}
+                                    />
+                                </EditableBlock>
+                            )}
 
                             <Newsletter />
                         </div>
@@ -76,7 +114,7 @@ export const Template02Inner: React.FC<PortfolioTemplateProps> = ({ userData }) 
                     )}
                     {currentView === 'projects' && (
                         <EditableBlock id="projects">
-                            <ProjectsPage userData={userData} />
+                            <ProjectsPage userData={userData} projects={projectList} />
                         </EditableBlock>
                     )}
                 </main>

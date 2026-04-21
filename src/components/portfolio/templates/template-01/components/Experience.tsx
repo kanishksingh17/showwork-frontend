@@ -1,24 +1,20 @@
 import React from 'react';
 import { Briefcase, Code, Database, Globe, Layers, Zap, ArrowUpRight } from 'lucide-react';
 
-export const Experience: React.FC<{ userData: any; onViewDetailed: () => void }> = ({ userData, onViewDetailed }) => {
-    const experience = userData?.experience || [
-        // ... (rest of the component logic)
-        {
-            period: "Novem. 2023 - Current",
-            role: "Frontend Developer",
-            company: "Edynamics Log",
-            description: "Leveraged HTML5, CSS3, JavaScript (Vue.js), and TypeScript for tasks ranging from maintenance to new feature development and bug fixing. Integrating tools for Android compilation, with notable contributions including Google Maps API integration."
-        },
-        {
-            period: "April 2023 - July 2023",
-            role: "Full Stack Developer",
-            company: "CreasApps LLC",
-            description: "Achieved system optimization and scalability through meticulous maintenance and improvement, employing React Hooks and TypeScript with Next.js."
-        }
-    ];
+export const Experience: React.FC<{ userData: any; customData?: any; onViewDetailed: () => void }> = ({ userData, customData, onViewDetailed }) => {
+    const rawExp = customData?.experiences || userData?.experience || [];
+    const experience = rawExp.map((e: any) => ({
+        period: e.period || (e.start && e.end ? `${e.start} - ${e.end}` : e.date) || "Present",
+        role: e.role || e.title || "Developer",
+        company: e.company || e.companyName || "Company",
+        description: e.description || ""
+    }));
 
-    const bio = userData?.bio || "Bringing 3 years of seasoned expertise in frontend development, I am dedicated to delivering exceptional solutions through the adept use of cutting-edge technologies. My commitment lies in aligning with business objectives and addressing user needs.";
+    const bio = customData?.bio || userData?.bio || "Bringing seasoned expertise in development, I am dedicated to delivering exceptional solutions through the adept use of cutting-edge technologies.";
+    const techHeadlineLine1 = customData?.techHeadlineLine1 || "I can work with a wide range of tools";
+    const techHeadlineLine2 = customData?.techHeadlineLine2 || "from frontend to backend";
+    const techStackListLine1 = customData?.techStackListLine1 || "React, Next.js, Node.js, GraphQL, PostgreSQL,";
+    const techStackListLine2 = customData?.techStackListLine2 || "TypeScript, Tailwind, Prisma, Vue.js and more.";
 
     return (
         <section id="experience" className="animate-in fade-in slide-in-from-bottom-4 duration-700 delay-300">
@@ -41,11 +37,11 @@ export const Experience: React.FC<{ userData: any; onViewDetailed: () => void }>
                 <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 flex flex-col md:flex-row justify-between items-center shadow-sm border border-gray-100 dark:border-gray-700 group hover:border-indigo-500/30 transition-colors duration-500">
                     <div className="mb-8 md:mb-0 text-center md:text-left">
                         <h3 className="font-bold text-gray-900 dark:text-white text-lg mb-3 leading-tight">
-                            I can work with a wide range of tools<br className="hidden md:block" /> from frontend to backend
+                            {techHeadlineLine1}<br className="hidden md:block" /> {techHeadlineLine2}
                         </h3>
                         <p className="text-[10px] text-gray-400 dark:text-gray-500 uppercase tracking-[0.2em] font-bold leading-relaxed">
-                            React, Next.js, Node.js, GraphQL, PostgreSQL,<br className="hidden md:block" />
-                            TypeScript, Tailwind, Prisma, Vue.js and more.
+                            {techStackListLine1}<br className="hidden md:block" />
+                            {techStackListLine2}
                         </p>
                     </div>
                     <div className="flex gap-4 md:gap-6 opacity-30 group-hover:opacity-100 transition-opacity duration-700">

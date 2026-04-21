@@ -11,18 +11,25 @@ import { Footer } from './components/Footer';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 import { EditableBlock } from '../../editor/EditableBlock';
 
-export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
-    const defaultData = {
-        personalInfo: {
-            fullName: 'Marcus Chen',
-            role: 'Senior Mobile Engineer',
-            bio: 'I engineer cross-platform mobile applications that users actually keep.'
-        }
-    };
+export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
+    const portfolioData = userData;
+    const name = userData?.name || 'Marcus Chen';
+    
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
 
-    const portfolioData = userData || defaultData;
-    const name = portfolioData.personalInfo?.fullName || 'Marcus Chen';
-    const mobileHeroData = sections.find(s => s.variant === 'HeroMobile' || s.id === 'about')?.customData || {};
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
+
+    const mobileHeroData = heroSection?.customData || {};
 
     // Intersection Observer for fade-in animations
     const containerRef = useRef<HTMLDivElement>(null);
@@ -57,27 +64,41 @@ export const Template10Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     return (
         <div className="template-10" ref={containerRef}>
             <div className="page-frame">
-                <EditableBlock id="about">
-                    <Hero name={name} mobileData={mobileHeroData} />
-                </EditableBlock>
-                <EditableBlock id="skills">
-                    <TechStack />
-                </EditableBlock>
-                <EditableBlock id="projects">
-                    <Apps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <Metrics />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <Process />
-                </EditableBlock>
-                <EditableBlock id="about">
-                    <Testimonials />
-                </EditableBlock>
-                <EditableBlock id="contact">
-                    <Contact />
-                </EditableBlock>
+                {showHero && (
+                    <EditableBlock id="about">
+                        <Hero name={name} mobileData={mobileHeroData} />
+                    </EditableBlock>
+                )}
+                {showSkills && (
+                    <EditableBlock id="skills">
+                        <TechStack />
+                    </EditableBlock>
+                )}
+                {showProjects && (
+                    <EditableBlock id="projects">
+                        <Apps projects={projectsSection?.customData?.manualProjects || projects} />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <Metrics />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <Process />
+                    </EditableBlock>
+                )}
+                {showHero && (
+                    <EditableBlock id="about">
+                        <Testimonials />
+                    </EditableBlock>
+                )}
+                {showContact && (
+                    <EditableBlock id="contact">
+                        <Contact />
+                    </EditableBlock>
+                )}
             </div>
             <EditableBlock id="footer">
                 <Footer name={name} />

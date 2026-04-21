@@ -2,7 +2,20 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { TrendingDown } from 'lucide-react';
 
-export const CostOptimizationDevOps: React.FC = () => {
+export const CostOptimizationDevOps: React.FC<{ data?: any }> = ({ data }) => {
+    const costData = {
+        num: data?.num || "06 / Cost Efficiency",
+        h2: data?.h2 || "Cloud bills are\nan engineering output.",
+        sub: data?.sub || "Not a finance department problem.",
+        body: data?.body || "FinOps is embedded in the infrastructure development cycle. I've reduced cloud spend on three separate platforms by 30–60% without degrading SLOs.",
+        savings: data?.savings || [
+            { saving: "↓ 47%", title: "Compute Rightsizing", desc: "Automated rightsizing via AWS Compute Optimizer + Karpenter bin-packing." },
+            { saving: "↓ 63%", title: "Storage Tiering Automation", desc: "Intelligent S3 lifecycle policies based on access patterns." },
+            { saving: "↓ 38%", title: "Data Transfer Optimization", desc: "Eliminated cross-AZ traffic. CDN cache hit rates from 61% → 94%." },
+            { saving: "$0", title: "Zombie Resource Elimination", desc: "Automated detection for unattached EBS and idle LBs." }
+        ]
+    };
+
     return (
         <section id="cost">
             <div className="section-inner w-full max-w-5xl">
@@ -12,21 +25,16 @@ export const CostOptimizationDevOps: React.FC = () => {
                     viewport={{ once: true }}
                     className="reveal section-header mb-14"
                 >
-                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">06 / Cost Efficiency</span>
-                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4">Cloud bills are<br />an engineering output.</h2>
-                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">Not a finance department problem.</p>
+                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">{costData.num}</span>
+                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4" dangerouslySetInnerHTML={{ __html: costData.h2.replace(/\n/g, '<br />') }} />
+                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">{costData.sub}</p>
                     <p className="section-body text-[14px] leading-[1.75] text-[var(--t07-text-secondary)] max-w-[680px]">
-                        FinOps is embedded in the infrastructure development cycle. I've reduced cloud spend on three separate platforms by 30–60% without degrading SLOs.
+                        {costData.body}
                     </p>
                 </motion.div>
 
                 <div className="cost-grid grid grid-cols-1 md:grid-cols-2 gap-6 mt-10">
-                    {[
-                        { saving: "↓ 47%", title: "Compute Rightsizing", desc: "Automated rightsizing via AWS Compute Optimizer + Karpenter bin-packing. Spot instance adoption for non-critical workloads." },
-                        { saving: "↓ 63%", title: "Storage Tiering Automation", desc: "Intelligent S3 lifecycle policies based on access patterns. EBS migration from gp2 → gp3 automated across 400+ volumes." },
-                        { saving: "↓ 38%", title: "Data Transfer Optimization", desc: "Eliminated cross-AZ traffic. CDN cache hit rates from 61% → 94%. Replaced NAT Gateway with VPC endpoints." },
-                        { saving: "$0", title: "Zombie Resource Elimination", desc: "Automated detection for unattached EBS, idle LBs, and unused EIPs. Scheduled cleanup jobs with 7-day grace period." }
-                    ].map((card, i) => (
+                    {costData.savings.map((card: any, i: number) => (
                         <motion.div
                             key={i}
                             initial={{ opacity: 0, scale: 0.98 }}

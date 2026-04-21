@@ -2,12 +2,15 @@ import React from 'react';
 import { Pin, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export const FeaturedProjects: React.FC<{ projects: any[] }> = ({ projects }) => {
-    // Take first 4 or use placeholders
-    const featured = projects.length >= 4 ? projects.slice(0, 4) : [
-        { name: "Ecommerce", image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/blog_blue_fluid_v3_premium_1771994675977.png" },
-        { name: "Web animated series", image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/blog_wooden_blocks_v3_premium_1771992291883.png" },
-        { name: "Color generators", image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/blog_purple_ring_v3_premium_1771992320062.png" },
-        { name: "Image editor tool", image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/media__1771994731995.png" }
+    // We already receive the filtered projects (customData?.manualProjects || showcasedProjectsList) from the parent
+    const featured = projects.length > 0 ? projects.slice(0, 4).map(p => ({
+        name: p.title || p.name || "Untitled Project",
+        image: p.imageUrl || p.image || p.thumbnail || "https://images.unsplash.com/photo-1557821552-17105176677c?w=800"
+    })) : [
+        { name: "Ecommerce", image: "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800" },
+        { name: "Web animated series", image: "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800" },
+        { name: "Color generators", image: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=800" },
+        { name: "Image editor tool", image: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800" }
     ];
 
     return (

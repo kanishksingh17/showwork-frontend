@@ -22,7 +22,13 @@ import {
     Terminal
 } from 'lucide-react';
 
-export const ToolingDevOps: React.FC = () => {
+export const ToolingDevOps: React.FC<{ data?: any }> = ({ data }) => {
+    const toolingData = {
+        num: data?.num || "07 / Tooling Ecosystem",
+        h2: data?.h2 || "Tools are chosen.\nNot collected.",
+        sub: data?.sub || "Each tool has a mandate. Overlap is a smell.",
+        body: data?.body || "My stack is opinionated. Every tool solves a specific class of problem and has a defined boundary with adjacent tooling."
+    };
     const [activeCat, setActiveCat] = useState('All');
     const categories = ['All', 'IaC', 'Containers', 'Observability', 'Security', 'CI/CD', 'Data'];
 
@@ -63,11 +69,11 @@ export const ToolingDevOps: React.FC = () => {
                     viewport={{ once: true }}
                     className="reveal section-header mb-14"
                 >
-                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">07 / Tooling Ecosystem</span>
-                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4">Tools are chosen.<br />Not collected.</h2>
-                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">Each tool has a mandate. Overlap is a smell.</p>
+                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">{toolingData.num}</span>
+                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4" dangerouslySetInnerHTML={{ __html: toolingData.h2.replace(/\n/g, '<br />') }} />
+                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">{toolingData.sub}</p>
                     <p className="section-body text-[14px] leading-[1.75] text-[var(--t07-text-secondary)] max-w-[680px]">
-                        My stack is opinionated. Every tool solves a specific class of problem and has a defined boundary with adjacent tooling.
+                        {toolingData.body}
                     </p>
                 </motion.div>
 

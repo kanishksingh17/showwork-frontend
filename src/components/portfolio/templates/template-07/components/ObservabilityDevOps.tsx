@@ -2,7 +2,14 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { BarChart3, FileText, Search } from 'lucide-react';
 
-export const ObservabilityDevOps: React.FC = () => {
+export const ObservabilityDevOps: React.FC<{ data?: any }> = ({ data }) => {
+    const obsData = {
+        num: data?.num || "04 / Observability",
+        h2: data?.h2 || "Know before\nyour users know.",
+        sub: data?.sub || "The three pillars aren't optional.",
+        body: data?.body || "I build observability as infrastructure, not as tooling sprinkled on top. Unified telemetry collection via OpenTelemetry, correlated across logs, metrics, and traces."
+    };
+
     return (
         <section id="observability">
             <div className="section-inner w-full max-w-5xl">
@@ -12,11 +19,11 @@ export const ObservabilityDevOps: React.FC = () => {
                     viewport={{ once: true }}
                     className="reveal section-header mb-14"
                 >
-                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">04 / Observability</span>
-                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4">Know before<br />your users know.</h2>
-                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">The three pillars aren't optional.</p>
+                    <span className="section-num font-mono text-[11px] text-[var(--t07-purple-bright)] tracking-widest uppercase mb-3 block">{obsData.num}</span>
+                    <h2 className="section-h2 text-[clamp(32px,4vw,48px)] font-extrabold tracking-tight leading-[1.1] mb-4" dangerouslySetInnerHTML={{ __html: obsData.h2.replace(/\n/g, '<br />') }} />
+                    <p className="section-sub font-serif italic text-[clamp(18px,2vw,24px)] text-[var(--t07-purple-edge)] mb-4">{obsData.sub}</p>
                     <p className="section-body text-[14px] leading-[1.75] text-[var(--t07-text-secondary)] max-w-[680px]">
-                        I build observability as infrastructure, not as tooling sprinkled on top. Unified telemetry collection via OpenTelemetry, correlated across logs, metrics, and traces.
+                        {obsData.body}
                     </p>
                 </motion.div>
 

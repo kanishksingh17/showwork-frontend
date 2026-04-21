@@ -1,9 +1,9 @@
 import React from 'react';
 
-export const Hero: React.FC<{ userData: any, nameToDisplay: string }> = ({ userData, nameToDisplay }) => {
+export const Hero: React.FC<{ userData: any, nameToDisplay: string, customData?: any }> = ({ userData, nameToDisplay, customData }) => {
     const avatarUrl = userData?.avatar || userData?.profilePic || '/generated/braydon_smile_5_v2_1771991358144.png';
-    const headline = userData?.heroHeadline || `Hey, I'm ${nameToDisplay.split(' ')[0]}! Welcome to my corner of the internet!`;
-    const bio = userData?.bio || "I'm a front-end developer with a love for design and a knack for tinkering. This site is intentionally over-engineered and serves as my playground for experimenting with new ideas and seeing what sticks!";
+    const headline = customData?.headline || userData?.heroHeadline || `Hey, I'm ${nameToDisplay.split(' ')[0]}! Welcome to my corner of the internet!`;
+    const bio = customData?.bio || userData?.bio || "I'm a front-end developer with a love for design and a knack for tinkering. This site is intentionally over-engineered and serves as my playground for experimenting with new ideas and seeing what sticks!";
 
     // Photo stack images (using the ones from the HTML or fallbacks)
     const stackImages = [

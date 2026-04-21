@@ -20,6 +20,30 @@ export const Template07Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     const ringRef = useRef<HTMLDivElement>(null);
     const [activeSection, setActiveSection] = useState('hero');
 
+    const heroSection = sections.find(s => s.id === 'about');
+    const philSection = sections.find(s => s.id === 'philosophy');
+    const autoSection = sections.find(s => s.id === 'automation');
+    const archSection = sections.find(s => s.id === 'architecture');
+    const obsSection = sections.find(s => s.id === 'observability');
+    const sreSection = sections.find(s => s.id === 'reliability');
+    const costSection = sections.find(s => s.id === 'efficiency');
+    const toolingSection = sections.find(s => s.id === 'tooling');
+    const inventorySection = sections.find(s => s.id === 'inventory');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showPhil = philSection?.isVisible ?? true;
+    const showAuto = autoSection?.isVisible ?? true;
+    const showArch = archSection?.isVisible ?? true;
+    const showObs = obsSection?.isVisible ?? true;
+    const showSre = sreSection?.isVisible ?? true;
+    const showCost = costSection?.isVisible ?? true;
+    const showTooling = toolingSection?.isVisible ?? true;
+    const showInventory = inventorySection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
+
     useEffect(() => {
         // Environment Canvas (Bokeh)
         const canvas = envCanvasRef.current;
@@ -201,36 +225,63 @@ export const Template07Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
             {/* Content */}
             <main className="relative z-10">
-                <EditableBlock id="about">
-                    <HeroDevOps userData={userData} sections={sections} />
-                </EditableBlock>
-                <EditableBlock id="about">
-                    <PhilosophyDevOps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <PipelineDevOps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <CloudDiagramDevOps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <ObservabilityDevOps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <SREDevOps />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <CostOptimizationDevOps />
-                </EditableBlock>
-                <EditableBlock id="skills">
-                    <ToolingDevOps />
-                </EditableBlock>
-                <EditableBlock id="projects">
-                    <ProjectsDevOps projects={projects} />
-                </EditableBlock>
-                <EditableBlock id="contact">
-                    <ContactDevOps userData={userData} />
-                </EditableBlock>
+                {showHero && (
+                    <EditableBlock id="about">
+                        <HeroDevOps 
+                            userData={userData} 
+                            sections={sections} 
+                            data={heroSection?.customData}
+                        />
+                    </EditableBlock>
+                )}
+                {showPhil && (
+                    <EditableBlock id="philosophy">
+                        <PhilosophyDevOps data={philSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showAuto && (
+                    <EditableBlock id="automation">
+                        <PipelineDevOps data={autoSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showArch && (
+                    <EditableBlock id="architecture">
+                        <CloudDiagramDevOps data={archSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showObs && (
+                    <EditableBlock id="observability">
+                        <ObservabilityDevOps data={obsSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showSre && (
+                    <EditableBlock id="reliability">
+                        <SREDevOps data={sreSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showCost && (
+                    <EditableBlock id="efficiency">
+                        <CostOptimizationDevOps data={costSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showTooling && (
+                    <EditableBlock id="tooling">
+                        <ToolingDevOps data={toolingSection?.customData} />
+                    </EditableBlock>
+                )}
+                {showInventory && (
+                    <EditableBlock id="inventory">
+                        <ProjectsDevOps 
+                            projects={inventorySection?.customData?.manualProjects || projects} 
+                            data={inventorySection?.customData}
+                        />
+                    </EditableBlock>
+                )}
+                {showContact && (
+                    <EditableBlock id="contact">
+                        <ContactDevOps userData={userData} data={contactSection?.customData} />
+                    </EditableBlock>
+                )}
             </main>
         </div>
     );

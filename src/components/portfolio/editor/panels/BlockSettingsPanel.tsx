@@ -102,7 +102,8 @@ export const BlockSettingsPanel: React.FC = () => {
     const sections = usePortfolioSelector(state => state.portfolio.sections);
     const userData = usePortfolioSelector(state => state.portfolio.userData);
 
-    const activeSection = sections.find(s => s.id === activeSectionId);
+    const activeSection = sections.find(s => s.id?.toLowerCase() === activeSectionId?.toLowerCase()) || 
+                          sections.find(s => s.type?.toString().toLowerCase() === activeSectionId?.toLowerCase());
     
     // Log upload state
     const [uploadingProjectIdx, setUploadingProjectIdx] = useState<number | null>(null);
@@ -156,11 +157,72 @@ export const BlockSettingsPanel: React.FC = () => {
         }
     };
 
+    const handleWallpaperUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error("File is too large. Wallpapers should be under 2MB.");
+            return;
+        }
+
+        try {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const base64 = e.target?.result as string;
+                if (base64) {
+                    handleChange('wallpaperUrl', base64);
+                    handleChange('wallpaperMode', 'custom');
+                    toast.success("Wallpaper updated!");
+                }
+            };
+            reader.readAsDataURL(file);
+        } catch (error) {
+            toast.error("Failed to upload wallpaper.");
+        } finally {
+            if (fileInputRef.current) fileInputRef.current.value = '';
+        }
+    };
+
+    const WALLPAPER_PRESETS = [
+        { name: 'Original', url: '', thumb: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&h=100&fit=crop' },
+        { name: 'Deep Space', url: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=100&h=100&fit=crop' },
+        { name: 'Soft Nordic', url: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=100&h=100&fit=crop' },
+        { name: 'Minimal Dark', url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=100&h=100&fit=crop' },
+        { name: 'Glassy Gradient', url: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?auto=format&fit=crop&q=80', thumb: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=100&h=100&fit=crop' }
+    ];
+
     const renderFields = () => {
         // 1. CHECK DYNAMIC REGISTRY FIRST (Variant-Specific Fields)
-        const variantConfig = activeSection.variant ? SECTION_EDITOR_REGISTRY[activeSection.variant] : null;
+        // Self-Healing Casing: Try to find a match even if variant casing doesn't strictly match the registry (e.g. HERO01 vs Hero01)
+        const variantKey = activeSection.variant;
+        let variantConfig = variantKey ? SECTION_EDITOR_REGISTRY[variantKey] : null;
+
+        if (!variantConfig && variantKey) {
+            const registryKeys = Object.keys(SECTION_EDITOR_REGISTRY);
+            const caseInsensitiveKey = registryKeys.find(
+                k => k.toLowerCase() === variantKey.toLowerCase()
+            );
+            if (caseInsensitiveKey) {
+                variantConfig = SECTION_EDITOR_REGISTRY[caseInsensitiveKey];
+            }
+        }
 
         if (variantConfig) {
+            // Helper to determine the "Effective Value" by checking customData -> userData fallbacks -> Defaults
+            const getSmartValue = (field: EditorField) => {
+                const customVal = data[field.id];
+                if (customVal !== undefined && customVal !== '') return customVal;
+
+                // Fallback to User Profile Data for specific common fields
+                if (field.id === 'headline') return userData?.professionalHeadline || userData?.headline || field.defaultValue;
+                if (field.id === 'bio') return userData?.bio || userData?.professionalBio || field.defaultValue;
+                if (field.id === 'profession' || field.id === 'title') return userData?.profession || userData?.title || field.defaultValue;
+                if (field.id === 'name') return userData?.name || field.defaultValue;
+
+                return field.defaultValue ?? '';
+            };
+
             return (
                 <div className="space-y-8">
                     {variantConfig.map((field) => (
@@ -176,7 +238,7 @@ export const BlockSettingsPanel: React.FC = () => {
 
                             {field.type === 'text' && (
                                 <Input
-                                    value={data[field.id] ?? field.defaultValue ?? ''}
+                                    value={getSmartValue(field)}
                                     onChange={e => handleChange(field.id, e.target.value)}
                                     placeholder={field.placeholder}
                                     className="h-9 text-sm"
@@ -185,7 +247,7 @@ export const BlockSettingsPanel: React.FC = () => {
 
                             {field.type === 'textarea' && (
                                 <Textarea
-                                    value={data[field.id] ?? field.defaultValue ?? ''}
+                                    value={getSmartValue(field)}
                                     onChange={e => handleChange(field.id, e.target.value)}
                                     placeholder={field.placeholder}
                                     rows={4}
@@ -195,7 +257,7 @@ export const BlockSettingsPanel: React.FC = () => {
 
                             {field.type === 'select' && (
                                 <Select
-                                    value={data[field.id] ?? field.defaultValue ?? ''}
+                                    value={getSmartValue(field)}
                                     onValueChange={val => handleChange(field.id, val)}
                                 >
                                     <SelectTrigger className="h-9">
@@ -242,7 +304,10 @@ export const BlockSettingsPanel: React.FC = () => {
                                                 </button>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     {field.itemFields?.map(subField => (
-                                                        <div key={subField.id} className="space-y-1.5">
+                                                        <div 
+                                                            key={subField.id} 
+                                                            className={`space-y-1.5 ${subField.type === 'textarea' ? 'col-span-2' : ''}`}
+                                                        >
                                                             <Label className="text-[10px] uppercase text-zinc-400 font-bold">
                                                                 {subField.label}
                                                             </Label>
@@ -255,6 +320,17 @@ export const BlockSettingsPanel: React.FC = () => {
                                                                         handleChange(field.id, list);
                                                                     }}
                                                                     className="h-8 text-xs bg-white dark:bg-zinc-950"
+                                                                />
+                                                            )}
+                                                            {subField.type === 'textarea' && (
+                                                                <Textarea
+                                                                    value={item[subField.id] ?? subField.defaultValue ?? ''}
+                                                                    onChange={e => {
+                                                                        const list = [...(data[field.id] || field.defaultValue || [])];
+                                                                        list[idx] = { ...item, [subField.id]: e.target.value };
+                                                                        handleChange(field.id, list);
+                                                                    }}
+                                                                    className="min-h-[60px] text-xs bg-white dark:bg-zinc-950 py-2"
                                                                 />
                                                             )}
                                                             {subField.type === 'select' && (
@@ -297,12 +373,58 @@ export const BlockSettingsPanel: React.FC = () => {
                             )}
                         </div>
                     ))}
+
+                    {/* Specialized UI: Wallpaper Picker for Desktop OS */}
+                    {(activeSection.variant === 'AboutOS' || activeSection.variant === 'DisplayOS') && (
+                        <div className="space-y-4 pt-4 border-t border-gray-100 dark:border-zinc-800">
+                            <div className="flex items-center justify-between">
+                                <Label className="text-xs font-bold uppercase tracking-wider text-indigo-500">Desktop Wallpaper</Label>
+                                <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="h-7 text-[10px] font-bold"
+                                    onClick={() => fileInputRef.current?.click()}
+                                >
+                                    Upload Custom
+                                </Button>
+                            </div>
+                            
+                            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                                {WALLPAPER_PRESETS.map((wp) => (
+                                    <button
+                                        key={wp.name}
+                                        onClick={() => {
+                                            handleChange('wallpaperUrl', wp.url);
+                                            handleChange('wallpaperMode', 'preset');
+                                        }}
+                                        className={cn(
+                                            "flex-shrink-0 w-16 group relative",
+                                            "transition-transform active:scale-95"
+                                        )}
+                                    >
+                                        <div className={cn(
+                                            "w-16 h-12 rounded-lg border-2 overflow-hidden transition-all",
+                                            data.wallpaperUrl === wp.url 
+                                                ? "border-indigo-500 shadow-md ring-2 ring-indigo-500/20" 
+                                                : "border-transparent opacity-70 hover:opacity-100 hover:border-indigo-300"
+                                        )}>
+                                            <img src={wp.thumb} alt={wp.name} className="w-full h-full object-cover" />
+                                        </div>
+                                        <span className="text-[8px] mt-1 block truncate font-medium text-gray-500 group-hover:text-indigo-600">
+                                            {wp.name}
+                                        </span>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         }
 
         // 2. FALLBACK TO GENERIC TYPE-BASED EDITOR
         switch (activeSection.type) {
+            case 'philosophy':
             case 'about': {
                 // Use profile data as defaults - be resilient to different key structures
                 const defaultHeadline = userData?.professionalHeadline || userData?.headline || userData?.title || '';
@@ -450,6 +572,7 @@ export const BlockSettingsPanel: React.FC = () => {
                 );
             }
 
+            case 'activity':
             case 'resume': {
                 // Map resume data from profile
                 const defaultExp = (userData?.experience || []).map((e: any) => ({
@@ -633,6 +756,7 @@ export const BlockSettingsPanel: React.FC = () => {
                 );
             }
 
+            case 'community':
             case 'contact': {
                 const defaultEmail = userData?.socialLinks?.email || '';
                 return (
@@ -657,6 +781,7 @@ export const BlockSettingsPanel: React.FC = () => {
                 );
             }
 
+            case 'repositories':
             case 'projects': {
                 const integratedGithub = userData?.socialLinks?.github?.split('/').pop();
                 const manualProjects = data.manualProjects || [];
@@ -901,8 +1026,8 @@ export const BlockSettingsPanel: React.FC = () => {
                 type="file" 
                 ref={fileInputRef} 
                 className="hidden" 
-                accept="image/*"
-                onChange={handleLogoUpload}
+                accept="image/*" 
+                onChange={activeSection.variant === 'AboutOS' ? handleWallpaperUpload : handleLogoUpload}
             />
             {renderFields()}
         </div>

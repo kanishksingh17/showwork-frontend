@@ -14,8 +14,22 @@ import { StatusBar } from './components/StatusBar';
 import { EditableBlock } from '../../editor/EditableBlock';
 import type { PortfolioTemplateProps } from '../withPortfolioTemplate';
 
-export const Template09Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+export const Template09Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
     const containerRef = React.useRef<HTMLDivElement>(null);
+
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
 
     React.useEffect(() => {
         const observer = new IntersectionObserver((entries) => {
@@ -50,31 +64,45 @@ export const Template09Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
             <main>
                 {/* Hero Section */}
-                <EditableBlock id="about">
-                    <Hero name={userData?.name} sections={sections} />
-                </EditableBlock>
+                {showHero && (
+                    <EditableBlock id="about">
+                        <Hero name={userData?.name} sections={sections} />
+                    </EditableBlock>
+                )}
 
                 {/* Tech Strip Marquee */}
-                <EditableBlock id="skills">
-                    <TechStrip />
-                </EditableBlock>
+                {showSkills && (
+                    <EditableBlock id="skills">
+                        <TechStrip />
+                    </EditableBlock>
+                )}
 
                 {/* Sections */}
-                <EditableBlock id="about">
-                    <About />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <Architecture sections={sections} />
-                </EditableBlock>
-                <EditableBlock id="projects">
-                    <Projects />
-                </EditableBlock>
-                <EditableBlock id="resume">
-                    <Metrics />
-                </EditableBlock>
-                <EditableBlock id="contact">
-                    <Contact />
-                </EditableBlock>
+                {showHero && (
+                    <EditableBlock id="about">
+                        <About />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <Architecture sections={sections} />
+                    </EditableBlock>
+                )}
+                {showProjects && (
+                    <EditableBlock id="projects">
+                        <Projects projects={projectsSection?.customData?.manualProjects || projects} />
+                    </EditableBlock>
+                )}
+                {showResume && (
+                    <EditableBlock id="resume">
+                        <Metrics />
+                    </EditableBlock>
+                )}
+                {showContact && (
+                    <EditableBlock id="contact">
+                        <Contact />
+                    </EditableBlock>
+                )}
             </main>
 
             {/* Footer */}

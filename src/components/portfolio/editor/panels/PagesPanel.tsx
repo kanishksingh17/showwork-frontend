@@ -1,9 +1,15 @@
 import React from 'react';
 import { usePortfolioSelector, usePortfolioDispatch } from '@/store/portfolio/hooks';
-import { toggleSectionVisibility, reorderSections } from '@/store/portfolio/portfolioSlice';
+import { 
+    toggleSectionVisibility, 
+    reorderSections,
+    setActiveSection,
+    setRightPanelOpen
+} from '@/store/portfolio/portfolioSlice';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 import {
     Eye,
     EyeOff,
@@ -18,11 +24,20 @@ export const PagesPanel: React.FC = () => {
     const dispatch = usePortfolioDispatch();
     const sections = usePortfolioSelector(state => state.portfolio.sections);
 
-    const handleToggleVisibility = (id: string) => {
+    const activeSectionId = usePortfolioSelector(state => state.portfolio.activeSection);
+
+    const handleSelectSection = (id: string) => {
+        dispatch(setActiveSection(id));
+        dispatch(setRightPanelOpen(true));
+    };
+
+    const handleToggleVisibility = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
         dispatch(toggleSectionVisibility(id));
     };
 
-    const moveSection = (index: number, direction: 'up' | 'down') => {
+    const moveSection = (index: number, direction: 'up' | 'down', e: React.MouseEvent) => {
+        e.stopPropagation();
         if (direction === 'up' && index === 0) return;
         if (direction === 'down' && index === sections.length - 1) return;
 
@@ -47,9 +62,14 @@ export const PagesPanel: React.FC = () => {
                     {sections.map((section, index) => (
                         <div
                             key={section.id}
+                            onClick={() => handleSelectSection(section.id)}
                             className={`
-                                flex items-center justify-between p-3 rounded-lg border transition-all
-                                ${section.isVisible ? 'bg-white border-gray-200 shadow-sm' : 'bg-gray-50 border-gray-100 opacity-70'}
+                                flex items-center justify-between p-3 rounded-lg border transition-all cursor-pointer group/card
+                                ${activeSectionId?.toLowerCase() === section.id?.toLowerCase() 
+                                    ? 'bg-indigo-50 border-indigo-200 ring-1 ring-indigo-200 shadow-md' 
+                                    : section.isVisible 
+                                        ? 'bg-white border-gray-200 hover:border-indigo-200 hover:bg-zinc-50' 
+                                        : 'bg-gray-50 border-gray-100 opacity-70'}
                             `}
                         >
                             <div className="flex items-center gap-3">
@@ -57,17 +77,24 @@ export const PagesPanel: React.FC = () => {
                                     <GripVertical className="w-4 h-4" />
                                 </div>
                                 <div>
-                                    <p className="font-medium text-sm capitalize">{section.type}</p>
-                                    <p className="text-xs text-muted-foreground">{section.variant}</p>
+                                    <p className={cn(
+                                        "font-medium text-sm capitalize",
+                                        activeSectionId?.toLowerCase() === section.id?.toLowerCase() ? "text-indigo-700" : "text-gray-900"
+                                    )}>
+                                        {typeof section.type === 'string' ? (section.title || section.type) : 'Unknown'}
+                                    </p>
+                                    <p className="text-[10px] text-muted-foreground uppercase font-semibold tracking-wider">
+                                        {typeof section.variant === 'string' ? section.variant : 'Default'}
+                                    </p>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 transition-opacity">
                                 <Button
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => moveSection(index, 'up')}
+                                    onClick={(e) => moveSection(index, 'up', e)}
                                     disabled={index === 0}
                                 >
                                     <ArrowUp className="w-3.5 h-3.5" />
@@ -76,7 +103,7 @@ export const PagesPanel: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => moveSection(index, 'down')}
+                                    onClick={(e) => moveSection(index, 'down', e)}
                                     disabled={index === sections.length - 1}
                                 >
                                     <ArrowDown className="w-3.5 h-3.5" />
@@ -86,7 +113,7 @@ export const PagesPanel: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className={`h-7 w-7 ${section.isVisible ? 'text-gray-500' : 'text-gray-400'}`}
-                                    onClick={() => handleToggleVisibility(section.id)}
+                                    onClick={(e) => handleToggleVisibility(section.id, e)}
                                 >
                                     {section.isVisible ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
                                 </Button>

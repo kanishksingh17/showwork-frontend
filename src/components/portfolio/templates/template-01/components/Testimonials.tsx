@@ -1,8 +1,8 @@
 import React from 'react';
 import { Quote } from 'lucide-react';
 
-export const Testimonials: React.FC<{ userData: any }> = ({ userData }) => {
-    const testimonials = userData?.testimonials || [
+export const Testimonials: React.FC<{ userData: any; customData?: any }> = ({ userData, customData }) => {
+    const testimonials = customData?.testimonials || userData?.testimonials || [
         {
             text: "An absolute pleasure to work with. Milton brings both technical expertise and a keen eye for design details that make the final product shine.",
             author: "Sarah Johnson",

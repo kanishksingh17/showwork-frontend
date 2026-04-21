@@ -55,8 +55,22 @@ const Sidebar: React.FC<{ activeTab?: string; setActiveTab?: (tab: any) => void 
     </>
 );
 
-export const Template11Inner: React.FC<PortfolioTemplateProps> = ({ userData, projects, sections }) => {
+export const Template11Inner: React.FC<PortfolioTemplateProps> = ({ userData = {} as any, projects = [], sections = [] }) => {
     const [activeTab, setActiveTab] = useState<'home' | 'projects' | 'stack' | 'impact' | 'contact'>('home');
+
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
 
     const heroData = sections?.find((s: any) => s.variant === 'HeroDataCommand' || s.id === 'about')?.customData || {};
 
@@ -66,46 +80,56 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             <div className="absolute top-6 left-0 right-0 z-50 flex justify-center w-full px-4">
                 <nav className="bg-[--datacmd-surface-dark]/80 backdrop-blur-md rounded-full px-6 py-2 border border-[--datacmd-border-muted] shadow-2xl shadow-black/50 transition-all duration-300">
                     <ul className="flex items-center space-x-1 md:space-x-4 text-[10px] md:text-xs font-bold tracking-[0.2em] font-mono uppercase">
-                        <li>
-                            <button
-                                onClick={() => setActiveTab('home')}
-                                className={`px-3 py-1.5 transition-colors ${activeTab === 'home' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                HOME
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setActiveTab('projects')}
-                                className={`px-3 py-1.5 transition-colors ${activeTab === 'projects' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                PROJECTS
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setActiveTab('stack')}
-                                className={`px-3 py-1.5 transition-colors ${activeTab === 'stack' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                STACK
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setActiveTab('impact')}
-                                className={`px-3 py-1.5 transition-colors ${activeTab === 'impact' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                IMPACT
-                            </button>
-                        </li>
-                        <li>
-                            <button
-                                onClick={() => setActiveTab('contact')}
-                                className={`px-3 py-1.5 transition-colors ${activeTab === 'contact' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
-                            >
-                                CONTACT
-                            </button>
-                        </li>
+                        {showHero && (
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('home')}
+                                    className={`px-3 py-1.5 transition-colors ${activeTab === 'home' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    HOME
+                                </button>
+                            </li>
+                        )}
+                        {showProjects && (
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('projects')}
+                                    className={`px-3 py-1.5 transition-colors ${activeTab === 'projects' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    PROJECTS
+                                </button>
+                            </li>
+                        )}
+                        {showSkills && (
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('stack')}
+                                    className={`px-3 py-1.5 transition-colors ${activeTab === 'stack' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    STACK
+                                </button>
+                            </li>
+                        )}
+                        {showResume && (
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('impact')}
+                                    className={`px-3 py-1.5 transition-colors ${activeTab === 'impact' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    IMPACT
+                                </button>
+                            </li>
+                        )}
+                        {showContact && (
+                            <li>
+                                <button
+                                    onClick={() => setActiveTab('contact')}
+                                    className={`px-3 py-1.5 transition-colors ${activeTab === 'contact' ? 'rounded-full text-white bg-[--datacmd-primary]/20 border border-[--datacmd-primary]/30' : 'text-gray-400 hover:text-white'}`}
+                                >
+                                    CONTACT
+                                </button>
+                            </li>
+                        )}
                     </ul>
                 </nav>
             </div>
@@ -123,177 +147,198 @@ export const Template11Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     <div className="container mx-auto max-w-7xl h-full grid grid-cols-1 md:grid-cols-12 gap-4 auto-rows-min lg:grid-rows-[auto_1fr_auto]">
 
                         {/* System Integrity */}
-                        <div className="md:col-span-3 dashboard-panel">
-                            <EditableBlock id="resume">
-                                <div className="panel-header">
-                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">{heroData.integrityLabel || "System Integrity"}</span>
-                                    <span className="flex h-2 w-2 rounded-full bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
-                                </div>
-                                <div className="p-4 flex flex-col justify-center h-full">
-                                    <div className="text-3xl font-mono text-white mb-1">{heroData.integrityValue || "99.98%"}</div>
-                                    <div className="text-[10px] text-gray-500 uppercase font-mono tracking-tighter">Data Pipeline Uptime</div>
-                                    <div className="mt-4 flex gap-1 h-8 items-end">
-                                        <div className="flex-1 bg-[#22c55e33] h-full"></div>
-                                        <div className="flex-1 bg-[#22c55e66] h-3/4"></div>
-                                        <div className="flex-1 bg-[#22c55e33] h-full"></div>
-                                        <div className="flex-1 bg-[#22c55e99] h-2/3"></div>
-                                        <div className="flex-1 bg-[--datacmd-primary]/40 h-5/6"></div>
-                                        <div className="flex-1 bg-[#22c55e4d] h-full"></div>
+                        {showResume && (
+                            <div className="md:col-span-3 dashboard-panel">
+                                <EditableBlock id="resume">
+                                    <div className="panel-header">
+                                        <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">{heroData.integrityLabel || "System Integrity"}</span>
+                                        <span className="flex h-2 w-2 rounded-full bg-[#22c55e] shadow-[0_0_8px_#22c55e]"></span>
                                     </div>
-                                </div>
-                            </EditableBlock>
-                        </div>
+                                    <div className="p-4 flex flex-col justify-center h-full">
+                                        <div className="text-3xl font-mono text-white mb-1">{heroData.integrityValue || "99.98%"}</div>
+                                        <div className="text-[10px] text-gray-500 uppercase font-mono tracking-tighter">Data Pipeline Uptime</div>
+                                        <div className="mt-4 flex gap-1 h-8 items-end">
+                                            <div className="flex-1 bg-[#22c55e33] h-full"></div>
+                                            <div className="flex-1 bg-[#22c55e66] h-3/4"></div>
+                                            <div className="flex-1 bg-[#22c55e33] h-full"></div>
+                                            <div className="flex-1 bg-[#22c55e99] h-2/3"></div>
+                                            <div className="flex-1 bg-[--datacmd-primary]/40 h-5/6"></div>
+                                            <div className="flex-1 bg-[#22c55e4d] h-full"></div>
+                                        </div>
+                                    </div>
+                                </EditableBlock>
+                            </div>
+                        )}
 
                         {/* Central Hero */}
-                        <div className="md:col-span-6 flex flex-col items-center justify-center text-center py-6 px-4">
-                            <EditableBlock id="about">
-                                <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
-                                    <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">{heroData.tagline || "Central Command v2.4"}</span>
-                                </div>
-                                <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-white pixel-text">
-                                    {heroData.headlineLine1 || "DATA."}<br />
-                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-white to-gray-400">{heroData.headlineLine2 || "CLARITY."}</span><br />
-                                    {heroData.headlineLine3 || "IMPACT."}
-                                </h1>
-                            </EditableBlock>
-                        </div>
+                        {showHero && (
+                            <div className="md:col-span-6 flex flex-col items-center justify-center text-center py-6 px-4">
+                                <EditableBlock id="about">
+                                    <div className="inline-flex items-center space-x-2 bg-white/5 border border-white/10 rounded-full px-3 py-1 mb-4">
+                                        <span className="text-[10px] font-mono text-[--datacmd-accent-cyan] tracking-widest uppercase">{heroData.tagline || "Central Command v2.4"}</span>
+                                    </div>
+                                    <h1 className="font-display text-5xl md:text-7xl lg:text-8xl leading-none tracking-tight text-white pixel-text">
+                                        {heroData.headlineLine1 || "DATA."}<br />
+                                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-gray-400 via-white to-gray-400">{heroData.headlineLine2 || "CLARITY."}</span><br />
+                                        {heroData.headlineLine3 || "IMPACT."}
+                                    </h1>
+                                </EditableBlock>
+                            </div>
+                        )}
 
                         {/* Live Pipeline */}
-                        <div className="md:col-span-3 dashboard-panel">
-                            <EditableBlock id="resume">
-                                <div className="panel-header">
-                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Live Pipeline</span>
-                                    <span className="material-symbols-outlined text-xs text-[--datacmd-primary]">analytics</span>
-                                </div>
-                                <div className="p-3 font-mono text-[10px] leading-tight space-y-1 text-gray-400">
-                                    <div className="flex justify-between border-b border-white/5 pb-1">
-                                        <span>[STREAM]</span>
-                                        <span className="text-emerald-400">SUCCESS</span>
+                        {showResume && (
+                            <div className="md:col-span-3 dashboard-panel">
+                                <EditableBlock id="resume">
+                                    <div className="panel-header">
+                                        <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Live Pipeline</span>
+                                        <span className="material-symbols-outlined text-xs text-[--datacmd-primary]">analytics</span>
                                     </div>
-                                    <div className="pt-1">FETCHING data.events_v2...</div>
-                                    <div className="text-gray-600">Transforming schema...</div>
-                                    <div className="text-[--datacmd-primary]">Loading to Snowflake...</div>
-                                    <div className="flex justify-between pt-2">
-                                        <span>LATENCY</span>
-                                        <span>42ms</span>
+                                    <div className="p-3 font-mono text-[10px] leading-tight space-y-1 text-gray-400">
+                                        <div className="flex justify-between border-b border-white/5 pb-1">
+                                            <span>[STREAM]</span>
+                                            <span className="text-emerald-400">SUCCESS</span>
+                                        </div>
+                                        <div className="pt-1">FETCHING data.events_v2...</div>
+                                        <div className="text-gray-600">Transforming schema...</div>
+                                        <div className="text-[--datacmd-primary]">Loading to Snowflake...</div>
+                                        <div className="flex justify-between pt-2">
+                                            <span>LATENCY</span>
+                                            <span>42ms</span>
+                                        </div>
                                     </div>
-                                </div>
-                            </EditableBlock>
-                        </div>
+                                </EditableBlock>
+                            </div>
+                        )}
 
                         {/* SQL Model */}
-                        <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
-                            <EditableBlock id="resume">
-                                <div className="panel-header">
-                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">SQL_MODELS.sql</span>
-                                    <span className="material-symbols-outlined text-xs text-gray-500">code</span>
-                                </div>
-                                <div className="p-4 font-mono text-xs leading-relaxed text-gray-300">
-                                    <p><span className="code-syntax-keyword">SELECT</span> date_trunc(<span className="code-syntax-string">'month'</span>, created_at),</p>
-                                    <p className="pl-4"><span className="code-syntax-keyword">DISTINCT</span> user_id) <span className="code-syntax-keyword">AS</span> mau,</p>
-                                    <p className="pl-4"><span className="code-syntax-func">SUM</span>(order_value) <span className="code-syntax-keyword">AS</span> revenue</p>
-                                    <p><span className="code-syntax-keyword">FROM</span> staging.analytics_events</p>
-                                    <p><span className="code-syntax-keyword">WHERE</span> status = <span className="code-syntax-string">'completed'</span></p>
-                                    <p><span className="code-syntax-keyword">GROUP BY</span> 1</p>
-                                    <p><span className="code-syntax-keyword">ORDER BY</span> 1 <span className="code-syntax-keyword">DESC</span>;</p>
-                                </div>
-                            </EditableBlock>
-                        </div>
+                        {showResume && (
+                            <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
+                                <EditableBlock id="resume">
+                                    <div className="panel-header">
+                                        <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">SQL_MODELS.sql</span>
+                                        <span className="material-symbols-outlined text-xs text-gray-500">code</span>
+                                    </div>
+                                    <div className="p-4 font-mono text-xs leading-relaxed text-gray-300">
+                                        <p><span className="code-syntax-keyword">SELECT</span> date_trunc(<span className="code-syntax-string">'month'</span>, created_at),</p>
+                                        <p className="pl-4"><span className="code-syntax-keyword">DISTINCT</span> user_id) <span className="code-syntax-keyword">AS</span> mau,</p>
+                                        <p className="pl-4"><span className="code-syntax-keyword">DISTINCT</span> user_id) <span className="code-syntax-keyword">AS</span> mau,</p>
+                                        <p className="pl-4"><span className="code-syntax-func">SUM</span>(order_value) <span className="code-syntax-keyword">AS</span> revenue</p>
+                                        <p><span className="code-syntax-keyword">FROM</span> staging.analytics_events</p>
+                                        <p><span className="code-syntax-keyword">WHERE</span> status = <span className="code-syntax-string">'completed'</span></p>
+                                        <p><span className="code-syntax-keyword">GROUP BY</span> 1</p>
+                                        <p><span className="code-syntax-keyword">ORDER BY</span> 1 <span className="code-syntax-keyword">DESC</span>;</p>
+                                    </div>
+                                </EditableBlock>
+                            </div>
+                        )}
 
                         {/* Bio & CTA */}
-                        <div className="md:col-span-4 lg:col-span-6 flex flex-col items-center justify-center p-8 space-y-6">
-                            <EditableBlock id="about">
-                                <p className="text-gray-400 max-w-md mx-auto text-sm md:text-base font-light text-center leading-relaxed">
-                                    {heroData.bio || "Senior Data Analyst & Analytics Engineer building robust infrastructures that turn chaotic data into high-fidelity business intelligence."}
-                                </p>
-                            </EditableBlock>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <button onClick={() => setActiveTab('projects')} className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-gradient-to-r from-[--datacmd-primary] to-[--datacmd-secondary] font-mono rounded-lg hover:shadow-[0_0_30px_rgba(124,58,237,0.4)]">
-                                    EXPLORE REPOS
-                                    <span className="ml-2 font-mono text-sm transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">&gt;_</span>
-                                </button>
-                                <button className="px-8 py-3 font-mono text-sm border border-white/20 rounded-lg hover:bg-white/5 transition-colors">
-                                    DOWNLOAD CV
-                                </button>
+                        {showHero && (
+                            <div className="md:col-span-4 lg:col-span-6 flex flex-col items-center justify-center p-8 space-y-6">
+                                <EditableBlock id="about">
+                                    <p className="text-gray-400 max-w-md mx-auto text-sm md:text-base font-light text-center leading-relaxed">
+                                        {heroData.bio || "Senior Data Analyst & Analytics Engineer building robust infrastructures that turn chaotic data into high-fidelity business intelligence."}
+                                    </p>
+                                </EditableBlock>
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <button onClick={() => setActiveTab('projects')} className="group relative inline-flex items-center justify-center px-8 py-3 font-bold text-white transition-all duration-200 bg-gradient-to-r from-[--datacmd-primary] to-[--datacmd-secondary] font-mono rounded-lg hover:shadow-[0_0_30px_rgba(124,58,237,0.4)]">
+                                        EXPLORE REPOS
+                                        <span className="ml-2 font-mono text-sm transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5">&gt;_</span>
+                                    </button>
+                                    <button className="px-8 py-3 font-mono text-sm border border-white/20 rounded-lg hover:bg-white/5 transition-colors">
+                                        DOWNLOAD CV
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Revenue Optimization */}
-                        <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
-                            <EditableBlock id="resume">
-                                <div className="panel-header">
-                                    <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Revenue Optimization</span>
-                                    <span className="text-[--datacmd-accent-cyan] text-[10px] font-mono">+12.4%</span>
-                                </div>
-                                <div className="p-4 h-full flex flex-col">
-                                    <div className="flex items-end justify-between h-24 gap-1">
-                                        <div className="w-full bg-[--datacmd-accent-cyan]/10 h-1/4 rounded-t-sm"></div>
-                                        <div className="w-full bg-[--datacmd-accent-cyan]/20 h-2/4 rounded-t-sm"></div>
-                                        <div className="w-full bg-[--datacmd-accent-cyan]/30 h-1/3 rounded-t-sm"></div>
-                                        <div className="w-full bg-[--datacmd-accent-cyan]/50 h-3/4 rounded-t-sm"></div>
-                                        <div className="w-full bg-[--datacmd-accent-cyan]/70 h-2/3 rounded-t-sm"></div>
-                                        <div className="w-full bg-[--datacmd-accent-cyan] h-full rounded-t-sm shadow-[0_0_10px_#06B6D4]"></div>
+                        {showResume && (
+                            <div className="md:col-span-4 lg:col-span-3 dashboard-panel">
+                                <EditableBlock id="resume">
+                                    <div className="panel-header">
+                                        <span className="text-[10px] font-mono tracking-widest text-gray-500 uppercase">Revenue Optimization</span>
+                                        <span className="text-[--datacmd-accent-cyan] text-[10px] font-mono">+12.4%</span>
                                     </div>
-                                    <div className="mt-4 grid grid-cols-2 gap-2">
-                                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                                            <div className="text-[9px] text-gray-500 font-mono">CAC</div>
-                                            <div className="text-xs text-white">$42.10</div>
+                                    <div className="p-4 h-full flex flex-col">
+                                        <div className="flex items-end justify-between h-24 gap-1">
+                                            <div className="w-full bg-[--datacmd-accent-cyan]/10 h-1/4 rounded-t-sm"></div>
+                                            <div className="w-full bg-[--datacmd-accent-cyan]/20 h-2/4 rounded-t-sm"></div>
+                                            <div className="w-full bg-[--datacmd-accent-cyan]/30 h-1/3 rounded-t-sm"></div>
+                                            <div className="w-full bg-[--datacmd-accent-cyan]/50 h-3/4 rounded-t-sm"></div>
+                                            <div className="w-full bg-[--datacmd-accent-cyan]/70 h-2/3 rounded-t-sm"></div>
+                                            <div className="w-full bg-[--datacmd-accent-cyan] h-full rounded-t-sm shadow-[0_0_10px_#06B6D4]"></div>
                                         </div>
-                                        <div className="bg-white/5 p-2 rounded border border-white/5">
-                                            <div className="text-[9px] text-gray-500 font-mono">LTV</div>
-                                            <div className="text-xs text-white">$890.0</div>
+                                        <div className="mt-4 grid grid-cols-2 gap-2">
+                                            <div className="bg-white/5 p-2 rounded border border-white/5">
+                                                <div className="text-[9px] text-gray-500 font-mono">CAC</div>
+                                                <div className="text-xs text-white">$42.10</div>
+                                            </div>
+                                            <div className="bg-white/5 p-2 rounded border border-white/5">
+                                                <div className="text-[9px] text-gray-500 font-mono">LTV</div>
+                                                <div className="text-xs text-white">$890.0</div>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </EditableBlock>
-                        </div>
+                                </EditableBlock>
+                            </div>
+                        )}
 
                         {/* Bottom Row Metrics */}
                         <div className="md:col-span-12 lg:col-span-12 grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-                            <EditableBlock id="skills">
-                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                    <div className="bg-[#7C3AED]/20 p-2 rounded">
-                                        <span className="material-symbols-outlined text-[#7C3AED]">database</span>
+                            {showSkills && (
+                                <EditableBlock id="skills">
+                                    <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                        <div className="bg-[#7C3AED]/20 p-2 rounded">
+                                            <span className="material-symbols-outlined text-[#7C3AED]">database</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Stack</div>
+                                            <div className="text-sm font-bold text-white tracking-widest leading-tight">dbt + Snowflake + Airflow</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">Stack</div>
-                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">dbt + Snowflake + Airflow</div>
+                                </EditableBlock>
+                            )}
+                            {showResume && (
+                                <EditableBlock id="resume">
+                                    <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                        <div className="bg-[#3B82F6]/20 p-2 rounded">
+                                            <span className="material-symbols-outlined text-[#3B82F6]">monitoring</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">KPIs TRACKED</div>
+                                            <div className="text-sm font-bold text-white tracking-widest leading-tight">250+ Metrics Built</div>
+                                        </div>
                                     </div>
-                                </div>
-                            </EditableBlock>
-                            <EditableBlock id="resume">
-                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                    <div className="bg-[#3B82F6]/20 p-2 rounded">
-                                        <span className="material-symbols-outlined text-[#3B82F6]">monitoring</span>
+                                </EditableBlock>
+                            )}
+                            {showResume && (
+                                <EditableBlock id="resume">
+                                    <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                        <div className="bg-[#06B6D4]/20 p-2 rounded">
+                                            <span className="material-symbols-outlined text-[#06B6D4]">payments</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">IMPACT</div>
+                                            <div className="text-sm font-bold text-white tracking-widest leading-tight">$2.5M Identified Rev</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">KPIs TRACKED</div>
-                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">250+ Metrics Built</div>
+                                </EditableBlock>
+                            )}
+                            {showResume && (
+                                <EditableBlock id="resume">
+                                    <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
+                                        <div className="bg-[#9333ea]/20 p-2 rounded">
+                                            <span className="material-symbols-outlined text-[#c084fc]">precision_manufacturing</span>
+                                        </div>
+                                        <div>
+                                            <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">AUTOMATION</div>
+                                            <div className="text-sm font-bold text-white tracking-widest leading-tight">85% Workload Reduction</div>
+                                        </div>
                                     </div>
-                                </div>
-                            </EditableBlock>
-                            <EditableBlock id="resume">
-                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                    <div className="bg-[#06B6D4]/20 p-2 rounded">
-                                        <span className="material-symbols-outlined text-[#06B6D4]">payments</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">IMPACT</div>
-                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">$2.5M Identified Rev</div>
-                                    </div>
-                                </div>
-                            </EditableBlock>
-                            <EditableBlock id="resume">
-                                <div className="bg-[#05050A] border border-[--datacmd-border-muted] rounded-xl p-4 flex items-center space-x-4">
-                                    <div className="bg-[#9333ea]/20 p-2 rounded">
-                                        <span className="material-symbols-outlined text-[#c084fc]">precision_manufacturing</span>
-                                    </div>
-                                    <div>
-                                        <div className="text-[10px] text-gray-500 font-mono tracking-widest uppercase mb-1">AUTOMATION</div>
-                                        <div className="text-sm font-bold text-white tracking-widest leading-tight">85% Workload Reduction</div>
-                                    </div>
-                                </div>
-                            </EditableBlock>
+                                </EditableBlock>
+                            )}
                         </div>
 
                     </div>

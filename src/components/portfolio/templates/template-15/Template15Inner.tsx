@@ -23,18 +23,32 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
   }, []);
 
   // ── Bind to Redux Sections for real-time editing ───────────────────────
-  const aboutSection = sections.find(s => s.id === 'about')?.customData || {};
-  const resumeSection = sections.find(s => s.id === 'resume')?.customData || {};
-  const skillsSection = sections.find(s => s.id === 'skills')?.customData || {};
+  const heroSection = sections.find(s => s.id === 'about');
+  const projectsSection = sections.find(s => s.id === 'projects');
+  const skillsSection = sections.find(s => s.id === 'skills');
+  const resumeSection = sections.find(s => s.id === 'resume');
+  const contactSection = sections.find(s => s.id === 'contact');
+  const footerSection = sections.find(s => s.id === 'footer');
 
-  const name = aboutSection.name || userData?.name || 'Marcus Wei';
+  const showHero = heroSection?.isVisible ?? true;
+  const showProjects = projectsSection?.isVisible ?? true;
+  const showSkills = skillsSection?.isVisible ?? true;
+  const showResume = resumeSection?.isVisible ?? true;
+  const showContact = contactSection?.isVisible ?? true;
+  const showFooter = footerSection?.isVisible ?? true;
+
+  const aboutData = heroSection?.customData || {};
+  const resumeData = resumeSection?.customData || {};
+  const skillData = skillsSection?.customData || {};
+
+  const name = aboutData.name || userData?.name || 'Marcus Wei';
   const firstName = name.split(' ')[0];
   const avatar = userData?.avatar || userData?.profileImage || null;
-  const role = aboutSection.headline || userData?.role || 'Application Security Engineer';
-  const bio = aboutSection.bio || userData?.tagline || userData?.bio || 'Protecting software and APIs with OWASP Top 10 expertise and Secure SDLC integration.';
-  const email = aboutSection.email || userData?.email || 'marcus@security.dev';
+  const role = aboutData.headline || userData?.professionalHeadline || userData?.role || 'Application Security Engineer';
+  const bio = aboutData.bio || userData?.tagline || userData?.bio || 'Protecting software and APIs with OWASP Top 10 expertise and Secure SDLC integration.';
+  const email = aboutData.email || userData?.email || 'marcus@security.dev';
 
-  const metricsFromStore = resumeSection.metrics || [];
+  const metricsFromStore = resumeData.metrics || [];
   const metrics = {
     vulnerabilities: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('vulnerab'))?.value || '400',
     audits: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('audit'))?.value || '60',
@@ -42,7 +56,7 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     critical: metricsFromStore.find((m: any) => m.label.toLowerCase().includes('critical'))?.value || '0'
   };
 
-  const skills = skillsSection.techSlugs || userData?.skills || ['Penetration Testing', 'API Security', 'Cloud Security', 'Secure Code Review', 'Red Teaming', 'DevSecOps'];
+  const skills = skillData.techSlugs || ((userData?.skills && userData.skills.length > 0) ? userData.skills : ['Penetration Testing', 'API Security', 'Cloud Security', 'Secure Code Review', 'Red Teaming', 'DevSecOps']);
 
   return (
     <div className="template-15-container">
@@ -520,10 +534,10 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             {firstName}
           </a>
           <ul className="template-15-nav-links">
-            <li><a href="#expertise">Expertise</a></li>
-            <li><a href="#impact">Impact</a></li>
-            <li><a href="#cases">Case Studies</a></li>
-            <li><a href="#contact">Contact</a></li>
+            {showSkills && <li><a href="#expertise">Expertise</a></li>}
+            {showResume && <li><a href="#impact">Impact</a></li>}
+            {showProjects && <li><a href="#cases">Case Studies</a></li>}
+            {showContact && <li><a href="#contact">Contact</a></li>}
           </ul>
           <div className="hidden sm:block">
             <a href={`mailto:${email}`} className="template-15-btn-primary" style={{ padding: '10px 20px', fontSize: '12px' }}>Request Audit ›</a>
@@ -531,86 +545,88 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
         </div>
       </nav>
 
-      <section className="template-15-hero">
-        <EditableBlock id="about" className="template-15-hero-content">
-          <div className="template-15-hero-eyebrow">
-            <span className="eyebrow-dot"></span>
-            {role}
+      {showHero && (
+        <section className="template-15-hero">
+          <EditableBlock id="about" className="template-15-hero-content">
+            <div className="template-15-hero-eyebrow">
+              <span className="eyebrow-dot"></span>
+              {role}
+            </div>
+            <h1 className="template-15-hero-title">
+              Securing Your<br />
+              Applications <span className="highlight">Before</span><br />
+              Attackers Do.
+            </h1>
+            <p className="template-15-hero-subtitle">
+              {bio}
+            </p>
+            <div className="flex flex-wrap gap-4 mt-8">
+              <a href="#cases" className="template-15-btn-primary">View Security Research ›</a>
+              <a href={`mailto:${email}`} className="template-15-btn-secondary">Contact Specialist →</a>
+            </div>
+
+            <div className="hero-stats">
+              <div className="hstat">
+                <span className="hstat-num"><em>{metrics.vulnerabilities}</em>+</span>
+                <span className="hstat-lbl">Vulnerabilities found</span>
+              </div>
+              <div className="hstat">
+                <span className="hstat-num"><em>{metrics.audits}</em>+</span>
+                <span className="hstat-lbl">Security audits</span>
+              </div>
+              <div className="hstat">
+                <span className="hstat-num"><em>{metrics.remediation}</em>%</span>
+                <span className="hstat-lbl">Remediation rate</span>
+              </div>
+            </div>
+          </EditableBlock>
+
+          <div className="template-15-shield-visual">
+            <div className="shield-stage">
+              <div className="glow-ring r1"></div>
+              <div className="glow-ring r2"></div>
+              <div className="glow-ring r3"></div>
+              <div className="shield-glow"></div>
+
+              <div className="circuit-traces">
+                <div className="trace"></div>
+                <div className="trace"></div>
+                <div className="trace"></div>
+                <div className="trace"></div>
+              </div>
+
+              <div className="scan-line"></div>
+
+              <svg className="shield-svg" width="220" height="250" viewBox="0 0 200 230" fill="none">
+                <defs>
+                  <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor="#4ade80" />
+                    <stop offset="100%" stopColor="#16a34a" />
+                  </linearGradient>
+                </defs>
+                <path d="M100 10 L185 45 L185 110 C185 160 145 200 100 220 C55 200 15 160 15 110 L15 45 Z" fill="url(#shieldGrad)" opacity="0.95" />
+                <path d="M100 20 L175 52 L175 110 C175 155 140 190 100 208 C60 190 25 155 25 110 L25 52 Z" fill="rgba(255,255,255,0.15)" />
+                <rect x="80" y="105" width="40" height="34" rx="5" fill="white" />
+                <path d="M85 105 L85 98 C85 86 115 86 115 98 L115 105" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" />
+                <circle cx="100" cy="122" r="5" fill="#16a34a" />
+              </svg>
+
+              <div className="status-chip c1">
+                <span className="chip-dot"></span>
+                System Hardened
+              </div>
+              <div className="status-chip c2">
+                <span className="chip-dot" style={{ background: '#F59E0B', boxShadow: '0 0 8px #F59E0B' }}></span>
+                Threat Scanning...
+              </div>
+              <div className="status-chip c3" style={{ bottom: '40px', right: '10px' }}>
+                <span className="chip-dot"></span>
+                {metrics.critical} Critical Issues
+              </div>
+            </div>
           </div>
-          <h1 className="template-15-hero-title">
-            Securing Your<br />
-            Applications <span className="highlight">Before</span><br />
-            Attackers Do.
-          </h1>
-          <p className="template-15-hero-subtitle">
-            {bio}
-          </p>
-          <div className="flex flex-wrap gap-4 mt-8">
-            <a href="#cases" className="template-15-btn-primary">View Security Research ›</a>
-            <a href={`mailto:${email}`} className="template-15-btn-secondary">Contact Specialist →</a>
-          </div>
-
-          <div className="hero-stats">
-            <div className="hstat">
-              <span className="hstat-num"><em>{metrics.vulnerabilities}</em>+</span>
-              <span className="hstat-lbl">Vulnerabilities found</span>
-            </div>
-            <div className="hstat">
-              <span className="hstat-num"><em>{metrics.audits}</em>+</span>
-              <span className="hstat-lbl">Security audits</span>
-            </div>
-            <div className="hstat">
-              <span className="hstat-num"><em>{metrics.remediation}</em>%</span>
-              <span className="hstat-lbl">Remediation rate</span>
-            </div>
-          </div>
-        </EditableBlock>
-
-        <div className="template-15-shield-visual">
-          <div className="shield-stage">
-            <div className="glow-ring r1"></div>
-            <div className="glow-ring r2"></div>
-            <div className="glow-ring r3"></div>
-            <div className="shield-glow"></div>
-
-            <div className="circuit-traces">
-              <div className="trace"></div>
-              <div className="trace"></div>
-              <div className="trace"></div>
-              <div className="trace"></div>
-            </div>
-
-            <div className="scan-line"></div>
-
-            <svg className="shield-svg" width="220" height="250" viewBox="0 0 200 230" fill="none">
-              <defs>
-                <linearGradient id="shieldGrad" x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor="#4ade80" />
-                  <stop offset="100%" stopColor="#16a34a" />
-                </linearGradient>
-              </defs>
-              <path d="M100 10 L185 45 L185 110 C185 160 145 200 100 220 C55 200 15 160 15 110 L15 45 Z" fill="url(#shieldGrad)" opacity="0.95" />
-              <path d="M100 20 L175 52 L175 110 C175 155 140 190 100 208 C60 190 25 155 25 110 L25 52 Z" fill="rgba(255,255,255,0.15)" />
-              <rect x="80" y="105" width="40" height="34" rx="5" fill="white" />
-              <path d="M85 105 L85 98 C85 86 115 86 115 98 L115 105" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" />
-              <circle cx="100" cy="122" r="5" fill="#16a34a" />
-            </svg>
-
-            <div className="status-chip c1">
-              <span className="chip-dot"></span>
-              System Hardened
-            </div>
-            <div className="status-chip c2">
-              <span className="chip-dot" style={{ background: '#F59E0B', boxShadow: '0 0 8px #F59E0B' }}></span>
-              Threat Scanning...
-            </div>
-            <div className="status-chip c3" style={{ bottom: '40px', right: '10px' }}>
-              <span className="chip-dot"></span>
-              {metrics.critical} Critical Issues
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* TRUST STRIP */}
       <div className="trust-strip">
@@ -636,108 +652,115 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
       </div>
 
       {/* METRICS */}
-      <section id="impact" className="section-padding" style={{ background: 'var(--bg)' }}>
-        <div className="section-header">
-          <span className="section-eyebrow">Proven Security impact</span>
-          <h2 className="section-title">Measurable Security Outcomes</h2>
-        </div>
-        <div className="metrics-grid">
-          <EditableBlock id="resume" className="metric-card">
-            <div className="metric-val">{metrics.vulnerabilities}+</div>
-            <div className="metric-lbl">Vulnerabilities Identified</div>
-          </EditableBlock>
-          <EditableBlock id="resume" className="metric-card">
-            <div className="metric-val">{metrics.audits}+</div>
-            <div className="metric-lbl">Deep Audits Completed</div>
-          </EditableBlock>
-          <EditableBlock id="resume" className="metric-card">
-            <div className="metric-val">{metrics.remediation}%</div>
-            <div className="metric-lbl">Average Remediation Rate</div>
-          </EditableBlock>
-          <EditableBlock id="resume" className="metric-card">
-            <div className="metric-val">{metrics.critical}</div>
-            <div className="metric-lbl">Critical Incidents Post-Hardening</div>
-          </EditableBlock>
-        </div>
-      </section>
+      {showResume && (
+        <section id="impact" className="section-padding" style={{ background: 'var(--bg)' }}>
+          <div className="section-header">
+            <span className="section-eyebrow">Proven Security impact</span>
+            <h2 className="section-title">Measurable Security Outcomes</h2>
+          </div>
+          <div className="metrics-grid">
+            <EditableBlock id="resume" className="metric-card">
+              <div className="metric-val">{metrics.vulnerabilities}+</div>
+              <div className="metric-lbl">Vulnerabilities Identified</div>
+            </EditableBlock>
+            <EditableBlock id="resume" className="metric-card">
+              <div className="metric-val">{metrics.audits}+</div>
+              <div className="metric-lbl">Deep Audits Completed</div>
+            </EditableBlock>
+            <EditableBlock id="resume" className="metric-card">
+              <div className="metric-val">{metrics.remediation}%</div>
+              <div className="metric-lbl">Average Remediation Rate</div>
+            </EditableBlock>
+            <EditableBlock id="resume" className="metric-card">
+              <div className="metric-val">{metrics.critical}</div>
+              <div className="metric-lbl">Critical Incidents Post-Hardening</div>
+            </EditableBlock>
+          </div>
+        </section>
+      )}
 
       {/* EXPERTISE */}
-      <section id="expertise" className="expertise-section section-padding">
-        <div className="section-inner">
-          <div className="expertise-layout">
-            <EditableBlock id="skills">
-              <div className="section-eyebrow">Core expertise</div>
-              <h2 className="section-title">Full-spectrum application security</h2>
-              <p className="section-sub">From threat modeling at the design phase to post-deployment hardening — every layer of your application, covered.</p>
-              <br /><br />
-              <a href={`mailto:${email}`} className="template-15-btn-primary" style={{ fontSize: '13px', padding: '12px 22px' }}>View all services →</a>
-            </EditableBlock>
+      {/* EXPERTISE */}
+      {showSkills && (
+        <section id="expertise" className="expertise-section section-padding">
+          <div className="section-inner">
+            <div className="expertise-layout">
+              <EditableBlock id="skills">
+                <div className="section-eyebrow">Core expertise</div>
+                <h2 className="section-title">Full-spectrum application security</h2>
+                <p className="section-sub">From threat modeling at the design phase to post-deployment hardening — every layer of your application, covered.</p>
+                <br /><br />
+                <a href={`mailto:${email}`} className="template-15-btn-primary" style={{ fontSize: '13px', padding: '12px 22px' }}>View all services →</a>
+              </EditableBlock>
 
-            <div className="expertise-cards" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-              {(skills.length >= 6 ? skills.slice(0, 6).map((s: string) => ({ icon: '🛡️', title: s, desc: `Specialized focus and methodology in ${s} assessment.` })) : [
-                { icon: '🎯', title: 'Web App Penetration Testing', desc: 'OWASP-aligned deep-dive assessments for modern web platforms.' },
-                { icon: '🔌', title: 'API Security Assessment', desc: 'Hardening REST, GraphQL, and gRPC endpoints against broken authentication.' },
-                { icon: '☁️', title: 'Cloud Security Architecture', desc: 'AWS, Azure, and GCP environment reviews — IAM and posture analysis.' },
-                { icon: '🔍', title: 'Secure Code Review', desc: 'Manual and automated SAST/DAST analysis across modern tech stacks.' },
-                { icon: '🔴', title: 'Red Team Operations', desc: 'Full-scope adversarial simulations to test detection and response capabilities.' },
-                { icon: '🏗️', title: 'Secure SDLC Integration', desc: 'Embedding security gates into CI/CD pipelines — shift-left without slowdown.' }
-              ]).map((item: any, i: number) => (
-                <EditableBlock key={i} id="skills">
-                  <div className="exp-card h-full" style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '22px', boxShadow: 'var(--shadow-sm)', transition: 'all 0.22s' }}>
-                    <div className="exp-icon" style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '14px' }}>{item.icon}</div>
-                    <h3 className="exp-title" style={{ fontFamily: 'var(--display)', fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px', lineHeight: 1.3 }}>{item.title}</h3>
-                    <p className="exp-desc" style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>{item.desc}</p>
-                  </div>
-                </EditableBlock>
-              ))}
+              <div className="expertise-cards" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                {(skills.length >= 6 ? skills.slice(0, 6).map((s: string) => ({ icon: '🛡️', title: s, desc: `Specialized focus and methodology in ${s} assessment.` })) : [
+                  { icon: '🎯', title: 'Web App Penetration Testing', desc: 'OWASP-aligned deep-dive assessments for modern web platforms.' },
+                  { icon: '🔌', title: 'API Security Assessment', desc: 'Hardening REST, GraphQL, and gRPC endpoints against broken authentication.' },
+                  { icon: '☁️', title: 'Cloud Security Architecture', desc: 'AWS, Azure, and GCP environment reviews — IAM and posture analysis.' },
+                  { icon: '🔍', title: 'Secure Code Review', desc: 'Manual and automated SAST/DAST analysis across modern tech stacks.' },
+                  { icon: '🔴', title: 'Red Team Operations', desc: 'Full-scope adversarial simulations to test detection and response capabilities.' },
+                  { icon: '🏗️', title: 'Secure SDLC Integration', desc: 'Embedding security gates into CI/CD pipelines — shift-left without slowdown.' }
+                ]).map((item: any, i: number) => (
+                  <EditableBlock key={i} id="skills">
+                    <div className="exp-card h-full" style={{ background: 'white', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '22px', boxShadow: 'var(--shadow-sm)', transition: 'all 0.22s' }}>
+                      <div className="exp-icon" style={{ width: '44px', height: '44px', borderRadius: '10px', background: 'var(--bg)', border: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', marginBottom: '14px' }}>{item.icon}</div>
+                      <h3 className="exp-title" style={{ fontFamily: 'var(--display)', fontSize: '14px', fontWeight: 700, color: 'var(--text)', marginBottom: '6px', lineHeight: 1.3 }}>{item.title}</h3>
+                      <p className="exp-desc" style={{ fontSize: '12px', color: 'var(--muted)', lineHeight: 1.6 }}>{item.desc}</p>
+                    </div>
+                  </EditableBlock>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* CASE STUDIES */}
-      <section id="cases" className="section-padding" style={{ background: 'var(--bg)' }}>
-        <div className="section-header">
-          <span className="section-eyebrow">Recent Research & audits</span>
-          <h2 className="section-title">Security Case Studies</h2>
-        </div>
-        <div className="cases-grid">
-          {(projects?.length > 0 ? projects.slice(0, 3) : [
-            { title: 'Payment API Auth Bypass', description: 'Discovered a method to bypass OAuth2 scopes in a high-volume payment gateway API.', impact: 'Neutralized $2M Risk' },
-            { title: 'SaaS Multi-tenancy Audit', description: 'Deep-dive security review into a B2B SaaS platform revealing cross-tenant data exposure.', impact: '98% Remediation' },
-            { title: 'Cloud Infrastructure Hardening', description: 'Comprehensive security posture review for a FinTech infrastructure on AWS.', impact: 'Soc 2 Ready' }
-          ]).map((project: any, i: number) => (
-            <EditableBlock key={i} id="projects">
-              <div className="case-card h-full">
-                <div className="case-preview">
-                  <div className="case-terminal">
-                    <div className="ct-r">▶ VULN_DETECTED: {project.title || 'Untitled Research'}</div>
-                    <div className="ct-y">▶ SEVERITY: Critical</div>
-                    <div>$ run security-audit --target {(project.title || 'untitled').toLowerCase().replace(/ /g, '-')}</div>
-                    <div className="ct-g">✓ Remediation_Verified [100%]</div>
-                    <div style={{ marginTop: '20px', fontSize: '9px', opacity: 0.5 }}>- Scanning buffer overflows... OK</div>
-                    <div style={{ fontSize: '9px', opacity: 0.5 }}>- Checking IAM policies... FIXED</div>
-                  </div>
-                </div>
-                <div className="case-body">
-                  <div className="case-title">{project.title || 'Untitled Security Research'}</div>
-                  <p className="case-desc">{project.description || 'No description available for this research.'}</p>
-                  <div className="case-stats">
-                    <div className="case-stat-item">
-                      <span className="case-stat-val">{project.impact || 'Verified Impact'}</span>
-                      <span className="case-stat-lbl">Outcome</span>
-                    </div>
-                    <div className="case-stat-item">
-                      <span className="case-stat-val">Critical</span>
-                      <span className="case-stat-lbl">Severity</span>
+      {showProjects && (
+        <section id="cases" className="section-padding" style={{ background: 'var(--bg)' }}>
+          <div className="section-header">
+            <span className="section-eyebrow">Recent Research & audits</span>
+            <h2 className="section-title">Security Case Studies</h2>
+          </div>
+          <div className="cases-grid">
+            {(projects?.length > 0 ? projects.slice(0, 3) : [
+              { title: 'Payment API Auth Bypass', description: 'Discovered a method to bypass OAuth2 scopes in a high-volume payment gateway API.', impact: 'Neutralized $2M Risk' },
+              { title: 'SaaS Multi-tenancy Audit', description: 'Deep-dive security review into a B2B SaaS platform revealing cross-tenant data exposure.', impact: '98% Remediation' },
+              { title: 'Cloud Infrastructure Hardening', description: 'Comprehensive security posture review for a FinTech infrastructure on AWS.', impact: 'Soc 2 Ready' }
+            ]).map((project: any, i: number) => (
+              <EditableBlock key={i} id="projects">
+                <div className="case-card h-full">
+                  <div className="case-preview">
+                    <div className="case-terminal">
+                      <div className="ct-r">▶ VULN_DETECTED: {project.title || 'Untitled Research'}</div>
+                      <div className="ct-y">▶ SEVERITY: Critical</div>
+                      <div>$ run security-audit --target {(project.title || 'untitled').toLowerCase().replace(/ /g, '-')}</div>
+                      <div className="ct-g">✓ Remediation_Verified [100%]</div>
+                      <div style={{ marginTop: '20px', fontSize: '9px', opacity: 0.5 }}>- Scanning buffer overflows... OK</div>
+                      <div style={{ fontSize: '9px', opacity: 0.5 }}>- Checking IAM policies... FIXED</div>
                     </div>
                   </div>
+                  <div className="case-body">
+                    <div className="case-title">{project.title || 'Untitled Security Research'}</div>
+                    <p className="case-desc">{project.description || 'No description available for this research.'}</p>
+                    <div className="case-stats">
+                      <div className="case-stat-item">
+                        <span className="case-stat-val">{project.impact || 'Verified Impact'}</span>
+                        <span className="case-stat-lbl">Outcome</span>
+                      </div>
+                      <div className="case-stat-item">
+                        <span className="case-stat-val">Critical</span>
+                        <span className="case-stat-lbl">Severity</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </EditableBlock>
-          ))}
-        </div>
-      </section>
+              </EditableBlock>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* CTA */}
       <section className="section-padding">
@@ -751,19 +774,21 @@ export const Template15Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
       </section>
 
       {/* FOOTER */}
-      <footer className="footer">
-        <div className="footer-inner">
-          <div style={{ fontWeight: 800, color: 'var(--text)' }}>
-            {name}<span style={{ color: 'var(--green-d)' }}>.security</span>
+      {showFooter && (
+        <footer className="footer">
+          <div className="footer-inner">
+            <div style={{ fontWeight: 800, color: 'var(--text)' }}>
+              {name}<span style={{ color: 'var(--green-d)' }}>.security</span>
+            </div>
+            <div style={{ display: 'flex', gap: '24px' }}>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Legal</a>
+              <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Secure SDLC</a>
+            </div>
+            <div>© {new Date().getFullYear()} {name}. Built for Scale.</div>
           </div>
-          <div style={{ display: 'flex', gap: '24px' }}>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Privacy</a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Legal</a>
-            <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>Secure SDLC</a>
-          </div>
-          <div>© {new Date().getFullYear()} {name}. Built for Scale.</div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 };

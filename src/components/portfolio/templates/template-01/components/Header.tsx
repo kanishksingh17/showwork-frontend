@@ -5,9 +5,10 @@ interface HeaderProps {
     userData: any;
     currentView: 'home' | 'experience' | 'blog' | 'contact' | 'projects';
     onNavigate: (view: 'home' | 'experience' | 'blog' | 'contact' | 'projects') => void;
+    logo?: string;
 }
 
-export const Header: React.FC<HeaderProps> = ({ userData, currentView, onNavigate }) => {
+export const Header: React.FC<HeaderProps> = ({ userData, currentView, onNavigate, logo }) => {
     const firstLetter = (userData?.name || 'M').charAt(0).toUpperCase();
 
     const toggleTheme = () => {
@@ -31,9 +32,13 @@ export const Header: React.FC<HeaderProps> = ({ userData, currentView, onNavigat
                 </button>
                 <button
                     onClick={() => onNavigate('home')}
-                    className="text-2xl font-black text-gray-900 dark:text-white mx-6 hover:scale-110 transition-transform"
+                    className="flex justify-center items-center h-10 w-10 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg mx-6 hover:scale-110 transition-transform overflow-hidden shadow-lg"
                 >
-                    {firstLetter}
+                    {logo ? (
+                        <img src={logo} alt="Logo" className="w-full h-full object-cover" />
+                    ) : (
+                        <span className="text-xl font-black">{firstLetter}</span>
+                    )}
                 </button>
                 <button
                     onClick={() => onNavigate('contact')}

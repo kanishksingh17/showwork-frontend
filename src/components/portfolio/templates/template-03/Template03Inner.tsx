@@ -27,13 +27,13 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
     const sections = usePortfolioSelector(state => state.portfolio.sections);
 
     // Map Redux sections to Template-03 unique features
-    const showHero = sections.find(s => s.type === 'about')?.isVisible ?? true;
-    const showSkills = sections.find(s => s.type === 'skills')?.isVisible ?? true;
-    const showProjects = sections.find(s => s.type === 'projects')?.isVisible ?? true;
-    const showResume = sections.find(s => s.type === 'resume')?.isVisible ?? true;
-    const showBlogs = sections.find(s => s.type === 'blogs')?.isVisible ?? true;
-    const showActivity = sections.find(s => s.type === 'contact')?.isVisible ?? true;
-    const showFooter = sections.find(s => s.type === 'footer')?.isVisible ?? true;
+    const showHero = sections.find(s => s.id === 'about')?.isVisible ?? true;
+    const showSkills = sections.find(s => s.id === 'skills')?.isVisible ?? true;
+    const showProjects = sections.find(s => s.id === 'projects')?.isVisible ?? true;
+    const showResume = sections.find(s => s.id === 'resume')?.isVisible ?? true;
+    const showBlogs = sections.find(s => s.id === 'blogs' || s.id === 'header')?.isVisible ?? true;
+    const showActivity = sections.find(s => s.id === 'contact')?.isVisible ?? true;
+    const showFooter = sections.find(s => s.id === 'footer')?.isVisible ?? true;
 
     const handleNavigate = (view: string) => {
         setCurrentView(view);
@@ -91,10 +91,13 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
 
     // Mock projects matching the design image/original template
     // Read active block configurations
-    const aboutSection = sections.find(s => s.type === 'about');
-    const projectsSection = sections.find(s => s.type === 'projects');
-    const resumeSection = sections.find(s => s.type === 'resume');
-    const footerSection = sections.find(s => s.type === 'footer');
+    const aboutSection = sections.find(s => s.id === 'about');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const blogsSection = sections.find(s => s.id === 'blogs' || s.id === 'header');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
 
     // Combine social links from userData and customData
     const mappedSocialLinks = {
@@ -106,7 +109,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
 
     // Real projects, or fallback to mock in preview mode
     const manualProjects = projectsSection?.customData?.manualProjects || [];
-    
+
     // Deduplicate: If we have manual (synced) projects, they take priority
     // Otherwise use the raw projects prop
     const allProjects = manualProjects.length > 0 ? manualProjects : (projects || []);
@@ -140,9 +143,6 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
         }
     ];
 
-    // Read active block configurations
-    const skillsSection = sections.find(s => s.type === 'skills');
-    
     // Map raw skill names to SimpleIcons slugs
     const slugMap: Record<string, string> = {
         'node': 'nodedotjs',
@@ -191,11 +191,13 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
     // Merge strategy: Use only user skills in Editor for clarity, but merge with defaults in Preview for impact
     const combinedSlugs = Array.from(new Set([...userTechSlugs, ...techIcons]));
 
-    const displayTechSlugs = (skillsSection?.customData?.techSlugs && skillsSection.customData.techSlugs.length > 0)
-        ? skillsSection.customData.techSlugs
-        : isPreviewMode ? combinedSlugs : userTechSlugs;
+    const displayTechSlugs = isPreviewMode
+        ? combinedSlugs
+        : (skillsSection?.customData?.techSlugs && skillsSection.customData.techSlugs.length > 0)
+            ? skillsSection.customData.techSlugs
+            : userTechSlugs;
 
-    const blogsSection = sections.find(s => s.type === 'blogs');
+    // No change needed here, just ensuring we use the updated blogsSection ref
 
     // Real github repos, or fallback in preview
     const realGithubProjects = allProjects.filter((p: any) => p.isGithubRepo || p.githubUrl);
@@ -239,7 +241,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                 </div>
             ) : (
                 <EmptySectionCard
-                    sectionId="blogs"
+                    sectionId="header"
                     icon={<BookOpen className="w-6 h-6" />}
                     title="No blog posts linked"
                     description="Paste URLs of your Medium, Hashnode, or Dev.to articles in the block settings."
@@ -249,7 +251,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
         </>
     );
 
-    const contactSection = sections.find(s => s.type === 'contact');
+    // No change needed here, already updated above
 
     const renderAboutCore = () => {
         const customExp = resumeSection?.customData?.experiences;
@@ -272,8 +274,8 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                     <Education items={displayEdu} />
                 </div>
                 <div className="w-full">
-                    <Newsletter 
-                        contactEmail={contactSection?.customData?.forwardEmail || userData?.email} 
+                    <Newsletter
+                        contactEmail={contactSection?.customData?.forwardEmail || userData?.email}
                         socials={userData?.socials}
                         name={userData?.name}
                     />
@@ -318,25 +320,25 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                             <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 w-full max-w-6xl mb-20 px-4 sm:px-0">
                                 {/* Left: Headline & Bio */}
                                 {showHero && (
-                                        <EditableBlock 
-                                            id="about" 
-                                            className="flex-1 text-left min-w-0"
-                                        >
-                                            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl text-zinc-900 dark:text-zinc-100 mb-8 leading-[1.1]">
-                                                {aboutSection?.customData?.headline || userData?.professionalHeadline || userData?.tagline || "Full-Stack Developer"}
-                                            </h1>
-                                            <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-xl mb-10 leading-relaxed">
-                                                {aboutSection?.customData?.bio || userData?.professionalBio || userData?.bio || "Building high-performance software and sharing my journey with the world."}
-                                            </p>
-                                            <div className="flex items-center gap-6">
-                                                <SocialLinks user={userWithSocials} />
-                                            </div>
-                                        </EditableBlock>
+                                    <EditableBlock
+                                        id="about"
+                                        className="flex-1 text-left min-w-0"
+                                    >
+                                        <h1 className="text-2xl font-bold tracking-tight sm:text-4xl text-zinc-900 dark:text-zinc-100 mb-8 leading-[1.1]">
+                                            {aboutSection?.customData?.headline || userData?.professionalHeadline || userData?.headline || userData?.tagline || "Full-Stack Developer from India, building scalable web experiences."}
+                                        </h1>
+                                        <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-xl mb-10 leading-relaxed">
+                                            {aboutSection?.customData?.bio || userData?.professionalBio || userData?.bio || "I'm Raj, a full-stack engineer and open-source enthusiast based in India. I specialize in building high-performance web applications with a focus on clean code and user experience."}
+                                        </p>
+                                        <div className="flex items-center gap-6">
+                                            <SocialLinks user={userWithSocials} />
+                                        </div>
+                                    </EditableBlock>
                                 )}
 
                                 {/* Right: Icon Cloud */}
                                 {showSkills && (
-                                    <div className="relative flex flex-col items-center justify-center w-full md:w-1/2 ml-auto max-w-xl">
+                                    <div className="relative flex flex-col items-center justify-center w-full md:w-1/2 ml-auto max-w-xl md:-mt-12">
                                         <EditableBlock id="skills" className="w-full">
                                             <div className="relative flex items-center justify-center overflow-hidden w-full">
                                                 <IconCloud iconSlugs={displayTechSlugs} />
@@ -419,7 +421,7 @@ export const Template03Inner: React.FC<PortfolioTemplateProps> = ({ userData = {
                             {/* left column - blogs */}
                             {showBlogs && (
                                 <div className="lg:pr-8">
-                                    <EditableBlock id="blogs" className="flex flex-col gap-6">
+                                    <EditableBlock id="header" className="flex flex-col gap-6">
                                         {renderBlogsCore()}
                                     </EditableBlock>
                                 </div>

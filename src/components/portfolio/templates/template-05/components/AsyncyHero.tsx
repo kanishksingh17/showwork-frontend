@@ -1,7 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-export const AsyncyHero: React.FC = () => {
+export const AsyncyHero: React.FC<{ customData?: any }> = ({ customData }) => {
+    const headline = customData?.headline || "Designing distributed systems with deterministic boundaries.";
+    const bio = customData?.bio || "Building resilient, event-driven infrastructure that scales with business complexity, not just traffic.";
     return (
         <section id="hero" className="relative min-h-screen pt-6 pb-20 lg:pt-8 lg:pb-32 border-b border-[var(--t05-line)] overflow-hidden">
             <div className="absolute inset-0 z-0 opacity-[0.03] schematic-grid" />
@@ -21,11 +23,11 @@ export const AsyncyHero: React.FC = () => {
                             </motion.span>
 
                             <h1 className="text-[var(--t05-ink)] text-4xl lg:text-5xl font-light leading-[1.15] tracking-tight">
-                                Designing distributed systems with <span className="font-medium">deterministic boundaries</span>.
+                                {headline}
                             </h1>
 
                             <p className="text-[var(--t05-ink)]/60 text-lg font-light max-w-md leading-relaxed mt-4">
-                                Building resilient, event-driven infrastructure that scales with business complexity, not just traffic.
+                                {bio}
                             </p>
                         </div>
 

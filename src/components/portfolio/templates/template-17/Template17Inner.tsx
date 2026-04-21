@@ -14,15 +14,25 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     const S = useRef<{ cwd: string; hist: string[]; hIdx: number } | null>(null);
 
     // ── Bind to Redux Sections for real-time editing ───────────────────────
-    const h = (str: any) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
-    const aboutSection = sections?.find(s => s.id === 'about')?.customData || {};
-    const resumeSection = sections?.find(s => s.id === 'resume')?.customData || {};
-    const skillsSection = sections?.find(s => s.id === 'skills')?.customData || {};
-    const cliData = sections?.find(s => s.variant === 'HeroCLI' || s.id === 'about')?.customData || {};
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+
+    const aboutData = heroSection?.customData || {};
+    const resumeData = resumeSection?.customData || {};
+    const skillData = skillsSection?.customData || {};
+    const cliData = heroSection?.customData || {};
 
     // ── derive user info ────────────────────────────────────────────────────
-    const name = aboutSection.name || userData?.name || 'developer';
+    const name = aboutData.name || userData?.name || 'developer';
     const slug = cliData.userSlug || name.toLowerCase().replace(/\s+/g, '');
     const host = cliData.hostname || 'system';
     
@@ -32,33 +42,39 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     React.useEffect(() => { nameRef.current = name; }, [name]);
     React.useEffect(() => { msgRef.current = cliData.bootMessage || "Portfolio v1.0"; }, [cliData.bootMessage]);
 
-    const email = aboutSection.email || userData?.email || `${slug}@dev.io`;
-    const location = aboutSection.location || userData?.location || 'Remote';
-    const tagline = aboutSection.tagline || userData?.tagline || 'Building tools for developers...';
-    const bio = aboutSection.bio || tagline || userData?.bio || 'Systems engineer. I write code that talks to hardware.';
-    const roleStr = aboutSection.headline || userData?.role || userData?.title || 'Systems Engineer';
-    const skills: string[] = React.useMemo(() => skillsSection.techSlugs || userData?.skills || ['C', 'Rust', 'Go', 'eBPF', 'Linux'], [skillsSection.techSlugs, userData?.skills]);
+    const email = aboutData.email || userData?.email || `${slug}@dev.io`;
+    const location = aboutData.location || userData?.location || 'Remote';
+    const tagline = aboutData.tagline || userData?.tagline || 'Building tools for developers...';
+    const bio = aboutData.bio || tagline || userData?.bio || 'Systems engineer. I write code that talks to hardware.';
+    const roleStr = aboutData.headline || userData?.professionalHeadline || userData?.role || userData?.title || 'Systems Engineer';
+    const skills: string[] = React.useMemo(() => {
+        const profileSkills = (userData?.skills && userData?.skills.length > 0) ? userData.skills : userData?.techStack;
+        const raw = (skillData.techSlugs && skillData.techSlugs.length > 0) 
+            ? skillData.techSlugs 
+            : ((profileSkills && profileSkills.length > 0) ? profileSkills : ['C', 'Rust', 'Go', 'eBPF', 'Linux']);
+        return raw.map((s: any) => typeof s === 'string' ? s : (s.name || String(s)));
+    }, [skillData.techSlugs, userData?.skills, userData?.techStack]);
     
     // ── derive experience ───────────────────────────────────────────────────
     const experience = React.useMemo(() => 
-        (resumeSection.experiences || userData?.experience || []).slice(0, 4).map((exp: any) => ({
-            period: exp.period || exp.start || '?',
-            company: exp.company || '?',
-            role: exp.role || exp.title || roleStr,
+        (resumeData.experiences || userData?.experience || []).slice(0, 4).map((exp: any) => ({
+            period: exp.period || exp.start || exp.date || '?',
+            company: exp.company || exp.employer || exp.companyName || '?',
+            role: exp.role || exp.title || exp.position || roleStr,
             bullets: exp.description ? [exp.description] : (exp.bullets || []),
         })),
-    [resumeSection.experiences, userData?.experience, roleStr]);
+    [resumeData.experiences, userData?.experience, roleStr]);
 
     // ── derive projects / filesystem ────────────────────────────────────────
     const projectList = React.useMemo(() => 
-        (projects || []).slice(0, 4).map((p: any) => ({
-            name: (p.title || p.name || 'project').toLowerCase().replace(/\s+/g, '-'),
+        (projectsSection?.customData?.manualProjects || projects || []).slice(0, 4).map((p: any) => ({
+            name: (p.name || p.title || 'project').toLowerCase().replace(/\s+/g, '-'),
             title: p.title || p.name,
             desc: p.description || p.summary || '',
-            tech: Array.isArray(p.tech) ? p.tech.join(', ') : (p.tech || p.category || ''),
-            readme: `${p.title || p.name}\n${'═'.repeat(60)}\n\n${p.description || p.summary || ''}\n\nTech: ${Array.isArray(p.tech) ? p.tech.join(', ') : (p.tech || '')}`,
+            tech: Array.isArray(p.tech) ? p.tech.join(', ') : (p.tech || p.tags?.join(', ') || p.category || ''),
+            readme: `${p.title || p.name}\n${'═'.repeat(60)}\n\n${p.description || p.summary || ''}\n\nTech: ${Array.isArray(p.tech) ? p.tech.join(', ') : (p.tech || p.tags?.join(', ') || '')}`,
         })),
-    [projects]);
+    [projectsSection?.customData?.manualProjects, projects]);
 
     // ── CSS ─────────────────────────────────────────────────────────────────
     const css = `
@@ -268,8 +284,20 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
 
         // ── commands ───────────────────────────────────────────────────
         const CMD: Record<string, () => string> = {
-            help: () =>
-                `<span class="cw bo">Available commands</span>\n<span class="csd">────────────────────────────────────────────────</span>\n\n  <span class="cy">Navigation</span>\n  <span class="cg">ls</span>              <span class="cgr">list directory contents</span>\n  <span class="cg">cd</span> <span class="cb">[dir]</span>        <span class="cgr">change directory</span>\n  <span class="cg">pwd</span>             <span class="cgr">print working directory</span>\n  <span class="cg">cat</span> <span class="cb">[file]</span>      <span class="cgr">display file contents</span>\n  <span class="cg">clear</span>           <span class="cgr">clear the terminal</span>\n\n  <span class="cy">Portfolio</span>\n  <span class="cg">about</span>           <span class="cgr">who I am</span>\n  <span class="cg">whoami</span>          <span class="cgr">current user info</span>\n  <span class="cg">projects</span>        <span class="cgr">browse projects</span>\n  <span class="cg">skills</span>          <span class="cgr">technical skills</span>\n  <span class="cg">experience</span>      <span class="cgr">work history</span>\n  <span class="cg">contact</span>         <span class="cgr">how to reach me</span>\n  <span class="cg">cat resume.txt</span>  <span class="cgr">full résumé</span>\n\n  <span class="cy">System</span>\n  <span class="cg">uname -a</span>        <span class="cgr">system info</span>\n  <span class="cg">uptime</span>          <span class="cgr">system uptime</span>\n  <span class="cg">history</span>         <span class="cgr">command history</span>\n  <span class="cg">sudo hire-me</span>   <span class="cgr">...</span>\n\n<span class="csd">↑ / ↓  history   ·   Tab  autocomplete   ·   Ctrl-L  clear</span>`,
+            help: () => {
+                const nav = `<span class="cy">Navigation</span>\n  <span class="cg">ls</span>              <span class="cgr">list directory contents</span>\n  <span class="cg">cd [dir]</span>        <span class="cgr">change directory</span>\n  <span class="cg">pwd</span>             <span class="cgr">print working directory</span>\n  <span class="cg">cat [file]</span>      <span class="cgr">display file contents</span>\n  <span class="cg">clear</span>           <span class="cgr">clear the terminal</span>`;
+                
+                let port = `<span class="cy">Portfolio</span>`;
+                if (showHero) port += `\n  <span class="cg">about</span>           <span class="cgr">who I am</span>\n  <span class="cg">whoami</span>          <span class="cgr">current user info</span>`;
+                if (showProjects) port += `\n  <span class="cg">projects</span>        <span class="cgr">browse projects</span>`;
+                if (showSkills) port += `\n  <span class="cg">skills</span>          <span class="cgr">technical skills</span>`;
+                if (showResume) port += `\n  <span class="cg">experience</span>      <span class="cgr">work history</span>\n  <span class="cg">cat resume.txt</span>  <span class="cgr">full résumé</span>`;
+                if (showContact) port += `\n  <span class="cg">contact</span>         <span class="cgr">how to reach me</span>`;
+
+                const sys = `<span class="cy">System</span>\n  <span class="cg">uname -a</span>        <span class="cgr">system info</span>\n  <span class="cg">uptime</span>          <span class="cgr">system uptime</span>\n  <span class="cg">history</span>         <span class="cgr">command history</span>${showContact ? '\n  <span class="cg">sudo hire-me</span>   <span class="cgr">...</span>' : ''}`;
+
+                return `<span class="cw bo">Available commands</span>\n<span class="csd">────────────────────────────────────────────────</span>\n\n${nav}\n\n${port}\n\n${sys}\n\n<span class="csd">↑ / ↓  history   ·   Tab  autocomplete   ·   Ctrl-L  clear</span>`;
+            },
 
             about: () =>
                 `<span class="cw bo">${h(name)}</span>\n<span class="csd">────────────────────────────────────────────────</span>\n\n<span class="cgr">${h(bio)}</span>\n\n<span class="csd">Role      :</span> <span class="cw">${h(roleStr)}</span>\n<span class="csd">Location  :</span> <span class="cb">${h(location)}</span>\n<span class="csd">Email     :</span> <span class="cb">${h(email)}</span>`,
@@ -361,7 +389,19 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                 pwd: 'pwd',
                 history: 'history',
             };
-            if (SIMPLE[lo]) { emit(CMD[SIMPLE[lo]]()); gap(); return; }
+            if (SIMPLE[lo]) {
+                const cmdRef = SIMPLE[lo];
+                if (cmdRef === 'about' && !showHero) { /* skip */ }
+                else if (cmdRef === 'whoami' && !showHero) { /* skip */ }
+                else if (cmdRef === 'projects' && !showProjects) { /* skip */ }
+                else if (cmdRef === 'skills' && !showSkills) { /* skip */ }
+                else if (cmdRef === 'experience' && !showResume) { /* skip */ }
+                else if (cmdRef === 'contact' && !showContact) { /* skip */ }
+                else if (cmdRef === 'sudo hire-me' && !showContact) { /* skip */ }
+                else {
+                    emit(CMD[cmdRef]()); gap(); return;
+                }
+            }
 
             // ls
             if (base === 'ls') {
@@ -425,7 +465,7 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             };
             if (EGGS[lo]) { emit(EGGS[lo]); gap(); return; }
 
-            emit(`<span class="cw">${h(args[0])}: command not found</span>\n<span class="csd">Type 'help' to see available commands.</span>`);
+            emit(`<span class="cw">${h(args[0])}</span>: command not found`);
             gap();
         }
 
@@ -556,47 +596,51 @@ export const Template17Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             )}
 
             {/* terminal */}
-            <EditableBlock id="about" className="h-full">
-                <div ref={termRef} onClick={() => inpRef.current?.focus()} style={{ display: bootPhase === 'done' ? 'flex' : 'none', flexDirection: 'column', height: '100%', cursor: 'text' }}>
-                    <div className="t17-titlebar">
-                        <div className="t17-dots">
-                            <div className="t17-dot" />
-                            <div className="t17-dot" />
-                            <div className="t17-dot" />
-                        </div>
-                        <span className="t17-tblabel" ref={tbLabelRef}>
-                            {name.toLowerCase().replace(/\s+/g, '').slice(0, 12)}@{host}: ~ — bash 5.1.16
-                        </span>
-                        <button className="t17-snd" title="Toggle sound">♪ off</button>
+            <div 
+                ref={termRef} 
+                onClick={() => inpRef.current?.focus()} 
+                style={{ display: bootPhase === 'done' ? 'flex' : 'none', flexDirection: 'column', height: '100%', cursor: 'text' }}
+            >
+                <EditableBlock id="header" className="t17-titlebar">
+                    <div className="t17-dots">
+                        <div className="t17-dot" />
+                        <div className="t17-dot" />
+                        <div className="t17-dot" />
                     </div>
+                    <span className="t17-tblabel" ref={tbLabelRef}>
+                        {name.toLowerCase().replace(/\s+/g, '').slice(0, 12)}@{host}: ~ — bash 5.1.16
+                    </span>
+                    <button className="t17-snd" title="Toggle sound">♪ off</button>
+                </EditableBlock>
 
-                    <EditableBlock id="resume" className="flex-1 overflow-hidden">
+                <div className="flex-1 overflow-hidden relative">
+                    <EditableBlock id="about" className="h-full">
                         <div className="t17-out h-full" ref={outRef} />
                     </EditableBlock>
-
-                    <div className="t17-inp-row">
-                        <span className="t17-ps">
-                            <span className="t17-ps-u">{slug.slice(0, 12)}</span>
-                            <span className="t17-ps-a">@</span>
-                            <span className="t17-ps-h">{host}</span>
-                            <span className="t17-ps-c">:</span>
-                            <span className="t17-ps-p" ref={psPathRef}>~</span>
-                            <span className="t17-ps-s">$ </span>
-                        </span>
-                        <input
-                            ref={inpRef}
-                            className="t17-inp"
-                            type="text"
-                            autoComplete="off"
-                            autoCorrect="off"
-                            autoCapitalize="off"
-                            spellCheck={false}
-                            aria-label="terminal input"
-                        />
-                        <span className="t17-cursor" />
-                    </div>
                 </div>
-            </EditableBlock>
+
+                <EditableBlock id="contact" className="t17-inp-row">
+                    <span className="t17-ps">
+                        <span className="t17-ps-u">{slug.slice(0, 12)}</span>
+                        <span className="t17-ps-a">@</span>
+                        <span className="t17-ps-h">{host}</span>
+                        <span className="t17-ps-c">:</span>
+                        <span className="t17-ps-p" ref={psPathRef}>~</span>
+                        <span className="t17-ps-s">$ </span>
+                    </span>
+                    <input
+                        ref={inpRef}
+                        className="t17-inp"
+                        type="text"
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                        aria-label="terminal input"
+                    />
+                    <span className="t17-cursor" />
+                </EditableBlock>
+            </div>
         </div>
     );
 };

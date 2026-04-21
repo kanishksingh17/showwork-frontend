@@ -2,17 +2,22 @@ import React from 'react';
 import { Code, ExternalLink, Play } from 'lucide-react';
 
 export const Projects: React.FC<{ projects: any[]; onViewArchive: () => void }> = ({ projects, onViewArchive }) => {
-    const displayProjects = projects.length > 0 ? projects.slice(0, 2) : [
+    const displayProjects = projects.length > 0 ? projects.slice(0, 2).map(p => ({
+        ...p,
+        name: p.title || p.name || "Untitled Project",
+        image: p.imageUrl || p.image || p.thumbnail || "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200",
+        description: p.description || p.summary || "Description coming soon..."
+    })) : [
         {
             name: "RapidShop",
             description: "Ecommerce platform built with Vue.js, Tailwind, Vuex",
-            image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/blog_blue_fluid_v3_premium_1771994675977.png",
+            image: "https://images.unsplash.com/photo-1557821552-17105176677c?w=1200",
             liveUrl: "https://google.com"
         },
         {
             name: "Harvest",
             description: "Image color generator built with React and Canvas",
-            image: "file:///C:/Users/Kanishk%20singh/.gemini/antigravity/brain/e147c22d-cb8a-468a-8721-232fa188cc6d/blog_wooden_blocks_v3_premium_1771992291883.png",
+            image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200",
             liveUrl: "https://google.com"
         }
     ];

@@ -284,7 +284,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
   const [searchParams] = useSearchParams();
   const portfolioId = searchParams.get('id');
   const { user, isAuthenticated, isLoading } = useAuth();
-  
+
   // Auto-redirect from demo to main route if already logged in - wait for stability
   useEffect(() => {
     if (isDemo && isAuthenticated && !isLoading) {
@@ -432,7 +432,7 @@ export default function PortfolioBuilder({ isDemo = false }: PortfolioBuilderPro
               const portfolio = data.data;
               const { loadPortfolio } = await import("@/store/portfolio/portfolioSlice");
               dispatch(loadPortfolio(portfolio));
-              
+
               // Set local state to skip selection
               setSelectedTemplate({ id: portfolio.template_id } as any);
               setCurrentStep("customizer");

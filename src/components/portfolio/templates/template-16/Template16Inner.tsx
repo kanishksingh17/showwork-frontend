@@ -8,23 +8,37 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
     const wrapRef = useRef<HTMLDivElement>(null);
 
     // ── Bind to Redux Sections for real-time editing ───────────────────────
-    const aboutSection = sections.find(s => s.id === 'about')?.customData || {};
-    const resumeSection = sections.find(s => s.id === 'resume')?.customData || {};
-    const skillsSection = sections.find(s => s.id === 'skills')?.customData || {};
-    const researchData = sections.find(s => s.variant === 'HeroResearch' || s.id === 'about')?.customData || {};
+    const heroSection = sections.find(s => s.id === 'about');
+    const projectsSection = sections.find(s => s.id === 'projects');
+    const skillsSection = sections.find(s => s.id === 'skills');
+    const resumeSection = sections.find(s => s.id === 'resume');
+    const contactSection = sections.find(s => s.id === 'contact');
+    const footerSection = sections.find(s => s.id === 'footer');
 
-    const displayName = aboutSection.name || userData?.name || 'Research Engineer';
+    const showHero = heroSection?.isVisible ?? true;
+    const showProjects = projectsSection?.isVisible ?? true;
+    const showSkills = skillsSection?.isVisible ?? true;
+    const showResume = resumeSection?.isVisible ?? true;
+    const showContact = contactSection?.isVisible ?? true;
+    const showFooter = footerSection?.isVisible ?? true;
+
+    const aboutData = heroSection?.customData || {};
+    const resumeData = resumeSection?.customData || {};
+    const skillData = skillsSection?.customData || {};
+    const researchData = heroSection?.customData || {}; // For legacy compatibility with this template's specific needs
+
+    const displayName = aboutData.name || userData?.name || 'Research Engineer';
     void displayName; // referenced via userData fallbacks below
-    const role = aboutSection.headline || userData?.role || 'ML Research Engineer';
+    const role = aboutData.headline || userData?.professionalHeadline || userData?.role || 'ML Research Engineer';
     const bio =
-        aboutSection.bio ||
+        aboutData.bio ||
         userData?.tagline ||
         userData?.bio ||
         'ML research engineer focused on reproducing, scaling, and deploying state-of-the-art models. Founded on rigorous empiricism, led by measurable results.';
-    const email = aboutSection.email || userData?.email || 'research@ml.dev';
-    const location = aboutSection.location || userData?.location || 'Bengaluru, IN';
+    const email = aboutData.email || userData?.email || 'research@ml.dev';
+    const location = aboutData.location || userData?.location || 'Bengaluru, IN';
 
-    const metricsFromStore = researchData.metrics || resumeSection.metrics || [];
+    const metricsFromStore = researchData.metrics || resumeData.metrics || [];
     const papersReproduced = researchData.metric1Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('paper'))?.value || '12';
     const modelsDeployed = researchData.metric2Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('model'))?.value || '4';
     const reproductionAccuracy = researchData.metric3Value || metricsFromStore.find((m: any) => m.label.toLowerCase().includes('accuracy'))?.value || '95';
@@ -518,114 +532,132 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
                     <button className="t16-pill" onClick={handleMenu}>MENU</button>
                 </div>
                 <div className="t16-navbar-right">
-                    <span className="t16-clock" id="t16-clock">
-                        {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} (GMT+5:30)
-                    </span>
-                    <a href={`mailto:${email}`} className="t16-pill" style={{ textDecoration: 'none' }}>↳ GET IN TOUCH</a>
+                    {showContact && (
+                        <span className="t16-clock" id="t16-clock">
+                            {new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })} (GMT+5:30)
+                        </span>
+                    )}
+                    {showContact && (
+                        <a href={`mailto:${email}`} className="t16-pill" style={{ textDecoration: 'none' }}>↳ GET IN TOUCH</a>
+                    )}
                 </div>
             </nav>
 
             {/* ══ SECTION 1 — HERO ══ */}
-            <section className="t16-section" id="t16-hero" style={{ minHeight: 'calc(100vh - 48px)' }}>
-                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
-                    <g ref={radialRef}></g>
-                </svg>
+            {showHero && (
+                <section className="t16-section" id="t16-hero" style={{ minHeight: 'calc(100vh - 48px)' }}>
+                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid slice">
+                        <g ref={radialRef}></g>
+                    </svg>
 
-                <div className="t16-nav-nodes">
-                    {([
-                        { label: 'PAPERS', href: '#t16-about', x: 50, y: 22 },
-                        { label: 'OVERVIEW', href: '#t16-about', x: 33, y: 33 },
-                        { label: 'MODELS', href: '#t16-statement', x: 67, y: 33 },
-                        { label: 'DATASETS', href: '#t16-stack', x: 33, y: 67 },
-                        { label: 'RESULTS', href: '#t16-contact', x: 67, y: 67 },
-                        { label: 'EXPERIMENTS', href: '#t16-metrics', x: 50, y: 76 },
-                    ] as { label: string; href: string; x: number; y: number }[]).map((n) => (
-                        <a key={n.label} className="t16-nav-node" href={n.href}
-                            style={{ left: `${n.x}%`, top: `${n.y}%` }}
-                            onClick={(e) => { e.preventDefault(); document.querySelector(n.href)?.scrollIntoView({ behavior: 'smooth' }); }}
-                        >
-                            <span>{n.label}</span>
-                        </a>
-                    ))}
-                </div>
+                    <div className="t16-nav-nodes">
+                        {([
+                            showProjects ? { label: 'PAPERS', href: '#t16-about', x: 50, y: 22 } : null,
+                            showHero ? { label: 'OVERVIEW', href: '#t16-about', x: 33, y: 33 } : null,
+                            showResume ? { label: 'MODELS', href: '#t16-statement', x: 67, y: 33 } : null,
+                            showSkills ? { label: 'DATASETS', href: '#t16-stack', x: 33, y: 67 } : null,
+                            showContact ? { label: 'RESULTS', href: '#t16-contact', x: 67, y: 67 } : null,
+                            showResume ? { label: 'EXPERIMENTS', href: '#t16-metrics', x: 50, y: 76 } : null,
+                        ].filter(Boolean) as { label: string; href: string; x: number; y: number }[]).map((n) => (
+                            <a key={n.label} className="t16-nav-node" href={n.href}
+                                style={{ left: `${n.x}%`, top: `${n.y}%` }}
+                                onClick={(e) => { e.preventDefault(); document.querySelector(n.href)?.scrollIntoView({ behavior: 'smooth' }); }}
+                            >
+                                <span>{n.label}</span>
+                            </a>
+                        ))}
+                    </div>
 
-                <EditableBlock id="about">
-                    <div className="t16-hero-title t16-reveal t16-d1">
-                        {researchData.title?.split('\n').map((line: string, i: number) => <React.Fragment key={i}>{line}<br /></React.Fragment>) || 
-                         <>Research-Driven<br />Machine Learning<br />Systems</>}
-                    </div>
-                    <div className="t16-hero-loc t16-reveal t16-d2">
-                        {researchData.location || location} /<br />{researchData.status || "Ready to Work"}
-                    </div>
-                </EditableBlock>
-            </section>
+                    <EditableBlock id="about" className="t16-hero-content">
+                        <div className="t16-hero-title t16-reveal t16-d1">
+                            {researchData.title?.split('\n').map((line: string, i: number) => <React.Fragment key={i}>{line}<br /></React.Fragment>) || 
+                             <>Research-Driven<br />Machine Learning<br />Systems</>}
+                        </div>
+                        <div className="t16-hero-loc t16-reveal t16-d2">
+                            {researchData.location || location} /<br />{researchData.status || "Ready to Work"}
+                        </div>
+                    </EditableBlock>
+                </section>
+            )}
 
             {/* ══ SECTION 2 — ABOUT + PROJECT GRID ══ */}
-            <section id="t16-about" style={{ background: '#EDECEA', display: 'block' }}>
-                <div className="t16-about-upper">
-                    <div className="t16-section-index t16-reveal">[ 1 ]</div>
-                    <div>
-                        <div className="t16-about-label t16-reveal t16-d1">ABOUT</div>
-                        <p className="t16-about-text t16-reveal t16-d2">{bio}</p>
-                    </div>
-                </div>
-
-                <div className="t16-works-label-row">
-                    <div />
-                    <div className="t16-works-label">[RECENT RESEARCH]</div>
-                </div>
-
-                <div className="t16-project-grid">
-                    {dispProjects.map((p: any, i: number) => (
-                        <EditableBlock key={i} id="projects">
-                            <div className={`t16-project-card h-full t16-reveal t16-d${i + 1}`}>
-                                <div className="t16-card-meta">
-                                    <span className="t16-card-tag">{(p.tags || ['ML', 'RESEARCH']).join(' · ')}</span>
-                                    <span className="t16-card-year">{p.year || '2024'}</span>
-                                    <span style={{ fontSize: '12px', color: '#7A7A7A' }}>↳</span>
-                                </div>
-                                <div className="t16-card-preview">
-                                    <div className="t16-preview-dark">
-                                        <span className="t16-cmt"># {p.title || 'Research Project'}</span><br />
-                                        <span className="t16-kw">model</span> = <span className="t16-str">"{role}"</span><br />
-                                        <span className="t16-cmt">{'# ' + (p.description || '').slice(0, 60) + '...'}</span><br />
-                                        <br />
-                                        status: <span className="t16-fn">REPRODUCED</span><br />
-                                        year: <span className="t16-num">{p.year || '2024'}</span><span className="t16-cursor"></span>
-                                        <div className="t16-metric-line">{p.metric || '✓ Verified'}</div>
-                                    </div>
-                                </div>
+            {(showHero || showProjects) && (
+                <section id="t16-about" style={{ background: '#EDECEA', display: 'block' }}>
+                    {showHero && (
+                        <div className="t16-about-upper">
+                            <div className="t16-section-index t16-reveal">[ 1 ]</div>
+                            <div>
+                                <div className="t16-about-label t16-reveal t16-d1">ABOUT</div>
+                                <p className="t16-about-text t16-reveal t16-d2">{bio}</p>
                             </div>
-                        </EditableBlock>
-                    ))}
-                </div>
+                        </div>
+                    )}
 
-                <div className="t16-view-more">
-                    <span>↳</span>
-                    <span className="t16-vmr">VIEW MORE RESEARCH</span>
-                </div>
-            </section>
-
-            {/* ══ SECTION 3 — BIG STATEMENT ══ */}
-            <section id="t16-statement" className="t16-section" style={{ padding: '80px 32px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <EditableBlock id="about" className="t16-statement-text t16-reveal">
-                    {researchData.statement || (
+                    {showProjects && (
                         <>
-                            I reproduce landmark ML papers and scale
-                            them to production. Rigorous benchmarking,
-                            clean ablations, and reproducible code.{' '}
-                            <span className="t16-dim">Research without deployment
-                                is just theory. Theory without rigor
-                                isn't research at all.</span>
+                            <div className="t16-works-label-row">
+                                <div />
+                                <div className="t16-works-label">[RECENT RESEARCH]</div>
+                            </div>
+
+                            <div className="t16-project-grid">
+                                {dispProjects.map((p: any, i: number) => (
+                                    <EditableBlock key={i} id="projects">
+                                        <div className={`t16-project-card h-full t16-reveal t16-d${i + 1}`}>
+                                            <div className="t16-card-meta">
+                                                <span className="t16-card-tag">{(p.tags || ['ML', 'RESEARCH']).join(' · ')}</span>
+                                                <span className="t16-card-year">{p.year || '2024'}</span>
+                                                <span style={{ fontSize: '12px', color: '#7A7A7A' }}>↳</span>
+                                            </div>
+                                            <div className="t16-card-preview">
+                                                <div className="t16-preview-dark">
+                                                    <span className="t16-cmt"># {p.title || 'Research Project'}</span><br />
+                                                    <span className="t16-kw">model</span> = <span className="t16-str">"{role}"</span><br />
+                                                    <span className="t16-cmt">{'# ' + (p.description || '').slice(0, 60) + '...'}</span><br />
+                                                    <br />
+                                                    status: <span className="t16-fn">REPRODUCED</span><br />
+                                                    year: <span className="t16-num">{p.year || '2024'}</span><span className="t16-cursor"></span>
+                                                    <div className="t16-metric-line">{p.metric || '✓ Verified'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </EditableBlock>
+                                ))}
+                            </div>
+
+                            {projects && projects.length > 3 && (
+                                <div className="t16-view-more">
+                                    <span>↳</span>
+                                    <span className="t16-vmr">VIEW MORE RESEARCH</span>
+                                </div>
+                            )}
                         </>
                     )}
-                </EditableBlock>
+                </section>
+            )}
 
-                <EditableBlock id="resume" className="t16-stat-block t16-reveal t16-d2">
-                    <div className="t16-stat-num" data-target={papersReproduced}>0</div>
-                    <div className="t16-stat-label">Papers Reproduced</div>
-                </EditableBlock>
-            </section>
+            {/* ══ SECTION 3 — BIG STATEMENT ══ */}
+            {showResume && (
+                <section id="t16-statement" className="t16-section" style={{ padding: '80px 32px', minHeight: '100vh', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <EditableBlock id="about" className="t16-statement-text t16-reveal">
+                        {researchData.statement || (
+                            <>
+                                I reproduce landmark ML papers and scale
+                                them to production. Rigorous benchmarking,
+                                clean ablations, and reproducible code.{' '}
+                                <span className="t16-dim">Research without deployment
+                                    is just theory. Theory without rigor
+                                    isn't research at all.</span>
+                            </>
+                        )}
+                    </EditableBlock>
+
+                    <EditableBlock id="resume" className="t16-stat-block t16-reveal t16-d2">
+                        <div className="t16-stat-num" data-target={papersReproduced}>0</div>
+                        <div className="t16-stat-label">Papers Reproduced</div>
+                    </EditableBlock>
+                </section>
+            )}
 
             {/* ══ SECTION 4 — RIGOR ══ */}
             <section className="t16-value-section t16-section" id="t16-val-rigor">
@@ -732,94 +764,105 @@ export const Template16Inner: React.FC<PortfolioTemplateProps> = ({ userData, pr
             </section>
 
             {/* ══ SECTION 7 — METRICS ══ */}
-            <section id="t16-metrics" className="t16-section" style={{ background: '#EDECEA', padding: '80px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <EditableBlock id="resume" className="t16-metrics-statement t16-reveal">
-                    {papersReproduced} papers reproduced with verified accuracy.
-                    {modelsDeployed} models deployed to production. {reproductionAccuracy}% best-in-class
-                    reproduction fidelity. <span className="t16-dim">{conferenceSubmissions} conference
-                        submissions accepted. Research spanning foundational models,
-                        diffusion systems, and alignment.</span>
-                </EditableBlock>
+            {showResume && (
+                <section id="t16-metrics" className="t16-section" style={{ background: '#EDECEA', padding: '80px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                    <EditableBlock id="resume" className="t16-metrics-statement t16-reveal">
+                        {papersReproduced} papers reproduced with verified accuracy.
+                        {modelsDeployed} models deployed to production. {reproductionAccuracy}% best-in-class
+                        reproduction fidelity. <span className="t16-dim">{conferenceSubmissions} conference
+                            submissions accepted. Research spanning foundational models,
+                            diffusion systems, and alignment.</span>
+                    </EditableBlock>
 
-                <div className="t16-metrics-row">
-                    {[
-                        { target: papersReproduced, label: 'Papers\nReproduced', delay: 't16-d1' },
-                        { target: modelsDeployed, label: 'Models\nDeployed', delay: 't16-d2' },
-                        { target: reproductionAccuracy, suffix: '%', label: 'Best Accuracy\nReproduction', delay: 't16-d3' },
-                        { target: conferenceSubmissions, label: 'Conference\nSubmissions', delay: 't16-d4' },
-                    ].map((m, i) => (
-                        <EditableBlock key={i} id="resume" className={`t16-metric-cell t16-reveal ${m.delay}`}>
-                            <div className="t16-metric-big" data-target={m.target} data-suffix={m.suffix || ''}>0{m.suffix || ''}</div>
-                            <div className="t16-metric-caption">{m.label.split('\n').map((l, j) => <React.Fragment key={j}>{l}{j === 0 && <br />}</React.Fragment>)}</div>
-                        </EditableBlock>
-                    ))}
-                </div>
-            </section>
+                    <div className="t16-metrics-row">
+                        {[
+                            { target: papersReproduced, label: 'Papers\nReproduced', delay: 't16-d1' },
+                            { target: modelsDeployed, label: 'Models\nDeployed', delay: 't16-d2' },
+                            { target: reproductionAccuracy, suffix: '%', label: 'Best Accuracy\nReproduction', delay: 't16-d3' },
+                            { target: conferenceSubmissions, label: 'Conference\nSubmissions', delay: 't16-d4' },
+                        ].map((m, i) => (
+                            <EditableBlock key={i} id="resume" className={`t16-metric-cell t16-reveal ${m.delay}`}>
+                                <div className="t16-metric-big" data-target={m.target} data-suffix={m.suffix || ''}>0{m.suffix || ''}</div>
+                                <div className="t16-metric-caption">{m.label.split('\n').map((l, j) => <React.Fragment key={j}>{l}{j === 0 && <br />}</React.Fragment>)}</div>
+                            </EditableBlock>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* ══ SECTION 8 — STACK ══ */}
-            <section id="t16-stack" className="t16-section">
-                <EditableBlock id="skills" className="t16-stack-heading t16-reveal">
-                    The frameworks<br />that make it real.
-                </EditableBlock>
+            {showSkills && (
+                <section id="t16-stack" className="t16-section">
+                    <EditableBlock id="skills" className="t16-stack-heading t16-reveal">
+                        The frameworks<br />that make it real.
+                    </EditableBlock>
 
-                <div className="t16-stack-grid">
-                    {(skills.length >= 5 ? skills.slice(0, 5) : ['PyTorch', 'TensorFlow', 'JAX', 'Hugging Face', 'CUDA']).map((s: string, i: number) => (
-                        <EditableBlock key={i} id="skills">
-                            <div className="t16-stack-cell h-full">
-                                <div className="t16-stack-icon">{stackIcons[s] || '🔬'}</div>
-                                <div className="t16-stack-name">{s}</div>
-                            </div>
-                        </EditableBlock>
-                    ))}
-                </div>
-            </section>
+                    <div className="t16-stack-grid">
+                        {(skills.length >= 5 ? skills.slice(0, 5) : ['PyTorch', 'TensorFlow', 'JAX', 'Hugging Face', 'CUDA']).map((s: string, i: number) => (
+                            <EditableBlock key={i} id="skills">
+                                <div className="t16-stack-cell h-full">
+                                    <div className="t16-stack-icon">{stackIcons[s] || '🔬'}</div>
+                                    <div className="t16-stack-name">{s}</div>
+                                </div>
+                            </EditableBlock>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             {/* ══ SECTION 9 — CONTACT ══ */}
-            <section id="t16-contact" className="t16-section">
-                <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4, pointerEvents: 'none' }} viewBox="0 0 1280 720">
-                    <g id="t16-contact-radial-g"></g>
-                </svg>
+            {showContact && (
+                <section id="t16-contact" className="t16-section">
+                    <svg style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', opacity: 0.4, pointerEvents: 'none' }} viewBox="0 0 1280 720">
+                        <g id="t16-contact-radial-g"></g>
+                    </svg>
 
-                <div className="t16-nav-nodes">
-                    {([
-                        { label: 'OVERVIEW', href: '#t16-hero', x: 28, y: 22, color: '#4ECDB4' },
-                        { label: 'PAPERS', href: '#t16-about', x: 50, y: 16, color: undefined },
-                        { label: 'MODELS', href: '#t16-statement', x: 74, y: 22, color: undefined },
-                        { label: 'DATASETS', href: '#t16-stack', x: 28, y: 90, color: undefined },
-                        { label: 'RESULTS', href: '#t16-metrics', x: 74, y: 90, color: undefined },
-                    ] as { label: string; href: string; x: number; y: number; color?: string }[]).map((n) => (
-                        <a key={n.label} className="t16-nav-node" href={n.href}
-                            style={{ left: `${n.x}%`, top: `${n.y}%`, color: n.color }}
-                            onClick={(e) => { e.preventDefault(); document.querySelector(n.href)?.scrollIntoView({ behavior: 'smooth' }); }}
-                        >
-                            <span>{n.label}</span>
-                        </a>
-                    ))}
-                </div>
-
-                <div className="t16-contact-side-l" onClick={() => document.getElementById('t16-about')?.scrollIntoView({ behavior: 'smooth' })}>Read next</div>
-                <div className="t16-contact-side-r" onClick={() => document.getElementById('t16-hero')?.scrollIntoView({ behavior: 'smooth' })}>Back ↵</div>
-
-                <div className="t16-contact-card">
-                    <div className="t16-contact-card-title">
-                        Have a research<br />problem?<br />Let's solve it.
+                    <div className="t16-nav-nodes">
+                        {([
+                            showHero ? { label: 'OVERVIEW', href: '#t16-hero', x: 28, y: 22, color: '#4ECDB4' } : null,
+                            showProjects ? { label: 'PAPERS', href: '#t16-about', x: 50, y: 16, color: undefined } : null,
+                            showResume ? { label: 'MODELS', href: '#t16-statement', x: 74, y: 22, color: undefined } : null,
+                            showSkills ? { label: 'DATASETS', href: '#t16-stack', x: 28, y: 90, color: undefined } : null,
+                            showResume ? { label: 'RESULTS', href: '#t16-metrics', x: 74, y: 90, color: undefined } : null,
+                        ].filter(Boolean) as { label: string; href: string; x: number; y: number; color?: string }[]).map((n) => (
+                            <a key={n.label} className="t16-nav-node" href={n.href}
+                                style={{ left: `${n.x}%`, top: `${n.y}%`, color: n.color }}
+                                onClick={(e) => { e.preventDefault(); document.querySelector(n.href)?.scrollIntoView({ behavior: 'smooth' }); }}
+                            >
+                                <span>{n.label}</span>
+                            </a>
+                        ))}
                     </div>
 
-                    <div className="t16-contact-starburst">
-                        <svg width="100" height="100" viewBox="0 0 100 100">
-                            {buildStarburst(50, 50, 28, 12, 44, 6, '#4ECDB4', 't16-sb-mini')}
-                        </svg>
+                    <div className="t16-contact-side-l" onClick={() => document.getElementById('t16-about')?.scrollIntoView({ behavior: 'smooth' })}>Read next</div>
+                    <div className="t16-contact-side-r" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top</div>
+
+                    <EditableBlock id="contact">
+                        <div className="t16-contact-card t16-reveal">
+                            <div className="t16-contact-card-title">HAVE A RESEARCH<br />OBJECTIVE?</div>
+                            <div className="t16-contact-starburst">
+                                <svg width="100" height="100" viewBox="0 0 100 100">
+                                    {buildStarburst(50, 50, 48, 12, 44, 6, '#5B8DB8', 't16-sb-contact')}
+                                </svg>
+                            </div>
+                            <div className="t16-contact-card-sub">{role} / ML RESEARCH</div>
+                            <a href={`mailto:${email}`} className="t16-contact-card-btn">
+                                <span>↳ SEND INQUIRY</span>
+                                <span>→</span>
+                            </a>
+                        </div>
+                    </EditableBlock>
+
+                    <div className="t16-contact-bottom t16-reveal t16-d3">
+                        {showFooter && (
+                            <div className="mt-8 flex gap-4">
+                                <span>© {new Date().getFullYear()}</span>
+                                <span>Reproducible Research Engineering</span>
+                            </div>
+                        )}
                     </div>
-
-                    <div className="t16-contact-card-sub">TIME TO BUILD SOMETHING RIGOROUS.</div>
-                    <a href={`mailto:${email}`} className="t16-contact-card-btn">
-                        <span>↳</span>
-                        <span>START A PROJECT</span>
-                    </a>
-                </div>
-
-                <div className="t16-contact-bottom">OR EXPLORE ANOTHER TOPIC</div>
-            </section>
+                </section>
+            )}
         </div>
     );
 };
